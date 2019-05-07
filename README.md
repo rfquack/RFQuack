@@ -31,7 +31,7 @@ We assume you know what you're doing 🤓
   * [Frequency Synthesizer Calibration](#frequency-synthesizer-calibration)
 * [License (GPLv2)](#license)
 
-# Another RF-analysis Dongle? {#another-rf-analysis-dongle}
+# Another RF-analysis Dongle?
 Not really. RFQuack is midway between software-defined radios (SDRs), which offer great
 flexibility at the price of a fatter code base, and RF dongles, which offer
 great speed and a plug-and-play experience at the price of less flexibility
@@ -51,10 +51,10 @@ looking at you, CC1120 in 4-FSK mode 🤬), with RFQuack you just swap the radio
 shield and you can just start working right away. And if we don't support that
 special radio chip, you can just craft your shield and add support to the software!
 
-# Quick Start Usage {#quick-start-usage}
+# Quick Start Usage
 RFQuack is quite experimental, expect glitches and imperfections. So far we're quite happy with it, and used it successfully to analyze some industrial radio protocols (read the [Trend Micro Research white paper](https://www.trendmicro.com/vinfo/us/security/news/vulnerabilities-and-exploits/attacks-against-industrial-machines-via-vulnerable-radio-remote-controllers-security-analysis-and-recommendations) or the [DIMVA 2019 paper](https://www.dimva2019.org) for details).
 
-## Prepare Your Hardware {#prepare-your-hardware}
+## Prepare Your Hardware
 * choose radio chip and the board you want to use among the supported ones: we tested it with the CC1120 and RFM69HCW on ESP8266-based boards (namely the Adafruit Feather HUZZAH and the WEMOS D1 Lite);
 * assemble the board and the radio chip together: if you choose the Adafruit Feather system, all you have to do is stack the Feather HUZZAH and the Radio FeatherWing together, and do some minor soldering;
 * connect the board to the USB port.
@@ -70,7 +70,7 @@ You could play around with other combinations, of course. And if you feel genero
 
 ![RFQuack Boards](docs/imgs/hardware.jpg)
 
-## Prepare Your Software {#prepare-your-software}
+## Prepare Your Software
 RFQuack comes in the form of a firmware *library*, which means that you need to write your own "main" to define a minimum set of parameters. Don't worry, there's not much to write in there, and we provide a [few working examples](https://github.com/trendmicro/RFQuack/blob/master/examples/).
 
 * checkout this repository: `git clone https://github.com/trendmicro/RFQuack`
@@ -94,7 +94,7 @@ RFQuack comes in the form of a firmware *library*, which means that you need to 
       * your range is limited by the length of your USB cable (you don't say! 😮)
 * configure the firmware: best if you use one of the proposed examples
 
-## Build and Test {#build-and-test}
+## Build and Test
 * if you're using the MQTT transport, fire up the MQTT broker (hint: use `mosquitto -v` so you'll see debug messages)
 * choose one of the examples or build your own
 * `make && sleep 1 && make upload && sleep 1`
@@ -130,7 +130,7 @@ $ make monitor  # or pio device monitor --port <YOUR SERIAL MONITOR PORT> --baud
 [RFQ]       3258 T: Transport is sending 26 bytes on topic rfquack/out/status
 ```
 
-# Interact with the RFQuack Hardware {#interact-with-the-rfquack-hardware}
+# Interact with the RFQuack Hardware
 Now you can use RFQuack via the IPython shell. We highly recommend tmux to keep an eye on the output log.
 
 ![RFQuack Console](docs/imgs/console1.png)
@@ -222,7 +222,7 @@ The last message (i.e., on the `rfquack/out/status` topic) is automatically sent
 
 At this point you're good to go from here!
 
-# Architecture {#architecture}
+# Architecture
 
 ![RFQuack Architecture](docs/imgs/RFQuack%20Architecture.png)
 
@@ -238,12 +238,12 @@ The communication layers are organized as follows:
 * The serialized messages are transported over MQTT (which allows multi-node and multi-client scenarios) or serial (when you need minimal latency).
 * The connectivity layer is just a thin abstraction over various cellular modems and the Arduino/ESP WiFi (or simply serial).
 
-# Main Functionalities {#main-functionalities}
+# Main Functionalities
 RFQuack is meant to be as generic as possible. What's not directly abstracted with an function call can be accomplished by setting the registers via the `set_register` function. In the following, we explore the main functionalities through some examples.
 
 When you fire up the Python shell, you can interact with the API through the `q` object. If unsure which parameters a function can take please check the `src/rfquack.proto` protocol definition. Since we're using reflection, IPython can't offer completion here (if you know a way to have completion on dynamic attributes, please let us know!).
 
-## Modem Configuration {#modem-configuration}
+## Modem Configuration
 RFQuack's radio sub-system is based on [RadioHAL](https://github.com/trendmicro/RadioHAL/) (our GPLv2 fork of RadioHead), so for most aspects you can refer to the RadioHead documentation. The key difference between RadioHead and RadioHAL is that RadioHAL does not make any assumption on the packet format: it just gives you straight access to the payload. This is true for RFM69 and CC1120 (newly added!), while we're still in the process of removing payload parsing routines from the drivers of the other radio chips supported by RadioHead.
 
 Not all radio modules support modem configuration. Sub-gigahertz modems usually do. The `q.set_modem_config()` function takes the following parameters:
@@ -253,12 +253,12 @@ Not all radio modules support modem configuration. Sub-gigahertz modems usually 
 * `syncWords`: sync-word matching is a basic functionality of most packet-radio modules, which allow to efficiently filter packets that match the sync words and just ignore the rest, in order to keep the radio chip and the MCU busy only when an expected packet is received; depending on the radio module, the sync words can be set to zero (promiscuous mode) or up to a certain number of octects (e.g., 4); in promiscuous mode, the radio and MCU will be *very* busy, because they will pick up *everything*, including noise.
 * `carrierFreq`: this is the carrier frequency, easy; make sure you comply to the radio module you chosen.
 
-## Transmit and Receive {#transmit-and-receive}
+## Transmit and Receive
 The `q.tx()` and `q.rx()` functions are self-explanatory: they set the module in transmit and receive mode, respectively. To actually transmit data, you can use `q.set_packet(data, repeatitions)`, where data must be a list of raw octect values (e.g., `'\x43\x42'`) as well as a list of ASCII symbols (e.g., `'ABC'`); there's a limit in the length, which is imposed by the radio module, so make sure you check the documentation.
 
 By default, a packet is transmitted only once. If you want to repeat it, just set `repetitions` to whatever you want, and RFQuack will repeat the transmission as fast as possible (bound by the MCU clock, of course).
 
-## Register Access {#register-access}
+## Register Access
 While RadioHead (and thus its fork RadioHAL) has gone very far in abstracting the interaction with the radio, some radio chips are really "unique," so to speak. In these cases, the only option is to grab a large cup of your favorite beverage, read through the datasheet, read again, again, and again.
 
 Once you understand enough of how the radio works at the low level, you want to get-set registers in order to use it. In principle, you can do pretty much everything via registers.
@@ -274,7 +274,7 @@ Note that every call to `q.set_modem_config()` will **reset the modem including 
 
 We noticed some timing issues with some radio chips. So, allow a small delay if you're setting many registers in a row (e.g., `for addr, value in regs: q.set_register(addr, value); time.sleep(0.2)`).
 
-## Packet Filtering and Manipulation {#packet-filtering-and-manipulation}
+## Packet Filtering and Manipulation
 One of the main reasons why we created RFQuack is that we wanted to automate certain tasks in a flexible and fast way. For instance, we were building a PoC for a vulnerability in a radio protocol that, with a change in two bytes of the payload, the vulnerable receiver would execute another command. So, all we had to do was: stay in RX mode, wait for a packet matching a pattern, alter it, and re-transmit it.
 
 Most of this could be done with an SDR or with a RF-dongle and RFCat, but in both cases you'd have to "pay" the round-trip time from the radio, to the client, and back. For certain protocols, this timing is not acceptable. RFQuack's firmware implements this functionality natively, and exposes a simple API to configure packet filtering and manipulation.
@@ -331,7 +331,7 @@ Looking at the full picture, here's the full journey of a packet within RFQuack.
 
 ![RFQuack Full Architecture](docs/imgs/RFQuack%20Full%20Architecture.png)
 
-## Frequency Synthesizer Calibration {#frequency-synthesizer-calibration}
+## Frequency Synthesizer Calibration
 Recall that radio chips may have internal calibration routines (manual or
 automatic) for the frequency synthesizer, which outcome may vary slightly.
 Temperature is another factor that may slightly influence the actual carrier
