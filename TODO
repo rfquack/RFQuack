@@ -1,0 +1,15 @@
+[] check which consts could be stored in PROGMEM
+[] disable wifi in standalone
+[] test with SDR replay
+[] the shell could send modem configs in batch (not 1 register at a time)
+[] make a Dockerfile for the builder machine
+[*] test speed with minimal debugging output
+[*] test the attack against the vendor
+[*] test packet manipulator
+[*] timestamp all received packets with millis()
+[*] test serial transport
+[*] test that serial transport is robust with those prefix/suffix and that weird chars don't happen to clash
+[*] handle connection lost
+[*] change all topic structure to make it more modular
+[*] test new MQTT topics - e.g., setting register doesn't work
+[*] test packet filter

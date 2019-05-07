@@ -1,0 +1,62 @@
+{
+    "name": "RFQuack",
+    "version": "0.0.1",
+    "description": "RFQuack is a versatile RF-analysis tool that allows you to sniff, analyze, and transmit data over the air. Similarly to RFCat, RFQuack has a Python-based scriptable shell that allows you to set parameters, receive, transmit, and so on.",
+    "keywords": "RF, Radio, GSM, RFM69, CC1120",
+    "authors":
+    [
+        {
+            "name":  "Federico Maggi",
+            "url":   "https://github.com/phretor",
+            "maintainer": true
+        },
+        {
+            "name":  "Trend Micro Incorporated",
+            "url":   "https://github.com/trendmicro",
+            "maintainer": true
+        }
+    ],
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/trendmicro/RFQuack.git"
+    },
+    "homepage": "https://github.com/trendmicro/RFQuack",
+    "export": {
+        "include": [
+            "src/*"
+        ]
+    },
+    "frameworks": [ "arduino" ],
+    "platforms": "*",
+    "dependencies": [
+        {
+            "name": "Nanopb",
+            "version": "https://github.com/nanopb/nanopb.git#0.3.9.2"
+        },
+        {
+            "name": "TinyGSM",
+            "version": "~0.6.0"
+        },
+        {
+            "name": "MQTT",
+            "version": "2.3.3"
+        },
+        {
+            "name": "Queue",
+            "version": "~1.6"
+        },
+        {
+            "name": "ArduinoLog",
+            "version": "~1.0.3"
+        },
+        {
+            "name": "RadioHAL",
+            "version": "~0.0.1"
+        },
+				{
+						"name": "Base64",
+						"version": "https://github.com/phretor/Base64"
+				}
+    ]
+}
