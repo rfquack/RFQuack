@@ -135,6 +135,7 @@ Now you can use RFQuack via the IPython shell. We highly recommend tmux to keep 
 
 ![RFQuack Console](docs/imgs/console1.png)
 ![RFQuack Console](docs/imgs/console2.png)
+
 ```bash
 $ python src/client/rfq.py --help                      
 Usage: rfq.py [OPTIONS] COMMAND [ARGS]...                                
@@ -177,7 +178,7 @@ Options:
 
 More concretely:
 
-```python
+```
 $ python src/client/rfq.py mqtt -H localhost -P 1884
 2019-04-10 18:04:31 local RFQuack[20877] INFO Transport initialized
 2019-04-10 18:04:31 local RFQuack[20877] DEBUG Setting mode to IDLE
