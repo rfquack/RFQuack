@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ![RFQuack Logo](docs/imgs/logo.png)
 
 RFQuack is the versatile RF-analysis tool that quacks! It's a library firmware
