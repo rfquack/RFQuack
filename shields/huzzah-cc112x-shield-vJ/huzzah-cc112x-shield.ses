@@ -1,0 +1,245 @@
+
+(session "huzzah-cc112x-shield.ses"
+  (base_design "huzzah-cc112x-shield.dsn")
+  (placement
+    (resolution um 10)
+    (component Module:Adafruit_HUZZAH_ESP8266_breakout_WithMountingHoles
+      (place A1 1450000 -965000 front 0)
+    )
+    (component "Connector_Coaxial:SMA_Amphenol_901-144_Vertical"
+      (place AE1 1555000 -945000 front 0)
+    )
+    (component "VChip:VT-CC112x-433M"
+      (place U1 1477000 -1226000 front 90)
+    )
+  )
+  (was_is
+  )
+  (routes 
+    (resolution um 10)
+    (parser
+      (host_cad "KiCad's Pcbnew")
+      (host_version "(5.1.2-1)-1")
+    )
+    (library_out 
+      (padstack "Via[0-1]_800:400_um"
+        (shape
+          (circle F.Cu 8000 0 0)
+        )
+        (shape
+          (circle B.Cu 8000 0 0)
+        )
+        (attach off)
+      )
+    )
+    (network_out 
+      (net /ISR
+        (via "Via[0-1]_800:400_um" 1557000 -1138000
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1557000 -1138000
+            1485600 -1066600
+          )
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1485600 -1066600
+            1450000 -1066600
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1627600 -1184000
+            1603000 -1184000
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1603000 -1184000
+            1557000 -1138000
+          )
+          (type protect)
+        )
+      )
+      (net /RST
+        (wire
+          (path B.Cu 2500
+            1589000 -1192000
+            1589000 -1191230
+          )
+        )
+        (via "Via[0-1]_800:400_um" 1589000 -1192000
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1627600 -1214000
+            1611000 -1214000
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1611000 -1214000
+            1589000 -1192000
+          )
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1653200 -1066600
+            1594400 -1066600
+            1589000 -1072000
+            1589000 -1191230
+          )
+          (type protect)
+        )
+      )
+      (net "Net-(A1-Pad6)"
+        (wire
+          (path F.Cu 2500
+            1573000 -1124000
+            1541000 -1092000
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1541000 -1092000
+            1450000 -1092000
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1627600 -1124000
+            1573000 -1124000
+          )
+          (type protect)
+        )
+      )
+      (net /3V3
+        (via "Via[0-1]_800:400_um" 1606000 -1103000
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1606000 -1103000
+            1613400 -1103000
+          )
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1613400 -1103000
+            1640200 -1129800
+          )
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1640200 -1129800
+            1640200 -1130800
+          )
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1640200 -1130800
+            1652200 -1142800
+          )
+          (type protect)
+        )
+        (wire
+          (path B.Cu 2500
+            1652200 -1142800
+            1653200 -1142800
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1627600 -1079000
+            1622600 -1079000
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1622600 -1079000
+            1606000 -1095600
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1606000 -1095600
+            1606000 -1103000
+          )
+          (type protect)
+        )
+      )
+      (net GND
+        (wire
+          (path B.Cu 2500
+            1600883 -1116744
+            1624675 -1151292
+            1639792 -1173763
+            1647501 -1184799
+            1653200 -1193600
+          )
+        )
+        (via "Via[0-1]_800:400_um" 1600883 -1116744
+        )
+        (wire
+          (path F.Cu 2500
+            1627600 -1109000
+            1623193 -1110409
+            1600883 -1116744
+          )
+        )
+        (wire
+          (path F.Cu 2500
+            1477000 -1213300
+            1450000 -1193600
+          )
+        )
+      )
+      (net "Net-(AE1-Pad1)"
+        (wire
+          (path F.Cu 2500
+            1627600 -1033400
+            1614060 -1033400
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1614060 -1033400
+            1555000 -974340
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1555000 -974340
+            1555000 -959496
+          )
+          (type protect)
+        )
+        (wire
+          (path F.Cu 2500
+            1555000 -959496
+            1555000 -945000
+          )
+          (type protect)
+        )
+      )
+    )
+  )
+)

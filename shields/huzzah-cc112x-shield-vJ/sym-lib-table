@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name VChip)(type Legacy)(uri ${KIPRJMOD}/VChip.lib)(options "")(descr ""))
+)
