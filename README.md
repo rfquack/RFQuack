@@ -16,6 +16,10 @@ We assume you know what you're doing 🤓
 
 ![RFQuack Demo](docs/imgs/rfquack-serial-wifi.gif)
 
+# Community
+* Slack team: https://join-rfquack-slack.herokuapp.com
+* Twitter: https://twitter.com/rfquack
+
 # Table of Contents
 * [Another RF-analysis Dongle?](#another-rf-analysis-dongle)
 * [Quick Start Usage](#quick-start-usage)
