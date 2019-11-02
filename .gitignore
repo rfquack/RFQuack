@@ -48,3 +48,4 @@ src/*.pb.h
 # Secrets
 src/client/configs/*
 **/*credentials*
+!**/*credentials*.example
