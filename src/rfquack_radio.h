@@ -33,10 +33,6 @@
 /*****************************************************************************
  * Variables
  *****************************************************************************/
-/* TX and RX queues */
-Queue rfquack_tx_q(sizeof(rfquack_Packet), RFQUACK_RADIO_TX_QUEUE_LEN, FIFO,
-                   true);
-
 Queue rfquack_rx_q(sizeof(rfquack_Packet), RFQUACK_RADIO_RX_QUEUE_LEN, FIFO,
                    true);
 
@@ -48,11 +44,19 @@ RFQRadio rfquack_rf(RFQUACK_RADIO_PIN_CS, RFQUACK_RADIO_PIN_RST,
  * @brief Changes the radio state in the radio driver.
  */
 void rfquack_update_mode() {
-  if (rfq.mode == rfquack_Mode_IDLE)
+  if (rfq.mode == rfquack_Mode_IDLE) {
     rfquack_rf.setModeIdle();
+#ifdef RFQUACK_LOG_ENABLED
+    Log.trace("Radio in IDLE mode");
+#endif
+  }
 
-  if (rfq.mode == rfquack_Mode_REPEAT || rfq.mode == rfquack_Mode_RX)
+  if (rfq.mode == rfquack_Mode_REPEAT || rfq.mode == rfquack_Mode_RX) {
     rfquack_rf.setModeRx();
+#ifdef RFQUACK_LOG_ENABLED
+    Log.trace("Radio in RX mode");
+#endif
+  }
 
   // never set TX mode, it happens automatically
 }
@@ -79,11 +83,12 @@ void rfquack_update_frequency() {
  * @brief Changes TX power in the radio driver
  */
 void rfquack_update_tx_power() {
-    rfquack_rf.setTxPower(rfq.modemConfig.txPower
+  rfquack_rf.setTxPower(rfq.modemConfig.txPower
 #ifdef RFQUACK_RADIO_SET_HIGHPOWER
-        ,rfq.modemConfig.isHighPowerModule
+                        ,
+                        rfq.modemConfig.isHighPowerModule
 #endif
-        );
+  );
 }
 
 /**
@@ -145,7 +150,7 @@ void rfquack_radio_setup() {
 #endif
 
 #ifdef RFQUACK_RADIO_SET_RF
-    // TODO NRF24/51/73 call .setRF(datarate, power)
+  // TODO NRF24/51/73 call .setRF(datarate, power)
 #endif
 
 #ifdef RFQUACK_RADIO_HAS_MODEM_CONFIG
@@ -169,7 +174,6 @@ void rfquack_radio_setup() {
  * @brief Update queue statistics.
  */
 void rfquack_update_radio_stats() {
-  rfq.stats.tx_queue = rfquack_tx_q.getCount();
   rfq.stats.rx_queue = rfquack_rx_q.getCount();
 }
 
@@ -209,49 +213,40 @@ bool rfquack_enqueue_packet(Queue *q, rfquack_Packet *pkt) {
  * Fill a packet buffer with data up to the lenght, set its size to len, and
  * enqueue it on the TX queue for transmission.
  *
- * @param data Pointer to a buffer containing the bytes to be transmitted
- * @param len Number of bytes to copy from the buffer and transmit
- * @param repeat Transmission repetitions (0, default, means no transmissions)
+ * @param pkt Pointer to a Packet struct
  *
- * @return Number of packets enqueued correctly.
+ * @return Wether the transmission was correct
  */
-uint32_t rfquack_send_packet(uint8_t *data, uint32_t len, uint32_t repeat) {
-  if (repeat == 0)
-    return 0;
-
-  if (len < RFQUACK_RADIO_MIN_MSG_LEN || len > RFQUACK_RADIO_MAX_MSG_LEN) {
-    Log.error("Payload length must be within %d and %d bytes",
-              RFQUACK_RADIO_MIN_MSG_LEN, RFQUACK_RADIO_MAX_MSG_LEN);
-    return 0;
+bool rfquack_send_packet(rfquack_Packet *pkt) {
+  if (pkt->has_repeat && pkt->repeat == 0) {
+    Log.verbose("Zero packet repeat: no transmission");
+    return false;
   }
 
+  if (pkt->data.size < RFQUACK_RADIO_MIN_MSG_LEN ||
+      pkt->data.size > RFQUACK_RADIO_MAX_MSG_LEN) {
+    Log.error("Payload length must be within %d and %d bytes",
+              RFQUACK_RADIO_MIN_MSG_LEN, RFQUACK_RADIO_MAX_MSG_LEN);
+    return false;
+  }
+
+  uint32_t repeat = 1;
   uint32_t correct = 0;
 
-  rfquack_Packet pkt;
-  memcpy(pkt.data.bytes, data, len);
-  pkt.data.size = len;
-  pkt.millis = millis();
-  pkt.has_millis = true;
+  if (pkt->has_repeat)
+    repeat = pkt->repeat;
 
-  for (uint32_t i = 0; i < repeat; i++)
-    correct += (uint32_t)rfquack_enqueue_packet(&rfquack_tx_q, &pkt);
+  for (uint32_t i = 0; i < repeat; i++) {
+    if(rfquack_rf.send((uint8_t *)(pkt->data.bytes), pkt->data.size))
+      correct++;
 
-  return correct;
-}
+    if (pkt->has_delayMs)
+      delay(pkt->delayMs);
+  }
 
-/**
- * @brief Transmit a packet in the air.
- *
- * Fill a packet buffer with data up to the lenght, set its size to len, and
- * enqueue it on the TX queue for transmission.
- *
- * @param data Pointer to a buffer containing the bytes to be transmitted
- * @param len Number of bytes to copy from the buffer and transmit
- *
- * @return True only if the data has been enqueued correctly.
- */
-bool rfquack_send_packet(uint8_t *data, uint32_t len) {
-  return rfquack_send_packet(data, len, 1) != 1;
+  Log.verbose("%d/%d packets transmitted", repeat, correct);
+
+  return true;
 }
 
 /**
@@ -269,8 +264,11 @@ void rfquack_rx_flush_loop() {
       // apply all packet modifications
       rfquack_apply_packet_modifications(&pkt);
 
+      pkt.has_repeat = true;
+      pkt.repeat = rfq.tx_repeat_default;
+
       // send
-      rfquack_send_packet(pkt.data.bytes, pkt.data.size, rfq.tx_repeat_default);
+      rfquack_send_packet(&pkt);
 
       return;
     }
@@ -282,29 +280,14 @@ void rfquack_rx_flush_loop() {
       Log.error("Encoding failed: %s", PB_GET_ERROR(&ostream));
     } else {
       if (!rfquack_transport_send(
-            RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET, buf,
-            ostream.bytes_written))
+              RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET, buf,
+              ostream.bytes_written))
         Log.error("Failed sending to transport");
       else
         Log.verbose("%d bytes of data sent on the transport",
-            ostream.bytes_written);
+                    ostream.bytes_written);
     }
   }
-}
-
-/*
- * If any packets are in TX queue, send one of them.
- *
- * TODO decide if we just send them all in burst
- */
-void rfquack_tx_flush_loop() {
-  rfquack_Packet pkt;
-
-  while (rfquack_tx_q.pop(&pkt))
-    if (!rfquack_rf.send(pkt.data.bytes, pkt.data.size))
-      Log.error("Cannot TX: radio driver failure");
-    else
-      rfq.stats.tx_packets++;
 }
 
 /**
@@ -386,6 +369,32 @@ uint8_t rfquack_write_register(rfquack_register_address_t reg,
   return rfquack_rf.spiWrite(reg, value);
 }
 
+/**
+ * @brief Sets the packet format (fixed or variable), and its length.
+ *
+ */
+static void rfquack_set_packet_format(char *payload, int payload_length) {
+  // init
+  rfquack_PacketFormat fmt;
+
+  // create stream from buffer
+  pb_istream_t istream =
+      pb_istream_from_buffer((uint8_t *)payload, payload_length);
+
+  if (!pb_decode(&istream, rfquack_PacketFormat_fields, &fmt)) {
+    Log.error("Cannot decode PacketFormat: %s", PB_GET_ERROR(&istream));
+
+    return;
+  }
+
+#ifdef RFQUACK_LOG_ENABLED
+  Log.trace("Setting packet format: fixed = %d, len = %d", fmt.fixed,
+            (uint8_t)fmt.len);
+#endif
+
+  rfquack_rf.setPacketFormat(fmt.fixed, (uint8_t)fmt.len);
+}
+
 /*
  * Change TX power
  */
@@ -399,6 +408,10 @@ void rfquack_change_tx_power(uint32_t txPower) {
   rfquack_update_tx_power();
 }
 
+void rfquack_set_promiscuous(bool promiscuous) {
+  rfquack_rf.setPromiscuous(promiscuous);
+}
+
 /*
  * Change sync words
  */
@@ -407,6 +420,7 @@ void rfquack_change_sync_words(rfquack_ModemConfig_syncWords_t syncWords) {
   if (syncWords.size == 0) {
     rfq.modemConfig.syncWords.size = 0;
     Log.trace("Disabling sync words detection");
+    rfquack_update_sync_words();
     return;
   } else {
     if (syncWords.size > RFQUACK_MAX_SYNC_WORDS_LEN ||
