@@ -21,7 +21,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='rfquack',
   syntax='proto2',
   serialized_options=None,
-  serialized_pb=_b('\n\rrfquack.proto\x12\x07rfquack\"}\n\x05Stats\x12\x12\n\nrx_packets\x18\x01 \x02(\r\x12\x12\n\ntx_packets\x18\x02 \x02(\r\x12\x13\n\x0brx_failures\x18\x03 \x02(\r\x12\x13\n\x0btx_failures\x18\x04 \x02(\r\x12\x10\n\x08tx_queue\x18\x05 \x02(\r\x12\x10\n\x08rx_queue\x18\x06 \x02(\r\"\x96\x01\n\x0bModemConfig\x12\x13\n\x0b\x63\x61rrierFreq\x18\x01 \x01(\x02\x12\x0f\n\x07txPower\x18\x02 \x01(\r\x12\x19\n\x11isHighPowerModule\x18\x03 \x01(\x08\x12\x13\n\x0bpreambleLen\x18\x04 \x01(\r\x12\x11\n\tsyncWords\x18\x05 \x01(\x0c\x12\x1e\n\x16modemConfigChoiceIndex\x18\x06 \x01(\r\"\x8d\x01\n\x06Status\x12\x1d\n\x05stats\x18\x01 \x01(\x0b\x32\x0e.rfquack.Stats\x12\x1b\n\x04mode\x18\x02 \x01(\x0e\x32\r.rfquack.Mode\x12)\n\x0bmodemConfig\x18\x03 \x01(\x0b\x32\x14.rfquack.ModemConfig\x12\x1c\n\x11tx_repeat_default\x18\x04 \x02(\r:\x01\x30\"G\n\x06Packet\x12\x0c\n\x04\x64\x61ta\x18\x01 \x02(\x0c\x12\x0e\n\x06millis\x18\x02 \x01(\x04\x12\x0e\n\x06repeat\x18\x03 \x01(\r\x12\x0f\n\x07\x64\x65layMs\x18\x04 \x01(\x04\";\n\x07Packets\x12\x1f\n\x06packet\x18\x01 \x03(\x0b\x32\x0f.rfquack.Packet\x12\x0f\n\x07\x64\x65layMs\x18\x02 \x01(\x04\"*\n\x08Register\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\r\x12\r\n\x05value\x18\x02 \x01(\r\"2\n\tRegisters\x12%\n\tregisters\x18\x01 \x03(\x0b\x32\x12.rfquack.Registers\"\xcc\x01\n\x12PacketModification\x12\x10\n\x08position\x18\x01 \x01(\r\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\r\x12\x31\n\toperation\x18\x03 \x01(\x0e\x32\x1e.rfquack.PacketModification.Op\x12\x0f\n\x07operand\x18\x04 \x01(\r\x12\x0f\n\x07pattern\x18\x05 \x01(\t\">\n\x02Op\x12\x07\n\x03\x41ND\x10\x01\x12\x06\n\x02OR\x10\x02\x12\x07\n\x03XOR\x10\x03\x12\x07\n\x03NOT\x10\x04\x12\t\n\x05SLEFT\x10\x05\x12\n\n\x06SRIGHT\x10\x06\"\x1f\n\x0cPacketFilter\x12\x0f\n\x07pattern\x18\x01 \x02(\t*,\n\x04Mode\x12\x06\n\x02RX\x10\x01\x12\x06\n\x02TX\x10\x02\x12\n\n\x06REPEAT\x10\x03\x12\x08\n\x04IDLE\x10\x04')
+  serialized_pb=_b('\n\rrfquack.proto\x12\x07rfquack\"}\n\x05Stats\x12\x12\n\nrx_packets\x18\x01 \x02(\r\x12\x12\n\ntx_packets\x18\x02 \x02(\r\x12\x13\n\x0brx_failures\x18\x03 \x02(\r\x12\x13\n\x0btx_failures\x18\x04 \x02(\r\x12\x10\n\x08tx_queue\x18\x05 \x02(\r\x12\x10\n\x08rx_queue\x18\x06 \x02(\r\"\x96\x01\n\x0bModemConfig\x12\x13\n\x0b\x63\x61rrierFreq\x18\x01 \x01(\x02\x12\x0f\n\x07txPower\x18\x02 \x01(\r\x12\x19\n\x11isHighPowerModule\x18\x03 \x01(\x08\x12\x13\n\x0bpreambleLen\x18\x04 \x01(\r\x12\x11\n\tsyncWords\x18\x05 \x01(\x0c\x12\x1e\n\x16modemConfigChoiceIndex\x18\x06 \x01(\r\"\x8d\x01\n\x06Status\x12\x1d\n\x05stats\x18\x01 \x01(\x0b\x32\x0e.rfquack.Stats\x12\x1b\n\x04mode\x18\x02 \x01(\x0e\x32\r.rfquack.Mode\x12)\n\x0bmodemConfig\x18\x03 \x01(\x0b\x32\x14.rfquack.ModemConfig\x12\x1c\n\x11tx_repeat_default\x18\x04 \x02(\r:\x01\x30\"G\n\x06Packet\x12\x0c\n\x04\x64\x61ta\x18\x01 \x02(\x0c\x12\x0e\n\x06millis\x18\x02 \x01(\x04\x12\x0e\n\x06repeat\x18\x03 \x01(\r\x12\x0f\n\x07\x64\x65layMs\x18\x04 \x01(\x04\";\n\x07Packets\x12\x1f\n\x06packet\x18\x01 \x03(\x0b\x32\x0f.rfquack.Packet\x12\x0f\n\x07\x64\x65layMs\x18\x02 \x01(\x04\"*\n\x08Register\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\r\x12\r\n\x05value\x18\x02 \x01(\r\"2\n\tRegisters\x12%\n\tregisters\x18\x01 \x03(\x0b\x32\x12.rfquack.Registers\"\xcc\x01\n\x12PacketModification\x12\x10\n\x08position\x18\x01 \x01(\r\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\r\x12\x31\n\toperation\x18\x03 \x01(\x0e\x32\x1e.rfquack.PacketModification.Op\x12\x0f\n\x07operand\x18\x04 \x01(\r\x12\x0f\n\x07pattern\x18\x05 \x01(\t\">\n\x02Op\x12\x07\n\x03\x41ND\x10\x01\x12\x06\n\x02OR\x10\x02\x12\x07\n\x03XOR\x10\x03\x12\x07\n\x03NOT\x10\x04\x12\t\n\x05SLEFT\x10\x05\x12\n\n\x06SRIGHT\x10\x06\"\x1f\n\x0cPacketFilter\x12\x0f\n\x07pattern\x18\x01 \x02(\t\"*\n\x0cPacketFormat\x12\r\n\x05\x66ixed\x18\x01 \x02(\x08\x12\x0b\n\x03len\x18\x02 \x02(\r*,\n\x04Mode\x12\x06\n\x02RX\x10\x01\x12\x06\n\x02TX\x10\x02\x12\n\n\x06REPEAT\x10\x03\x12\x08\n\x04IDLE\x10\x04')
 )
 
 _MODE = _descriptor.EnumDescriptor(
@@ -49,8 +49,8 @@ _MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=920,
-  serialized_end=964,
+  serialized_start=964,
+  serialized_end=1008,
 )
 _sym_db.RegisterEnumDescriptor(_MODE)
 
@@ -533,6 +533,44 @@ _PACKETFILTER = _descriptor.Descriptor(
   serialized_end=918,
 )
 
+
+_PACKETFORMAT = _descriptor.Descriptor(
+  name='PacketFormat',
+  full_name='rfquack.PacketFormat',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='fixed', full_name='rfquack.PacketFormat.fixed', index=0,
+      number=1, type=8, cpp_type=7, label=2,
+      has_default_value=False, default_value=False,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='len', full_name='rfquack.PacketFormat.len', index=1,
+      number=2, type=13, cpp_type=3, label=2,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto2',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=920,
+  serialized_end=962,
+)
+
 _STATUS.fields_by_name['stats'].message_type = _STATS
 _STATUS.fields_by_name['mode'].enum_type = _MODE
 _STATUS.fields_by_name['modemConfig'].message_type = _MODEMCONFIG
@@ -549,71 +587,79 @@ DESCRIPTOR.message_types_by_name['Register'] = _REGISTER
 DESCRIPTOR.message_types_by_name['Registers'] = _REGISTERS
 DESCRIPTOR.message_types_by_name['PacketModification'] = _PACKETMODIFICATION
 DESCRIPTOR.message_types_by_name['PacketFilter'] = _PACKETFILTER
+DESCRIPTOR.message_types_by_name['PacketFormat'] = _PACKETFORMAT
 DESCRIPTOR.enum_types_by_name['Mode'] = _MODE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Stats = _reflection.GeneratedProtocolMessageType('Stats', (_message.Message,), dict(
-  DESCRIPTOR = _STATS,
-  __module__ = 'rfquack_pb2'
+Stats = _reflection.GeneratedProtocolMessageType('Stats', (_message.Message,), {
+  'DESCRIPTOR' : _STATS,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.Stats)
-  ))
+  })
 _sym_db.RegisterMessage(Stats)
 
-ModemConfig = _reflection.GeneratedProtocolMessageType('ModemConfig', (_message.Message,), dict(
-  DESCRIPTOR = _MODEMCONFIG,
-  __module__ = 'rfquack_pb2'
+ModemConfig = _reflection.GeneratedProtocolMessageType('ModemConfig', (_message.Message,), {
+  'DESCRIPTOR' : _MODEMCONFIG,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.ModemConfig)
-  ))
+  })
 _sym_db.RegisterMessage(ModemConfig)
 
-Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), dict(
-  DESCRIPTOR = _STATUS,
-  __module__ = 'rfquack_pb2'
+Status = _reflection.GeneratedProtocolMessageType('Status', (_message.Message,), {
+  'DESCRIPTOR' : _STATUS,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.Status)
-  ))
+  })
 _sym_db.RegisterMessage(Status)
 
-Packet = _reflection.GeneratedProtocolMessageType('Packet', (_message.Message,), dict(
-  DESCRIPTOR = _PACKET,
-  __module__ = 'rfquack_pb2'
+Packet = _reflection.GeneratedProtocolMessageType('Packet', (_message.Message,), {
+  'DESCRIPTOR' : _PACKET,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.Packet)
-  ))
+  })
 _sym_db.RegisterMessage(Packet)
 
-Packets = _reflection.GeneratedProtocolMessageType('Packets', (_message.Message,), dict(
-  DESCRIPTOR = _PACKETS,
-  __module__ = 'rfquack_pb2'
+Packets = _reflection.GeneratedProtocolMessageType('Packets', (_message.Message,), {
+  'DESCRIPTOR' : _PACKETS,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.Packets)
-  ))
+  })
 _sym_db.RegisterMessage(Packets)
 
-Register = _reflection.GeneratedProtocolMessageType('Register', (_message.Message,), dict(
-  DESCRIPTOR = _REGISTER,
-  __module__ = 'rfquack_pb2'
+Register = _reflection.GeneratedProtocolMessageType('Register', (_message.Message,), {
+  'DESCRIPTOR' : _REGISTER,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.Register)
-  ))
+  })
 _sym_db.RegisterMessage(Register)
 
-Registers = _reflection.GeneratedProtocolMessageType('Registers', (_message.Message,), dict(
-  DESCRIPTOR = _REGISTERS,
-  __module__ = 'rfquack_pb2'
+Registers = _reflection.GeneratedProtocolMessageType('Registers', (_message.Message,), {
+  'DESCRIPTOR' : _REGISTERS,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.Registers)
-  ))
+  })
 _sym_db.RegisterMessage(Registers)
 
-PacketModification = _reflection.GeneratedProtocolMessageType('PacketModification', (_message.Message,), dict(
-  DESCRIPTOR = _PACKETMODIFICATION,
-  __module__ = 'rfquack_pb2'
+PacketModification = _reflection.GeneratedProtocolMessageType('PacketModification', (_message.Message,), {
+  'DESCRIPTOR' : _PACKETMODIFICATION,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.PacketModification)
-  ))
+  })
 _sym_db.RegisterMessage(PacketModification)
 
-PacketFilter = _reflection.GeneratedProtocolMessageType('PacketFilter', (_message.Message,), dict(
-  DESCRIPTOR = _PACKETFILTER,
-  __module__ = 'rfquack_pb2'
+PacketFilter = _reflection.GeneratedProtocolMessageType('PacketFilter', (_message.Message,), {
+  'DESCRIPTOR' : _PACKETFILTER,
+  '__module__' : 'rfquack_pb2'
   # @@protoc_insertion_point(class_scope:rfquack.PacketFilter)
-  ))
+  })
 _sym_db.RegisterMessage(PacketFilter)
+
+PacketFormat = _reflection.GeneratedProtocolMessageType('PacketFormat', (_message.Message,), {
+  'DESCRIPTOR' : _PACKETFORMAT,
+  '__module__' : 'rfquack_pb2'
+  # @@protoc_insertion_point(class_scope:rfquack.PacketFormat)
+  })
+_sym_db.RegisterMessage(PacketFormat)
 
 
 # @@protoc_insertion_point(module_scope)
