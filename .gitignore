@@ -48,3 +48,6 @@ src/*.pb.h
 # Secrets
 src/client/configs/*
 **/*credentials*
+
+# OS
+.DS_Store
