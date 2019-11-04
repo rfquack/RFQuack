@@ -34,12 +34,16 @@ RFQuackCommandDispatcher rfquack_command_dispatcher;
 void rfquack_transport_recv(char *topic, uint8_t *payload,
                             uint32_t payload_length) {
   if (strncmp(topic, RFQUACK_TOPIC_PREFIX, strlen(RFQUACK_TOPIC_PREFIX)) != 0) {
+#ifdef RFQUACK_DEV
     Log.warning("Ignoring message with invalid topic: %s", topic);
+#endif
     return;
   }
 
   if (strncmp(topic, RFQUACK_IN_TOPIC, strlen(RFQUACK_IN_TOPIC)) != 0) {
+#ifdef RFQUACK_DEV
     Log.warning("Skipping message: %s", topic);
+#endif
     return;
   }
 
@@ -67,8 +71,10 @@ static void rfquack_mqtt_connect() {
   String clientId = RFQUACK_UNIQ_ID;
   clientId += "_" + String(random(0xffff), HEX);
 
+#ifdef RFQUACK_DEV
   Log.trace("Connecting %s to MQTT broker %s:%d", clientId.c_str(),
             RFQUACK_MQTT_BROKER_HOST, RFQUACK_MQTT_BROKER_PORT);
+#endif
 
   while (!rfquack_mqtt.connected()) {
     delay(RFQUACK_MQTT_RETRY_DELAY);
