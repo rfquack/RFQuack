@@ -48,6 +48,10 @@ src/*.pb.h
 # Secrets
 src/client/configs/*
 **/*credentials*
+<<<<<<< HEAD
 
 # OS
 .DS_Store
+=======
+!**/*credentials*.example
+>>>>>>> efa7a5fc7f8498e5827b79a196ef2593fc16828e

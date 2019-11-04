@@ -1,11 +1,19 @@
 G04 #@! TF.GenerationSoftware,KiCad,Pcbnew,(5.1.2-1)-1*
+<<<<<<< HEAD
 G04 #@! TF.CreationDate,2019-05-15T12:23:23+08:00*
+=======
+G04 #@! TF.CreationDate,2019-05-16T11:37:58+08:00*
+>>>>>>> efa7a5fc7f8498e5827b79a196ef2593fc16828e
 G04 #@! TF.ProjectId,huzzah-cc112x-shield,68757a7a-6168-42d6-9363-313132782d73,1*
 G04 #@! TF.SameCoordinates,Original*
 G04 #@! TF.FileFunction,Profile,NP*
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
+<<<<<<< HEAD
 G04 Created by KiCad (PCBNEW (5.1.2-1)-1) date 2019-05-15 12:23:23*
+=======
+G04 Created by KiCad (PCBNEW (5.1.2-1)-1) date 2019-05-16 11:37:58*
+>>>>>>> efa7a5fc7f8498e5827b79a196ef2593fc16828e
 %MOMM*%
 %LPD*%
 G04 APERTURE LIST*
