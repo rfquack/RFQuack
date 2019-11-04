@@ -24,10 +24,11 @@
 #define RFQUACK_RADIO "CC1120"
 #define RFQUACK_RADIO_HAS_MODEM_CONFIG
 #define RFQUACK_RADIO_PARTNO
-//#undef RFQUACK_RADIO_SET_POWER    // it's part of the modem config
-//#undef RFQUACK_RADIO_SET_FREQ     // it's part of the modem config
+//#undef RFQUACK_RADIO_SET_POWER    // it's part of the register config
+//#undef RFQUACK_RADIO_SET_FREQ     // it's part of the register config
 //#undef RFQUACK_RADIO_SET_RF       // it's for certain 2.4GHz radios only
-//#undef RFQUACK_RADIO_SET_PREAMBLE // it's part of the modem config
+//#undef RFQUACK_RADIO_SET_PREAMBLE // it's part of the register config
+//#define RFQUACK_RADIO_TX_FIFO_REPEAT
 
 // Modem configuration
 #ifndef RFQUACK_RADIO_SYNC_WORDS

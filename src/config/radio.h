@@ -35,10 +35,6 @@
  * Radio parameters
  *****************************************************************************/
 
-#ifndef RFQUACK_RADIO_TX_QUEUE_LEN
-#define RFQUACK_RADIO_TX_QUEUE_LEN RFQUACK_RADIO_TX_QUEUE_LEN_DEFAULT
-#endif
-
 #ifndef RFQUACK_RADIO_RX_QUEUE_LEN
 #define RFQUACK_RADIO_RX_QUEUE_LEN RFQUACK_RADIO_RX_QUEUE_LEN_DEFAULT
 #endif

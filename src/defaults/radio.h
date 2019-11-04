@@ -22,7 +22,6 @@
 #ifndef rfquack_defaults_radio_h
 #define rfquack_defaults_radio_h
 
-#define RFQUACK_RADIO_TX_QUEUE_LEN_DEFAULT 32
-#define RFQUACK_RADIO_RX_QUEUE_LEN_DEFAULT 32
+#define RFQUACK_RADIO_RX_QUEUE_LEN_DEFAULT 128
 
 #endif
