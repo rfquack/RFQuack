@@ -127,3 +127,9 @@ message PacketModification {
 message PacketFilter {
   required string pattern = 1;
 }
+
+// Packet format (fixed or variable) and its length
+message PacketFormat {
+  required bool fixed = 1;
+  required uint32 len = 2;
+}
