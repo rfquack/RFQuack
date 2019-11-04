@@ -19,17 +19,13 @@
 
         ------------------------------------------------------------------------
 
-        USAGE:
-
         > q.set_modem_config(               # set modem configuration
             modemConfigChoiceIndex=0,       # see RadioHAL documentation
             txPower=14,                     # TX output power in dB
             syncWords=b'\x43\x42',          # sync words
             carrierFreq=433)                # and of course, carrier frequency
 
-        > q.tx()                            # q.set_mode('TX') alternatively
-
-        > q.set_packet(b'\x0d\xa2', 13)     # transmit '0xd 0xa2' 13 times
+        > q.set_packet('\x0d\xa2', 13)      # transmit '0xd 0xa2' 13 times
 
         > q.set_modem_config(               # set modem configuration
             modemConfigChoiceIndex=0,       # see RadioHAL documentation
@@ -60,17 +56,12 @@
             operand=b'\\x25'
         )
 
-        > q.repeat()                        # stay in RX and
-                                            # re-transmit modified packets
+        > q.repeat(10)                      # stay in RX and
+                                            # modify each matching packet
+                                            # transmit the result 10 times
 
         > q.reset_packet_modifications()
                                         # clear all packet modifications
-
-        ------------------------------------------------------------------------
-        NOTE:   when sending raw packets, you're responsible of setting the
-        first byte as the total length or, equivalently, set the length
-        register if in fixed packet mode.
-        ------------------------------------------------------------------------
 
         HELP:
         > q.set_mode?                # TAB is your friend
