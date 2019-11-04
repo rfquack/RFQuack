@@ -196,20 +196,8 @@ static void rfquack_tx_packet(char *payload, int payload_length) {
     return;
   }
 
-  if (pkt.has_repeat) {
-    uint32_t done = rfquack_send_packet((uint8_t *)pkt.data.bytes,
-                                        pkt.data.size, pkt.repeat);
-
-    if (pkt.repeat != done)
-      Log.error("%d/%d transmissions of %d bytes payload", done, pkt.repeat,
-                pkt.data.size);
-    else
-      Log.trace("%d/%d transmissions of %d bytes payload done", done,
-                pkt.repeat, pkt.data.size);
-  } else {
-    if (!rfquack_send_packet((uint8_t *)pkt.data.bytes, pkt.data.size))
-      Log.error("Failure transmitting %d bytes of payload", pkt.data.size);
-  }
+  if (!rfquack_send_packet(&pkt))
+    Log.error("Failure transmitting %d bytes of payload", pkt.data.size);
 }
 
 static void rfquack_status(char *payload, int payload_length) {
@@ -502,6 +490,21 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   }
 
   /***********************************************************************
+   * Packet format
+   ***********************************************************************/
+
+  // Set the packet format
+  // "rfquack/in/set/packet_format"
+  if (strcmp(topic,
+             RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
+                 RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FORMAT) == 0) {
+    if (payload_length > 0)
+      rfquack_set_packet_format(payload, payload_length);
+
+    return;
+  }
+
+  /***********************************************************************
    * Packet manipulation
    ***********************************************************************/
 
@@ -546,6 +549,23 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_GET
                         RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FILTER) == 0) {
     rfquack_send_packet_filters();
+    return;
+  }
+
+  /***********************************************************************
+   * Set promiscuous mode
+   ***********************************************************************/
+  // Set promiscuosu mode: "rfquack/in/set/promiscuous"
+  if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
+                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PROMISCUOUS) == 0) {
+    rfquack_set_promiscuous(true);
+    return;
+  }
+
+  // Unset promiscuous mode: "rfquack/in/set/promiscuous"
+  if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_UNSET
+                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PROMISCUOUS) == 0) {
+    rfquack_set_promiscuous(false);
     return;
   }
 
@@ -650,14 +670,13 @@ void rfquack_setup() {
 void rfquack_loop() {
   rfquack_network_loop();
 
+#ifndef RFQUACK_ASYNC_RX // we poll only if we must
   // If in RX mode, receive data
   rfquack_rx_loop();
+#endif
 
   // Flush the RX data if any
   rfquack_rx_flush_loop();
-
-  // Flush the TX data if any
-  rfquack_tx_flush_loop();
 
   rfquack_transport_loop();
 }
