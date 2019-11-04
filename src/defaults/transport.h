@@ -66,6 +66,8 @@
 
 #define RFQUACK_TOPIC_SET_DEFAULT "set"
 
+#define RFQUACK_TOPIC_UNSET_DEFAULT "unset"
+
 #define RFQUACK_TOPIC_GET_DEFAULT "get"
 
 #define RFQUACK_TOPIC_OUT_DEFAULT "out"
@@ -86,7 +88,11 @@
 
 #define RFQUACK_TOPIC_PACKET_FILTER_DEFAULT "packet_filter"
 
+#define RFQUACK_TOPIC_PACKET_FORMAT_DEFAULT "packet_format"
+
 #define RFQUACK_TOPIC_RADIO_RESET_DEFAULT "radio_reset"
+
+#define RFQUACK_TOPIC_PROMISCUOUS_DEFAULT "promiscuous"
 
 #define RFQUACK_MAX_TOPIC_LEN_DEFAULT 64
 

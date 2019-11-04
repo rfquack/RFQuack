@@ -104,6 +104,7 @@ class RFQuackTransport(object):
     TOPIC_MODE = "mode"
     TOPIC_REGISTER = "register"
     TOPIC_PACKET_MODIFICATION = "packet_modification"
+    TOPIC_PACKET_FORMAT = "packet_format"
     TOPIC_PACKET_FILTER = "packet_filter"
     TOPIC_RADIO_RESET = "radio_reset"
 
@@ -261,7 +262,7 @@ class RFQuackSerialProtocol(serial.threaded.FramedPacket):
     def data_received(self, data):
         """Find data enclosed in tokens, call handle_packet"""
         if self._debug:
-            print "DATA CHUNK RECEIVED = '{}'".format(data)
+            print("DATA CHUNK RECEIVED = '{}'".format(data))
 
         # for each byte in the recv buffer
         for byte in serial.iterbytes(data):
@@ -571,6 +572,8 @@ class RFQuack(object):
 
         payload = obj.SerializeToString()
 
+        logger.debug("Payload = {}".format(payload))
+
         return payload
 
     def set_modem_config(self, **fields):
@@ -682,12 +685,15 @@ class RFQuack(object):
                     self._transport.TOPIC_REGISTER)),
                 payload=payload)
 
-    def set_packet(self, data, repeat=1):
+    def set_packet(self, data, repeat=1, delayMs=None):
         if not self.ready():
             return
 
         packet = rfquack_pb2.Packet()
         packet.data = data
+
+        if isinstance(delayMs, int):
+            packet.delayMs = delayMs
 
         try:
             packet.repeat = int(repeat)
@@ -775,6 +781,15 @@ class RFQuack(object):
                 command=self._transport.TOPIC_SEP.join((
                     self._transport.TOPIC_SET,
                     self._transport.TOPIC_PACKET_FILTER)),
+                payload=payload)
+
+    def set_packet_format(self, **fields):
+        klass = rfquack_pb2.PacketFormat
+        payload = self._make_payload(klass, **fields)
+        self._transport._send(
+                command=self._transport.TOPIC_SEP.join((
+                    self._transport.TOPIC_SET,
+                    self._transport.TOPIC_PACKET_FORMAT)),
                 payload=payload)
 
 
