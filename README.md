@@ -74,16 +74,7 @@ RFQuack is quite experimental, expect glitches and imperfections. So far we're q
 
 You could play around with other combinations, of course. And if you feel generous, you can fork this repository, add support for untested hardware, and send us a pull request (including schematics for new daughter-boards)! 👏
 
-<img src="docs/imgs/base.jpg" width="30%" />
-<img src="docs/imgs/mcu-huzzah32.jpg" width="30%" />
-<img src="docs/imgs/mcu-huzzah32-cc1101-433.jpg" width="30%" />
-
-<img src="docs/imgs/mcu-huzza32-433-868.jpg" width="30%" />
-<img src="docs/imgs/mcu-teensy-cc1101-433.jpg" width="30%" />
-<img src="docs/imgs/mcu-teensy-rf24-cc1101.jpg" width="30%" />
-
-<img src="docs/imgs/mcu-teensy-cc1120-cc1101.jpg" width="30%" />
-<img src="docs/imgs/battery.jpg" width="30%" />
+<img src="docs/imgs/base.jpg" width="30%" /><img src="docs/imgs/mcu-huzzah32.jpg" width="30%" /><img src="docs/imgs/mcu-huzzah32-cc1101-433.jpg" width="30%" /><img src="docs/imgs/mcu-huzza32-433-868.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-cc1101-433.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-rf24-cc1101.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-cc1120-cc1101.jpg" width="30%" /><img src="docs/imgs/battery.jpg" width="30%" />
 
 ## Prepare Your Software
 RFQuack comes in the form of a firmware *library*, which means that you need to write your own "main" to define a minimum set of parameters. Don't worry, there's not much to write in there, and we provide a [few working examples](https://github.com/trendmicro/RFQuack/blob/master/examples/).
