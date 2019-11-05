@@ -33,6 +33,7 @@ We assume you know what you're doing 🤓
   * [Register Access](#register-access)
   * [Packet Filtering and Manipulation](#packet-filtering-and-manipulation)
   * [Frequency Synthesizer Calibration](#frequency-synthesizer-calibration)
+* [Publications](#publications)
 * [License (GPLv2)](#license)
 
 # Another RF-analysis Dongle?
@@ -65,21 +66,31 @@ RFQuack is quite experimental, expect glitches and imperfections. So far we're q
 
 | **Main board** | **Radio daughter board** | **Network connectivity** | **Cellular connectivity** |
 |----------------|-------------------------------------|----------------------|-----------------------|
-| Feather HUZZAH | Radio FeatherWing RFM69HW @ 433 MHz | ESPWiFi | Not tested |
-| WEMOS D1 Lite | RFM69HCW @ 433 MHz | ESPWiFi | Not tested |
+| Feather HUZZAH | Radio FeatherWing RFM69HW 433 MHz | ESPWiFi | Not tested |
+| Feather HUZZAH32 | Radio FeatherWing RFM69HW 433, 868, 915 MHz | ESPWiFi | Not tested |
+| WEMOS D1 Lite | RFM69HCW 433 MHz | ESPWiFi | Not tested |
 | WEMOS D1 Lite | CC1120 | ESPWiFi | Not tested |
-| Feather FONA | Radio FeatherWing RFM69HW @ 433 MHz | None | Tested with early versions of RFQuack |
+| Feather FONA | Radio FeatherWing RFM69HW 433 MHz | None | Tested with early versions of RFQuack |
 
 You could play around with other combinations, of course. And if you feel generous, you can fork this repository, add support for untested hardware, and send us a pull request (including schematics for new daughter-boards)! 👏
 
-![RFQuack Boards](docs/imgs/hardware.jpg)
+<img src="docs/imgs/base.jpg" width="30%" />
+<img src="docs/imgs/mcu-huzzah32.jpg" width="30%" />
+<img src="docs/imgs/mcu-huzzah32-cc1101-433.jpg" width="30%" />
+
+<img src="docs/imgs/mcu-huzza32-433-868.jpg" width="30%" />
+<img src="docs/imgs/mcu-teensy-cc1101-433.jpg" width="30%" />
+<img src="docs/imgs/mcu-teensy-rf24-cc1101.jpg" width="30%" />
+
+<img src="docs/imgs/mcu-teensy-cc1120-cc1101.jpg" width="30%" />
+<img src="docs/imgs/battery.jpg" width="30%" />
 
 ## Prepare Your Software
 RFQuack comes in the form of a firmware *library*, which means that you need to write your own "main" to define a minimum set of parameters. Don't worry, there's not much to write in there, and we provide a [few working examples](https://github.com/trendmicro/RFQuack/blob/master/examples/).
 
+* Make sure you have [PlatformIO Core](https://docs.platformio.org/en/latest/core.html) installed, because we use that as a build system;
 * checkout this repository: `git clone https://github.com/trendmicro/RFQuack`
 * enter the main directory: `cd RFQuack`
-* install Python dependencies: `pip install -r src/client/requirements.pip` (note that this will automatically install [PlatformIO Core (CLI)](https://docs.platformio.org/en/latest/core.html), so you might want to remove such dependency if you have it installed already)
 * install the dependencies listed in `library.json` via `pio install -g <library name>` (if you want to install them globally)
 * to talk to your RFQuack dongle, you have two options:
   * **MQTT Transport (and hardware serial console):** install or have access to an MQTT broker (Mosquitto is just perfect for this):
@@ -137,11 +148,17 @@ $ make monitor  # or pio device monitor --port <YOUR SERIAL MONITOR PORT> --baud
 # Interact with the RFQuack Hardware
 Now you can use RFQuack via the IPython shell. We highly recommend tmux to keep an eye on the output log.
 
-![RFQuack Console](docs/imgs/console1.png)
-![RFQuack Console](docs/imgs/console2.png)
+You need to install the [RFQuack CLI package](https://github.com/rfquack/RFQuack-cli):
 
 ```bash
-$ python src/client/rfq.py --help                      
+$ git clone https://github.com/rfquack/RFQuack-cli
+$ cd RFQuack-cli
+$ python setup.py install
+```
+
+
+```bash
+$ rfquack --help                      
 Usage: rfq.py [OPTIONS] COMMAND [ARGS]...                                
                                                                          
 Options:                                                                 
@@ -152,7 +169,7 @@ Commands:
   mqtt  RFQuack client with MQTT transport.                              
   tty   RFQuack client with serial transport.                            
 
-$ python src/client/rfq.py mqtt --help                 
+$ rfquack mqtt --help                 
 Usage: rfq.py mqtt [OPTIONS]                                             
                                                                          
   RFQuack client with MQTT transport. Assumes one dongle per MQTT broker.
@@ -165,7 +182,7 @@ Options:
   -p, --password TEXT                                                    
   --help                Show this message and exit.                      
 
-$ python src/client/rfq.py tty --help                  
+$ rfquack tty --help                  
 Usage: rfq.py tty [OPTIONS]                                              
                                                                          
   RFQuack client with serial transport.                                  
@@ -183,7 +200,7 @@ Options:
 More concretely:
 
 ```
-$ python src/client/rfq.py mqtt -H localhost -P 1884
+$ rfquack mqtt -H localhost -P 1884
 2019-04-10 18:04:31 local RFQuack[20877] INFO Transport initialized
 2019-04-10 18:04:31 local RFQuack[20877] DEBUG Setting mode to IDLE
 2019-04-10 18:04:31 local RFQuack[20877] DEBUG rfquack/in/set/status (2 bytes)
@@ -226,6 +243,9 @@ modemConfig {
 The last message (i.e., on the `rfquack/out/status` topic) is automatically sent by the RFQuack dongle at first boot, and shows that the dongle is up and running, with some basic info about its status.
 
 At this point you're good to go from here!
+
+![RFQuack Console](docs/imgs/console1.png)
+![RFQuack Console](docs/imgs/console2.png)
 
 # Architecture
 
@@ -359,6 +379,14 @@ PARTICULAR PURPOSE.  See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with
 this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+# Publications
+If you use RFQuack and find it useful, we'd appreciate if you cite at least one of the following resources:
+
+* **RFQuack: The Rf-Analysis Tool That Quacks**, HITB Amory, Amsterdam, May 9, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/talks/maggi_rfquack_talk_2019.pdf)]
+*  **A Security Evaluation of Industrial Radio Remote Controllers**, Federico Maggi, Marco Balduzzi, Jonathan Andersson, Philippe Lin, Stephen Hilt, Akira Urano, and Rainer Vosseler. Proceedings of the 16th International Conference on Detection of Intrusions and Malware, and Vulnerability Assessment (DIMVA). Gothenburg, Sweden, June 19, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/papers/conference-papers/maggi_industrialradios_2019.pdf)]
+* **A Security Analysis of Radio Remote Controllers for Industrial Applications**,
+Jonathan Andersson, Marco Balduzzi, Stephen Hilt, Philippe Lin, Federico Maggi, Akira Urano, and Rainer Vosseler., Trend Micro, Inc. Trend Micro Research, January 15, 2019 [[PDF](https://documents.trendmicro.com/assets/white_papers/wp-a-security-analysis-of-radio-remote-controllers.pdf)]
 
 # Disclaimer
 RFQuack is a research tool intended to analyze radio-frequency (RF) signals via

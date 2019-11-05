@@ -18,6 +18,8 @@
 # Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #
 
+# Note: make sure that client/ points to the root of https://github.com/rfquack/RFQuack-cli
+
 SHELL := /bin/bash
 
 all: proto
