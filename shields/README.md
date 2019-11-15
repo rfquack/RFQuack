@@ -1,8 +1,6 @@
 Feather Huzzah Shields
 ======================
-We provide two reference shields that work on Feather Huzzah (one for ESP8266 and the other for ESP32) and V-Chip's VT-CC112x module.
-The shields are designed with KiCAD 5 (Kudos!)
-
+We provide two reference shields that work on Feather Huzzah (one for ESP8266 and the other for ESP32), V-Chip's VT-CC112x module and E01-ML01SP2 module (nRF24L01 + PA + PLNA).
 
 
 License
