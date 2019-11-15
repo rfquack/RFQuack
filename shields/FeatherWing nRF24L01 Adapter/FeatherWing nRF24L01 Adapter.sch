@@ -233,85 +233,34 @@ $EndComp
 Connection ~ 2800 4250
 NoConn ~ 4200 3600
 Wire Wire Line
-	7550 2300 7850 2300
-$Comp
-L Device:C C2
-U 1 1 5DD3C1AE
-P 8000 2300
-F 0 "C2" V 7748 2300 50  0000 C CNN
-F 1 "47µF" V 7839 2300 50  0000 C CNN
-F 2 "FeatherWing nRF24L01 Adapter:0805-SMD_C" H 8038 2150 50  0001 C CNN
-F 3 "~" H 8000 2300 50  0001 C CNN
-	1    8000 2300
-	0    1    1    0   
-$EndComp
-Wire Wire Line
-	8150 2300 8450 2300
-Wire Wire Line
 	7950 3200 7450 3200
 Wire Wire Line
 	7450 3100 7950 3100
 Wire Wire Line
 	7950 3000 7450 3000
 $Comp
-L FeatherWing_nRF24L01_Adapter-eagle-import:nRF24L01 U1
-U 1 1 5DD2ACAB
-P 7950 2300
-F 0 "U1" H 8000 3565 50  0000 C CNN
-F 1 "nRF24L01" H 8000 3474 50  0000 C CNN
-F 2 "FeatherWing nRF24L01 Adapter:nRF24L01_Breakout" H 7950 2300 50  0001 C CNN
-F 3 "" H 7950 2300 50  0001 C CNN
-	1    7950 2300
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	7550 2300 7550 1750
-Wire Wire Line
-	7550 1750 7600 1750
-Wire Wire Line
-	8450 2300 8450 1750
-Wire Wire Line
-	8450 1750 8400 1750
-$Comp
 L FeatherWing_nRF24L01_Adapter-eagle-import:3.3V #U$02
 U 1 1 5DD3B7BA
-P 7550 2400
-F 0 "#U$02" H 7550 2400 50  0001 C CNN
-F 1 "3.3V" H 7490 2440 42  0000 L BNN
-F 2 "" H 7550 2400 50  0001 C CNN
-F 3 "" H 7550 2400 50  0001 C CNN
-	1    7550 2400
-	-1   0    0    1   
+P 7200 1450
+F 0 "#U$02" H 7200 1450 50  0001 C CNN
+F 1 "3.3V" H 7140 1490 42  0000 L BNN
+F 2 "" H 7200 1450 50  0001 C CNN
+F 3 "" H 7200 1450 50  0001 C CNN
+	1    7200 1450
+	1    0    0    -1  
 $EndComp
-Connection ~ 7550 2300
-Wire Wire Line
-	7600 1300 7450 1300
-Wire Wire Line
-	7600 1450 7450 1450
-Wire Wire Line
-	7600 1600 7450 1600
-Wire Wire Line
-	8400 1300 8600 1300
-Wire Wire Line
-	8400 1450 8600 1450
-Wire Wire Line
-	8400 1600 8600 1600
-Text Label 8450 1600 0    50   ~ 0
+Text Label 7550 1650 0    50   ~ 0
 CE
-Text Label 8450 1450 0    50   ~ 0
+Text Label 7550 1850 0    50   ~ 0
 SCK
-Text Label 8450 1300 0    50   ~ 0
+Text Label 7550 2050 0    50   ~ 0
 MISO
-Text Label 7450 1300 0    50   ~ 0
+Text Label 7550 2150 0    50   ~ 0
 IRQ
-Text Label 7450 1450 0    50   ~ 0
+Text Label 7550 1950 0    50   ~ 0
 MOSI
-Text Label 7450 1600 0    50   ~ 0
+Text Label 7550 1750 0    50   ~ 0
 CS
-Text Label 7550 2100 1    50   ~ 0
-VDD
-Text Label 8450 1950 3    50   ~ 0
-GND
 Text Label 2700 3800 1    50   ~ 0
 RST
 Text Label 2800 3800 1    50   ~ 0
@@ -400,4 +349,65 @@ Text Label 3900 1800 1    50   ~ 0
 D
 Text Label 4000 1800 1    50   ~ 0
 E
+Wire Wire Line
+	7100 1550 7200 1550
+Wire Wire Line
+	7100 2250 7550 2250
+Connection ~ 7200 1550
+Wire Wire Line
+	7200 1550 7700 1550
+Text Label 7550 1550 0    50   ~ 0
+VDD
+Wire Wire Line
+	7700 1650 7550 1650
+Wire Wire Line
+	7700 1750 7550 1750
+Wire Wire Line
+	7700 1850 7550 1850
+Wire Wire Line
+	7700 1950 7550 1950
+Wire Wire Line
+	7700 2050 7550 2050
+Wire Wire Line
+	7700 2150 7550 2150
+Wire Wire Line
+	7700 2350 7550 2350
+Wire Wire Line
+	7700 2450 7550 2450
+Wire Wire Line
+	7550 2450 7550 2350
+Connection ~ 7550 2250
+Wire Wire Line
+	7550 2250 7700 2250
+Connection ~ 7550 2350
+Wire Wire Line
+	7550 2350 7550 2250
+$Comp
+L FeatherWing_nRF24L01_Adapter-eagle-import:nRF24L01_PA_LNA_E01_ML01SP2 U1
+U 1 1 5DD7B574
+P 8000 3350
+F 0 "U1" H 8178 4746 50  0000 L CNN
+F 1 "nRF24L01_PA_LNA_E01_ML01SP2" H 8178 4655 50  0000 L CNN
+F 2 "FeatherWing nRF24L01 Adapter:E01-ML01SP2" H 8000 3350 50  0001 C CNN
+F 3 "http://www.ebyte.com/en/product-view-news.aspx?id=113" H 8000 3350 50  0001 C CNN
+	1    8000 3350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7100 2050 7100 2250
+$Comp
+L Device:C C2
+U 1 1 5DD3C1AE
+P 7100 1900
+F 0 "C2" V 6848 1900 50  0000 C CNN
+F 1 "47µF" V 6939 1900 50  0000 C CNN
+F 2 "FeatherWing nRF24L01 Adapter:0805-SMD_C" H 7138 1750 50  0001 C CNN
+F 3 "~" H 7100 1900 50  0001 C CNN
+	1    7100 1900
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	7100 1550 7100 1750
+Text Label 7200 2250 0    50   ~ 0
+GND
 $EndSCHEMATC
