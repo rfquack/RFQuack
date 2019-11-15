@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name FeatherWing_nRF24L01_Adapter-eagle-import)(type Legacy)(uri ${KIPRJMOD}/FeatherWing_nRF24L01_Adapter-eagle-import.lib)(options "")(descr ""))
+)
