@@ -51,8 +51,8 @@
             "version": "~1.0.3"
         },
         {
-            "name": "RadioHAL",
-            "version": "~0.0.1"
+            "name": "RadioLib",
+            "version": "~2.0.1"
         },
 				{
 						"name": "Base64",
