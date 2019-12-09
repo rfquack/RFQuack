@@ -242,7 +242,7 @@ public:
       }
 
       // Let's assume readData() call rate is so high that there's
-      // always almost a packet to read from radio.
+      // always at most a packet to read from radio.
       setFlag(false);
 
       // Shame on RadioLib, after readData driver resets interrupts and goes in STANDBY.

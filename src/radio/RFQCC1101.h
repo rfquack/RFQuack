@@ -20,16 +20,16 @@ public:
         // Warning: as side effect this also disables preamble generation / detection.
         // CC1101 Datasheet states: "It is not possible to only insert preamble or
         // only insert a sync word"
-        RFQUACK_LOG_TRACE("Preamble and SyncWord disabled.")
+        RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
         return CC1101::disableSyncWordFiltering();
       }
 
-      // Set syncWord.
+      // Call to base method.
       return CC1101::setSyncWord(bytes, size);
     }
 
     int16_t setFrequency(float carrierFreq) override {
-      //This command as side effect sets mode to Standby
+      // This command, as side effect, sets mode to Standby
       _mode = RFQRADIO_MODE_STANDBY;
       return CC1101::setFrequency(carrierFreq);
     }

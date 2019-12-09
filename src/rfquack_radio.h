@@ -59,11 +59,7 @@ typedef void RadioB;
 
 #include "defaults/radio.h"
 
-#ifndef RFQUACK_RADIO_RX_QUEUE_LEN
-#define RFQUACK_RADIO_RX_QUEUE_LEN RFQUACK_RADIO_RX_QUEUE_LEN_DEFAULT
-#endif
-
-// Marco to execute a method on _radioA or _radioB based on whichRadio enum.
+// Macro to execute a method on _radioA or _radioB based on whichRadio enum.
 #ifndef RFQUACK_SINGLE_RADIO
 #define RADIO_A_OR_B_CMD(whichRadio, ...) { \
  if (whichRadio == RADIOA){ \
@@ -78,7 +74,7 @@ typedef void RadioB;
     int16_t result = ERR_UNKNOWN; \
     __VA_ARGS__; \
     if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(#__VA_ARGS__ " on RadioA, resultCode=%d", result); \
+    RFQUACK_LOG_TRACE(#__VA_ARGS__ " on RadioB, resultCode=%d", result); \
   } \
 }
 #else
@@ -93,7 +89,7 @@ typedef void RadioB;
 }
 #endif
 
-// Marco to execute a method on both _radioA and _radioB
+// Macro to execute a method on both _radioA and _radioB
 #ifndef RFQUACK_SINGLE_RADIO
 #define RADIO_A_AND_B_CMD(...) { \
   RadioA *radio = _radioA; \
@@ -117,7 +113,7 @@ public:
 
 #else
 
-    explicit RFQRadio(RadioA *radioA, RadioB *radioB) : _radioA(radioA), _radioB(radioA) {}
+    explicit RFQRadio(RadioA *radioA, RadioB *radioB) : _radioA(radioA), _radioB(radioB) {}
 
 #endif
 
