@@ -38,6 +38,26 @@
 #include "rfquack_config.h"
 #include "rfquack_logging.h"
 
+// Utility
+#define PB_ENCODE_AND_SEND(fields, data, topic){ \
+  uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE]; \
+  pb_ostream_t ostream = pb_ostream_from_buffer(buf, RFQUACK_MAX_PB_MSG_SIZE); \
+  if (!pb_encode(&ostream, fields, &(data))) { \
+    Log.error("Encoding " #fields " failed: %s", PB_GET_ERROR(&ostream)); \
+  } else { \
+    if (!rfquack_transport_send(topic, buf, ostream.bytes_written)) \
+      Log.error(F("Failed sending to transport " #topic)); \
+  } \
+}
+
+#define PB_DECODE(pkt, fields, payload, payload_length) { \
+  pb_istream_t istream = pb_istream_from_buffer((uint8_t *) payload, payload_length); \
+  if (!pb_decode(&istream, fields, &(pkt))) { \
+    Log.error("Cannot decode fields: " #fields ", Packet: %s", PB_GET_ERROR(&istream)); \
+    return; \
+  } \
+}
+
 /*****************************************************************************
  * Types
  *****************************************************************************/
@@ -226,7 +246,7 @@ static void rfquack_apply_packet_modification(uint8_t idx,
   Log.verbose("Applying packet modification rule #%d", idx);
 
 #ifdef RFQUACK_DEV
-    rfquack_log_packet(pkt);
+  rfquack_log_packet(pkt);
 #endif
 
   // for all octects
@@ -234,15 +254,15 @@ static void rfquack_apply_packet_modification(uint8_t idx,
     uint8_t octect = pkt->data.bytes[i];
 
     if (
-        // Case 1: we have a position only, and it matches
-        (!rule.has_content && rule.has_position && rule.position == i) ||
+      // Case 1: we have a position only, and it matches
+      (!rule.has_content && rule.has_position && rule.position == i) ||
 
-        // Case 2: we have both position and value, and both match
-        (rule.has_content && rule.has_position && rule.content == octect &&
-         rule.position == i) ||
+      // Case 2: we have both position and value, and both match
+      (rule.has_content && rule.has_position && rule.content == octect &&
+       rule.position == i) ||
 
-        // Case 3: we have only value, and matches
-        (rule.has_content && !rule.has_position && rule.content == octect)) {
+      // Case 3: we have only value, and matches
+      (rule.has_content && !rule.has_position && rule.content == octect)) {
 
       // Value assignment
       if (!rule.has_operation && rule.has_operand) {

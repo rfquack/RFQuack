@@ -35,104 +35,33 @@
 rfquack_Status rfq;
 packet_modifications_t pms;
 packet_filters_t pfs;
+RFQRadio *rfqRadio;
 
 /*****************************************************************************
  * Body
  *****************************************************************************/
 
-void rfquack_update_stats() {}
-
-/**
- * @brief Update statistics.
- */
-void rfquack_update_status() {
-  rfquack_update_radio_stats();
-  rfquack_update_stats();
-}
 
 /*
  * Send statistics about TX/RX packets and tool state.
  */
 void rfquack_send_stats() {
-  rfquack_update_status();
+  rfqRadio->updateRadiosStats();
 
-  // The message to send is rfq.stats
-  uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE];
-  pb_ostream_t ostream = pb_ostream_from_buffer(buf, sizeof(buf));
+  // Send rfq.stats
+  PB_ENCODE_AND_SEND(rfquack_Stats_fields, rfq.stats,
+                     RFQUACK_OUT_TOPIC
+                       RFQUACK_TOPIC_SEP
+                       RFQUACK_TOPIC_STATS)
 
-  if (!pb_encode(&ostream, rfquack_Stats_fields, &(rfq.stats))) {
-    Log.error("Encoding failed: %s", PB_GET_ERROR(&ostream));
-  } else {
-    if (!rfquack_transport_send(
-            RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_STATS, buf,
-            ostream.bytes_written))
-      Log.error("Failed sending to transport");
-  }
-
-  Log.trace("TX packets = %d (TX errors = %d), "
-            "RX packets = %d (RX errors = %d)",
-            "TX queue = %d, "
-            "RX queue = %d",
-            rfq.stats.tx_packets, rfq.stats.tx_failures, rfq.stats.rx_packets,
-            rfq.stats.rx_failures, rfq.stats.tx_queue, rfq.stats.rx_queue);
+  RFQUACK_LOG_TRACE("TX packets = %d (TX errors = %d), "
+                    "RX packets = %d (RX errors = %d)",
+                    "TX queue = %d, "
+                    "RX queue = %d",
+                    rfq.stats.tx_packets, rfq.stats.tx_failures, rfq.stats.rx_packets,
+                    rfq.stats.rx_failures, rfq.stats.tx_queue, rfq.stats.rx_queue);
 }
 
-/*
- * Switch tool to requested mode (RX, TX, repeat)
- */
-uint32_t rfquack_change_mode(rfquack_Mode mode) {
-  if (mode < _rfquack_Mode_MIN || mode > _rfquack_Mode_MAX) {
-    Log.error("Invalid mode");
-    return 0;
-  }
-
-  if (rfq.mode == mode)
-    return 0;
-
-  Log.trace("Mode: %d -> %d", rfq.mode, mode);
-
-  rfq.mode = mode;
-
-  rfquack_update_mode();
-
-  return 1;
-}
-
-/*
- * Change TX repeat
- */
-uint32_t rfquack_change_tx_repeat_default(uint32_t tx_repeat_default) {
-  if (tx_repeat_default > RFQUACK_RADIO_TX_QUEUE_LEN) {
-    Log.error("Cannot repeat %d times as the TX queue can hold %d packets",
-              tx_repeat_default, RFQUACK_RADIO_TX_QUEUE_LEN);
-
-    return 0;
-  }
-
-  rfq.tx_repeat_default = tx_repeat_default;
-
-  return 1;
-}
-
-/*
- * Change modem config
- */
-uint32_t rfquack_set_status(rfquack_Status *st) {
-  uint32_t changes = 0;
-
-  // modem configuration
-  if (st->has_modemConfig)
-    changes += rfquack_set_modem_config(&(st->modemConfig));
-
-  // mode configuration
-  if (st->has_mode)
-    changes += rfquack_change_mode(st->mode);
-
-  // TX repeat configuration
-  changes += rfquack_change_tx_repeat_default(st->tx_repeat_default);
-
-  return changes;
-}
 
 /**
  * @brief Send register value to the transport.
@@ -141,105 +70,89 @@ uint32_t rfquack_set_status(rfquack_Status *st) {
  * @param value Value of the register
  */
 void rfquack_send_register(rfquack_register_address_t addr,
-                           rfquack_register_value_t value) {
+                           rfquack_register_address_t value) {
   rfquack_Register reg;
-  uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE];
-  pb_ostream_t ostream = pb_ostream_from_buffer(buf, RFQUACK_MAX_PB_MSG_SIZE);
-
   reg.address = addr;
   reg.value = value;
   reg.has_value = true;
 
-  if (!pb_encode(&ostream, rfquack_Register_fields, &reg)) {
-    Log.error("Encoding Register failed: %s", PB_GET_ERROR(&ostream));
-  } else {
-    if (!rfquack_transport_send(
-            RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_REGISTER, buf,
-            ostream.bytes_written))
-      Log.error("Failed sending to transport");
-  }
+  // Send reg
+  PB_ENCODE_AND_SEND(rfquack_Register_fields, reg,
+                     RFQUACK_OUT_TOPIC
+                       RFQUACK_TOPIC_SEP
+                       RFQUACK_TOPIC_REGISTER);
 }
 
 /*
  * Send tool status.
  */
 void rfquack_send_status() {
-  rfquack_update_status();
+  rfqRadio->updateRadiosStats();
 
-  // The message to send is rfq.stats
-  uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE];
-  pb_ostream_t ostream = pb_ostream_from_buffer(buf, RFQUACK_MAX_PB_MSG_SIZE);
-
-  if (!pb_encode(&ostream, rfquack_Status_fields, &rfq)) {
-    Log.error("Encoding failed: %s", PB_GET_ERROR(&ostream));
-  } else {
-    if (!rfquack_transport_send(
-            RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_STATUS, buf,
-            ostream.bytes_written))
-      Log.error("Failed sending to transport");
-  }
+  // Send rfq.stats
+  PB_ENCODE_AND_SEND(rfquack_Status_fields, rfq,
+                     RFQUACK_OUT_TOPIC
+                       RFQUACK_TOPIC_SEP
+                       RFQUACK_TOPIC_STATUS);
 }
 
+/**
+ * @brief Decodes a packet received from transport and sends it using the radio.
+ * @param payload
+ * @param payload_length
+ */
 static void rfquack_tx_packet(char *payload, int payload_length) {
-  Log.trace("Request to transmit a packet");
-
-  // init
   rfquack_Packet pkt = rfquack_Packet_init_default;
+  PB_DECODE(pkt, rfquack_Packet_fields, payload, payload_length);
 
-  // create stream from buffer
-  pb_istream_t istream =
-      pb_istream_from_buffer((uint8_t *)payload, payload_length);
-
-  // attempt decoding
-  if (!pb_decode(&istream, rfquack_Packet_fields, &pkt)) {
-    Log.error("Cannot decode Packet: %s", PB_GET_ERROR(&istream));
-    return;
-  }
-
-  if (!rfquack_send_packet(&pkt))
-    Log.error("Failure transmitting %d bytes of payload", pkt.data.size);
+  rfqRadio->transmit(&pkt);
 }
 
-static void rfquack_status(char *payload, int payload_length) {
-  // init
-  rfquack_Status status = rfquack_Status_init_default;
+/**
+ * @brief Decodes a Status packet and applies it.
+ * @param payload
+ * @param payload_length
+ */
+static void rfquack_set_status(char *payload, int payload_length) {
+  rfquack_Status pkt = rfquack_Status_init_default;
+  PB_DECODE(pkt, rfquack_Status_fields, payload, payload_length);
 
-  // create stream from buffer
-  pb_istream_t istream =
-      pb_istream_from_buffer((uint8_t *)payload, payload_length);
-
-  // attempt decoding
-  if (!pb_decode(&istream, rfquack_Status_fields, &status)) {
-    Log.error("Cannot decode Status: %s", PB_GET_ERROR(&istream));
-    return;
+  // Update mode if any (RX,TX,REPEAT,IDLE)
+  if (pkt.has_mode) {
+    rfqRadio->setMode(pkt.mode);
   }
 
-  uint32_t changes = rfquack_set_status(&status);
+  // Set modem config if any.
+  if (pkt.has_modemConfig) {
+    rfqRadio->setModemConfig(pkt.modemConfig);
+  }
 
-  if (changes > 0) {
-    Log.trace("%d settings changed: re-initializing the radio", changes);
-    rfquack_update_mode();
-  } else
-    Log.warning("No change in settings: doing nothing");
-
-  return;
+  // Update tx_repeat_default.
+  rfq.tx_repeat_default = pkt.tx_repeat_default;
 }
 
+/**
+ * @brief Decodes a PacketFormat packet and applies it.
+ * @param payload
+ * @param payload_length
+ */
+static void rfquack_set_packet_format(char *payload, int payload_length) {
+  rfquack_PacketFormat pkt = rfquack_PacketFormat_init_default;
+  PB_DECODE(pkt, rfquack_PacketFormat_fields, payload, payload_length);
+
+  rfqRadio->setPacketFormat(pkt);
+}
+
+/**
+ * @brief Decodes a ModemConfig packet and applies it.
+ * @param payload
+ * @param payload_length
+ */
 static void rfquack_modem_config_change(char *payload, int payload_length) {
-  // init
-  rfquack_ModemConfig mc = rfquack_ModemConfig_init_default;
+  rfquack_ModemConfig pkt = rfquack_ModemConfig_init_default;
+  PB_DECODE(pkt, rfquack_ModemConfig_fields, payload, payload_length);
 
-  // create stream from buffer
-  pb_istream_t istream =
-      pb_istream_from_buffer((uint8_t *)payload, payload_length);
-
-  // attempt decoding
-  if (!pb_decode(&istream, rfquack_ModemConfig_fields, &mc)) {
-    Log.error("Cannot decode ModemConfig: %s", PB_GET_ERROR(&istream));
-    return;
-  }
-
-  rfquack_set_modem_config(&mc);
+  rfqRadio->setModemConfig(pkt);
 }
 
 /**
@@ -249,39 +162,28 @@ static void rfquack_modem_config_change(char *payload, int payload_length) {
  * @param payload_length
  */
 static void rfquack_register_access(char *payload, int payload_length) {
-  // init
-  rfquack_Register reg;
-
-  // create stream from buffer
-  pb_istream_t istream =
-      pb_istream_from_buffer((uint8_t *)payload, payload_length);
-
-  if (!pb_decode(&istream, rfquack_Register_fields, &reg)) {
-    Log.error("Cannot decode Register: %s", PB_GET_ERROR(&istream));
-
-    return;
-  }
+  rfquack_Register pkt;
+  PB_DECODE(pkt, rfquack_Register_fields, payload, payload_length);
 
   // most of the time, this is just 1 byte (uint8_t)
-  rfquack_register_address_t addr = (rfquack_register_address_t)reg.address;
+  rfquack_register_address_t addr = (rfquack_register_address_t) pkt.address;
   rfquack_register_value_t value;
 
   // register set
-  if (reg.has_value) {
-    value = (rfquack_register_value_t)reg.value;
-    uint8_t status = rfquack_write_register(addr, value);
+  if (pkt.has_value) {
+    value = (rfquack_register_value_t) pkt.value;
+    rfqRadio->writeRegister(addr, value);
     Log.trace("Register " RFQUACK_REGISTER_HEX_FORMAT
-              " = " RFQUACK_REGISTER_VALUE_HEX_FORMAT " (status = %X)",
-              addr, value, status);
+              " = " RFQUACK_REGISTER_VALUE_HEX_FORMAT,
+              addr, value);
   } else { // register get
-    value = rfquack_read_register(addr);
+    value = rfqRadio->readRegister(addr);
 
     Log.trace("Reading register " RFQUACK_REGISTER_HEX_FORMAT
               " = " RFQUACK_REGISTER_VALUE_HEX_FORMAT,
               addr, value);
 
     rfquack_send_register(addr, value);
-
     return;
   }
 }
@@ -291,30 +193,20 @@ static void rfquack_register_access(char *payload, int payload_length) {
  *
  */
 static void rfquack_set_packet_filter(char *payload, int payload_length) {
-  // init
-  rfquack_PacketFilter pf;
-
-  // create stream from buffer
-  pb_istream_t istream =
-      pb_istream_from_buffer((uint8_t *)payload, payload_length);
-
-  if (!pb_decode(&istream, rfquack_PacketFilter_fields, &pf)) {
-    Log.error("Cannot decode PacketFilter: %s", PB_GET_ERROR(&istream));
-
-    return;
-  }
+  rfquack_PacketFilter pkt;
+  PB_DECODE(pkt, rfquack_PacketFilter_fields, payload, payload_length);
 
   int idx = pfs.size;
   pfs.size++;
 
   // compile the pattern
-  re_t cp = re_compile(pf.pattern);
+  re_t cp = re_compile(pkt.pattern);
 
   // add pattern to ruleset
   memcpy(&(pfs.patterns[idx]), &cp, sizeof(re_t));
 
   // add rule to ruleset
-  memcpy(&(pfs.filters[idx]), &pf, sizeof(rfquack_PacketFilter));
+  memcpy(&(pfs.filters[idx]), &pkt, sizeof(rfquack_PacketFilter));
   Log.trace("Adding pattern '%s' to filters", pfs.filters[idx].pattern);
 }
 
@@ -324,18 +216,9 @@ static void rfquack_set_packet_filter(char *payload, int payload_length) {
  * @param index Position in the list of packet modification list
  */
 static void rfquack_send_packet_modification(uint8_t index) {
-  uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE];
-  pb_ostream_t ostream = pb_ostream_from_buffer(buf, sizeof(buf));
-
-  if (!pb_encode(&ostream, rfquack_PacketModification_fields,
-                 &(pms.rules[index]))) {
-    Log.error("Encoding failed: %s", PB_GET_ERROR(&ostream));
-  } else {
-    if (!rfquack_transport_send(RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP
-                                    RFQUACK_TOPIC_PACKET_MODIFICATION,
-                                buf, ostream.bytes_written))
-      Log.error("Failed sending to transport");
-  }
+  PB_ENCODE_AND_SEND(rfquack_PacketModification_fields, pms.rules[index],
+                     RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP
+                       RFQUACK_TOPIC_PACKET_MODIFICATION)
 }
 
 /**
@@ -354,20 +237,10 @@ static void rfquack_send_packet_modifications() {
  * @param index Position in the list of packet filter list
  */
 static void rfquack_send_packet_filter(uint8_t index) {
-  uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE];
-  pb_ostream_t ostream = pb_ostream_from_buffer(buf, sizeof(buf));
-
-  if (!pb_encode(&ostream, rfquack_PacketFilter_fields,
-                 &(pfs.filters[index]))) {
-    Log.error("Encoding failed: %s", PB_GET_ERROR(&ostream));
-  } else {
-    if (!rfquack_transport_send(
-            RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FILTER,
-            buf, ostream.bytes_written))
-      Log.error("Failed sending to transport");
-    else
-      Log.trace("Data successfully sent");
-  }
+  PB_ENCODE_AND_SEND(rfquack_PacketFilter_fields, pfs.filters[index],
+                     RFQUACK_OUT_TOPIC
+                       RFQUACK_TOPIC_SEP
+                       RFQUACK_TOPIC_PACKET_FILTER);
 }
 
 /**
@@ -385,31 +258,22 @@ static void rfquack_send_packet_filters() {
  */
 static void rfquack_set_packet_modification(char *payload, int payload_length) {
   // init
-  rfquack_PacketModification pm;
-
-  // create stream from buffer
-  pb_istream_t istream =
-      pb_istream_from_buffer((uint8_t *)payload, payload_length);
-
-  if (!pb_decode(&istream, rfquack_PacketModification_fields, &pm)) {
-    Log.error("Cannot decode PacketModification: %s", PB_GET_ERROR(&istream));
-
-    return;
-  }
+  rfquack_PacketModification pkt;
+  PB_DECODE(pkt, rfquack_PacketModification_fields, payload, payload_length);
 
   int idx = pms.size;
   pms.size++;
 
-  if (pm.has_pattern) {
+  if (pkt.has_pattern) {
     // compile the pattern
-    re_t cp = re_compile(pm.pattern);
+    re_t cp = re_compile(pkt.pattern);
 
     // add pattern to ruleset
     memcpy(&(pms.patterns[idx]), &cp, sizeof(re_t));
   }
 
   // add rule to ruleset
-  memcpy(&(pms.rules[idx]), &pm, sizeof(rfquack_PacketModification));
+  memcpy(&(pms.rules[idx]), &pkt, sizeof(rfquack_PacketModification));
 }
 
 /**
@@ -421,7 +285,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
             payload_length);
 
 #ifdef RFQUACK_DEV
-  rfquack_log_buffer("Payload = ", (uint8_t *)payload, payload_length);
+  rfquack_log_buffer("Payload = ", (uint8_t *) payload, payload_length);
 #endif
 
   /***********************************************************************
@@ -430,7 +294,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
 
   // Get stats: "rfquack/in/get/stats"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_GET
-                        RFQUACK_TOPIC_STATS) == 0) {
+                    RFQUACK_TOPIC_STATS) == 0) {
     Log.trace("Request for stats");
     rfquack_send_stats();
     return;
@@ -438,16 +302,16 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
 
   // Get status: "rfquack/in/get/status"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_GET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_STATUS) == 0) {
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_STATUS) == 0) {
     rfquack_send_status();
     return;
   }
 
   // Set status: "rfquack/in/set/status"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_STATUS) == 0 &&
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_STATUS) == 0 &&
       payload_length > 0) {
-    rfquack_status(payload, payload_length);
+    rfquack_set_status(payload, payload_length);
     return;
   }
 
@@ -457,9 +321,9 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
 
   // Set or get register: "rfquack/in/(set|get)/register"
   if ((strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                         RFQUACK_TOPIC_SEP RFQUACK_TOPIC_REGISTER) == 0 ||
+                     RFQUACK_TOPIC_SEP RFQUACK_TOPIC_REGISTER) == 0 ||
        strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_GET
-                         RFQUACK_TOPIC_SEP RFQUACK_TOPIC_REGISTER) == 0) &&
+                     RFQUACK_TOPIC_SEP RFQUACK_TOPIC_REGISTER) == 0) &&
       payload_length > 0) {
     rfquack_register_access(payload, payload_length);
     return;
@@ -471,7 +335,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
 
   // Set modem configuration: "rfquack/in/set/modem_config"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_MODEM_CONFIG) == 0 &&
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_MODEM_CONFIG) == 0 &&
       payload_length > 0) {
     rfquack_modem_config_change(payload, payload_length);
     return;
@@ -483,7 +347,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
 
   // Transmit (set) a packet: "rfquack/in/set/packet"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET) == 0 &&
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET) == 0 &&
       payload_length > 0) {
     rfquack_tx_packet(payload, payload_length);
     return;
@@ -497,7 +361,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   // "rfquack/in/set/packet_format"
   if (strcmp(topic,
              RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                 RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FORMAT) == 0) {
+             RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FORMAT) == 0) {
     if (payload_length > 0)
       rfquack_set_packet_format(payload, payload_length);
 
@@ -512,7 +376,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   // "rfquack/in/set/packet_modification"
   if (strcmp(topic,
              RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                 RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_MODIFICATION) == 0) {
+             RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_MODIFICATION) == 0) {
     if (payload_length > 0)
       rfquack_set_packet_modification(payload, payload_length);
     else
@@ -524,7 +388,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   // Get packet modifications: "rfquack/in/get/packet_modification"
   if (strcmp(topic,
              RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_GET
-                 RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_MODIFICATION) == 0) {
+             RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_MODIFICATION) == 0) {
     rfquack_send_packet_modifications();
     return;
   }
@@ -536,7 +400,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   // Set a new packet filter or reset them all together:
   // "rfquack/in/set/packet_filter"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FILTER) == 0) {
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FILTER) == 0) {
     if (payload_length > 0)
       rfquack_set_packet_filter(payload, payload_length);
     else
@@ -547,7 +411,7 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
 
   // Get packet filters: "rfquack/in/get/packet_filter"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_GET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FILTER) == 0) {
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PACKET_FILTER) == 0) {
     rfquack_send_packet_filters();
     return;
   }
@@ -555,17 +419,17 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
   /***********************************************************************
    * Set promiscuous mode
    ***********************************************************************/
-  // Set promiscuosu mode: "rfquack/in/set/promiscuous"
+  // Set promiscuous mode: "rfquack/in/set/promiscuous"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PROMISCUOUS) == 0) {
-    rfquack_set_promiscuous(true);
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PROMISCUOUS) == 0) {
+    rfqRadio->rfquack_set_promiscuous(true);
     return;
   }
 
   // Unset promiscuous mode: "rfquack/in/set/promiscuous"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_UNSET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PROMISCUOUS) == 0) {
-    rfquack_set_promiscuous(false);
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_PROMISCUOUS) == 0) {
+    rfqRadio->rfquack_set_promiscuous(false);
     return;
   }
 
@@ -574,8 +438,8 @@ void rfquack_dispatch_command(char *topic, char *payload, int payload_length) {
    ***********************************************************************/
   // Get packet filters: "rfquack/in/set/radio_reset"
   if (strcmp(topic, RFQUACK_IN_TOPIC RFQUACK_TOPIC_SEP RFQUACK_TOPIC_SET
-                        RFQUACK_TOPIC_SEP RFQUACK_TOPIC_RADIO_RESET) == 0) {
-    rfquack_radio_setup();
+                    RFQUACK_TOPIC_SEP RFQUACK_TOPIC_RADIO_RESET) == 0) {
+    rfqRadio->begin();
     return;
   }
 
@@ -637,7 +501,11 @@ void rfquack_init() {
   Log.trace("RFQuack data structure initialized: %s", RFQUACK_UNIQ_ID);
 }
 
-void rfquack_setup() {
+void rfquack_setup(RadioA &radioA
+#ifndef RFQUACK_SINGLE_RADIO
+  , RadioB &radioB
+#endif
+) {
   rfquack_logging_setup();
 
   delay(100);
@@ -660,23 +528,25 @@ void rfquack_setup() {
 
   delay(100);
 
-  rfquack_radio_setup();
+#ifdef RFQUACK_SINGLE_RADIO
+  rfqRadio = new RFQRadio(&radioA);
+  rfqRadio->begin(RFQRadio::RADIOA);
+#elif
+  rfqRadio = new RFQRadio(&radioA, &radioB);
+  rfqRadio->begin(RFQRadio::RADIOA);
+  rfqRadio->begin(RFQRadio::RADIOB);
+#endif
 
   delay(100);
 
   rfquack_send_status();
+
 }
 
 void rfquack_loop() {
   rfquack_network_loop();
 
-#ifndef RFQUACK_ASYNC_RX // we poll only if we must
-  // If in RX mode, receive data
-  rfquack_rx_loop();
-#endif
-
-  // Flush the RX data if any
-  rfquack_rx_flush_loop();
+  rfqRadio->rxLoop();
 
   rfquack_transport_loop();
 }

@@ -45,7 +45,7 @@ great speed and a plug-and-play experience at the price of less flexibility
 RFQuack is unique in these ways:
 
 * It's a **library** firmware, with many settings, sane defaults, and rich logging and debugging functionalities.
-* Supports **multiple radio chips**: RF69, RF95, CC1120, basically all the chips supported by [RadioHAL](https://github.com/trendmicro/RadioHAL) (our GPLv2 fork of [RadioHead](https://www.airspayce.com/mikem/arduino/RadioHead/)), and we're adding more.
+* Supports **multiple radio chips**: nRF24, CC1101, basically all the chips supported by [RadioLib](https://github.com/jgromes/RadioLib), and we're adding more.
 * Does not require a **wired connection** to the host computer: the serial port is used only to display debugging messages, but the interaction between the client and the node is over TCP using WiFi (via Arduino WiFi) and GPRS (via [TinyGSM](https://github.com/vshymanskyy/TinyGSM) library) as physical layers.
 * The IPython client allows both **high- and low-level operations**: change frequency, change modulation, etc., as well as to interact with the radio chip via registers.
 * The firmware and its API support the concept of **packet-filtering** and **packet-modification rules**, which means that you can instruct the firmware to listen for a packet matching a given signature (in addition to the usual sync-word- and address-based filtering, which normally happen in the radio hardware), optionally modify it right away, and re-transmit it.
@@ -260,11 +260,10 @@ RFQuack is meant to be as generic as possible. What's not directly abstracted wi
 When you fire up the Python shell, you can interact with the API through the `q` object. If unsure which parameters a function can take please check the `src/rfquack.proto` protocol definition. Since we're using reflection, IPython can't offer completion here (if you know a way to have completion on dynamic attributes, please let us know!).
 
 ## Modem Configuration
-RFQuack's radio sub-system is based on [RadioHAL](https://github.com/trendmicro/RadioHAL/) (our GPLv2 fork of RadioHead), so for most aspects you can refer to the RadioHead documentation. The key difference between RadioHead and RadioHAL is that RadioHAL does not make any assumption on the packet format: it just gives you straight access to the payload. This is true for RFM69 and CC1120 (newly added!), while we're still in the process of removing payload parsing routines from the drivers of the other radio chips supported by RadioHead.
+RFQuack's radio sub-system is based on [RadioLib](https://github.com/jgromes/RadioLib), so for most aspects you can refer to the RadioLib documentation.
 
 Not all radio modules support modem configuration. Sub-gigahertz modems usually do. The `q.set_modem_config()` function takes the following parameters:
 
-* `modemConfigChoiceIndex`: this refers to the RadioHAL (fork of RadioHead) pre-defined modem configuration (a.k.a., `ModemConfigChoice`), which are common settings for modulation, bitrate, frequency deviation, bandwidth, and so on. Depending on the radio chip you're using, check the RadioHead documentation (e.g., [for the RFM69](https://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF69.html#a8b7db5c6e4eb542f46fec351b2084bbe)). We'll document RadioHAL at some point in the future.
 * `txPower` and `isHighPowerModule`: these parameters control the transmission power; set them wisely and make sure to follow the laws that apply to your country; also, note that some radio modules (e.g., RFM69HCW) need to be set in "high-power mode" (that's what the 'H' stands for), so if you set `txPower` below a certain minimum value, say 14, you will get zero transmission power. In particular, these modules will need `txPower >= 14` and, `isHighPowerModule = true`.
 * `syncWords`: sync-word matching is a basic functionality of most packet-radio modules, which allow to efficiently filter packets that match the sync words and just ignore the rest, in order to keep the radio chip and the MCU busy only when an expected packet is received; depending on the radio module, the sync words can be set to zero (promiscuous mode) or up to a certain number of octects (e.g., 4); in promiscuous mode, the radio and MCU will be *very* busy, because they will pick up *everything*, including noise.
 * `carrierFreq`: this is the carrier frequency, easy; make sure you comply to the radio module you chosen.
@@ -275,7 +274,7 @@ The `q.tx()` and `q.rx()` functions are self-explanatory: they set the module in
 By default, a packet is transmitted only once. If you want to repeat it, just set `repetitions` to whatever you want, and RFQuack will repeat the transmission as fast as possible (bound by the MCU clock, of course).
 
 ## Register Access
-While RadioHead (and thus its fork RadioHAL) has gone very far in abstracting the interaction with the radio, some radio chips are really "unique," so to speak. In these cases, the only option is to grab a large cup of your favorite beverage, read through the datasheet, read again, again, and again.
+While RadioLib has gone very far in abstracting the interaction with the radio, some radio chips are really "unique," so to speak. In these cases, the only option is to grab a large cup of your favorite beverage, read through the datasheet, read again, again, and again.
 
 Once you understand enough of how the radio works at the low level, you want to get-set registers in order to use it. In principle, you can do pretty much everything via registers.
 

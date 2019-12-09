@@ -123,10 +123,13 @@ void rfquack_network_loop() {
 }
 
 #elif defined(RFQUACK_IS_STANDALONE)
+
 void rfquack_network_setup() {
   Log.trace("Standalone mode network setup: done!");
 }
+
 void rfquack_network_loop() {}
+
 #else
 #error "Network configuration unexpected"
 #endif
