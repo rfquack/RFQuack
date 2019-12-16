@@ -204,6 +204,9 @@ public:
      */
     uint8_t readRegister(uint8_t reg, Radio whichRadio = RADIOA) {
       RADIO_A_OR_B_CMD(whichRadio, return radio->readRegister(reg))
+
+      // If radio is neither A or B.
+      return -1;
     }
 
     /**

@@ -13,7 +13,6 @@ public:
     using CC1101::variablePacketLengthMode;
     using CC1101::fixedPacketLengthMode;
     using CC1101::setCrcFiltering;
-    using CC1101::printRegisters;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module) {}
 
@@ -47,7 +46,7 @@ public:
     }
 
     int16_t receiveMode() override {
-      if (_mode == RFQRADIO_MODE_RX){
+      if (_mode == RFQRADIO_MODE_RX) {
         return ERR_NONE;
       }
 
@@ -61,9 +60,15 @@ public:
       uint8_t state = SPIsetRegValue(CC1101_REG_MCSM1, CC1101_RXOFF_RX, 3, 2);
 
       // Do not append status byte
-      state |= SPIsetRegValue(CC1101_REG_PKTCTRL1, CC1101_APPEND_STATUS_OFF, 2,2);
+      state |= SPIsetRegValue(CC1101_REG_PKTCTRL1, CC1101_APPEND_STATUS_OFF, 2, 2);
 
-      // set GDO0 mapping
+      // Remove whitening
+      state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
+
+      // Set THR to 4 bytes
+      state |= SPIsetRegValue(CC1101_REG_FIFOTHR, 0, 3, 0);
+
+      // set GDO0 mapping. Asserted when RX FIFO > 4 bytes.
       state |= SPIsetRegValue(CC1101_REG_IOCFG0, CC1101_GDOX_RX_FIFO_FULL_OR_PKT_END);
 
       if (state != ERR_NONE)
@@ -101,12 +106,12 @@ public:
 
       // Keep reading from FIFO until we get all the message.
       while (readBytes < len) {
-        if (millis() - startTime > 100){
+        if (millis() - startTime > 100) {
           RFQUACK_LOG_TRACE(F("Waiting for more than 100mS. Stop here."));
           break;
         }
 
-        if (bytesInFIFO==0) {
+        if (bytesInFIFO == 0) {
           RFQUACK_LOG_TRACE("[RX FIFO] Waiting for data. %d/%d", readBytes, len);
           delay(1);
           bytesInFIFO = SPIgetRegValue(CC1101_REG_RXBYTES, 6, 0);
@@ -145,6 +150,29 @@ public:
     void setInterruptAction(void (*func)(void *)) override {
       attachInterruptArg(digitalPinToInterrupt(_mod->getInt0()), func, (void *) (&_flag), FALLING);
     }
+
+    void printRegisters() {
+      Serial.println("DUMP: ");
+      // From 0x00 to 0x28
+      for (uint8_t i = 0; i < 0x2E; i++) {
+        Serial.print(i, HEX);
+        Serial.print(": ");
+        Serial.println(SPIreadRegister(i), HEX);
+      }
+
+      uint8_t data[2];
+      SPIreadRegisterBurst(CC1101_REG_PATABLE, 2, data);
+
+      Serial.print("PA0");
+      Serial.print(": ");
+      Serial.println(data[0], HEX);
+
+
+      Serial.print("PA1");
+      Serial.print(": ");
+      Serial.println(data[1], HEX);
+    }
+
 };
 
 #endif //RFQUACK_PROJECT_RFQCC1101_H

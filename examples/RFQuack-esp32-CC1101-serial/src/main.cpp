@@ -12,9 +12,9 @@
 
 /* Radio configuration */
 #define RFQUACK_RADIOA_CC1101
-#define RFQUACK_RADIO_PIN_CS 5
-#define RFQUACK_RADIO_PIN_GDO0 4
-#define RFQUACK_RADIO_PIN_GDO1 22 // GDO1 is not used, can be set to anything.
+#define RFQUACK_RADIO_PIN_CS 2
+#define RFQUACK_RADIO_PIN_GDO0 21
+#define RFQUACK_RADIO_PIN_GDO1 26 // GDO1 is not used, can be set to anything.
 
 /* Enable Radio debug messages */
 #define RFQUACK_LOG_ENABLED

@@ -92,7 +92,7 @@ public:
         // Register an interrupt routine to set flag when radio receives something.
         setFlag(false);
         setInterruptAction(radioInterrupt);
-      }else{
+      } else {
         RFQUACK_LOG_TRACE(F("Already in RX mode. RadioLibWrapper"))
       }
 
@@ -267,6 +267,7 @@ public:
 
         // Pop packet from RX FIFO.
         uint8_t packetLen = getPacketLength(false);
+        uint64_t startReceive = millis();
         int16_t result = readData((uint8_t *) pkt.data.bytes, packetLen);
         RFQUACK_LOG_TRACE("Recieved packet, resultCode=%d", result)
 
@@ -282,7 +283,7 @@ public:
 
         // Fill missing data
         pkt.data.size = packetLen;
-        pkt.millis = millis();
+        pkt.millis = startReceive;
         pkt.has_millis = true;
 
         // Filter packet
