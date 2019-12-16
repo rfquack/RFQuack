@@ -78,18 +78,23 @@ public:
      * @return
      */
     virtual int16_t receiveMode() {
-      // Set mode to RX.
-      _mode = RFQRADIO_MODE_RX;
-      RFQUACK_LOG_TRACE(F("Entering RX mode."))
+      if (_mode != RFQRADIO_MODE_RX) {
 
-      // Start async RX
-      int16_t state = T::startReceive();
-      if (state != ERR_NONE)
-        return state;
+        // Set mode to RX.
+        _mode = RFQRADIO_MODE_RX;
+        RFQUACK_LOG_TRACE(F("Entering RX mode."))
 
-      // Register an interrupt routine to set flag when radio receives something.
-      setFlag(false);
-      setInterruptAction(radioInterrupt);
+        // Start async RX
+        int16_t state = T::startReceive();
+        if (state != ERR_NONE)
+          return state;
+
+        // Register an interrupt routine to set flag when radio receives something.
+        setFlag(false);
+        setInterruptAction(radioInterrupt);
+      }else{
+        RFQUACK_LOG_TRACE(F("Already in RX mode. RadioLibWrapper"))
+      }
 
       return ERR_NONE;
     }
@@ -219,7 +224,7 @@ public:
      * True whenever there's data available on radio's RX FIFO.
      * @return
      */
-    bool isIncomingDataAvailable() {
+    virtual bool isIncomingDataAvailable() {
       // Flag makes sense only if in RX mode.
       if (_mode != RFQRADIO_MODE_RX) {
         return false;
