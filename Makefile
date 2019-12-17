@@ -1,4 +1,6 @@
 #
+# vim: noexpandtab
+#
 # RFQuack is a versatile RF-hacking tool that allows you to sniff, analyze, and
 # transmit data over the air. Consider it as the modular version of the great
 # 
@@ -21,8 +23,11 @@
 # Note: make sure that client/ points to the root of https://github.com/rfquack/RFQuack-cli
 
 SHELL := /bin/bash
+EXAMPLES := $(wildcard examples/*)
 
-all: proto
+.PHONY: all proto examples
+
+all: proto examples
 
 proto:
 	cd src/ ; \
@@ -31,4 +36,7 @@ proto:
 		rfquack.proto \
 		--python_out=client/
 
-.PHONY: all
+examples:
+	for example in $(EXAMPLES); do \
+		pio ci -c $$example/platformio.ini -l src/ $$example; \
+	done
