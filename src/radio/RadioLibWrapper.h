@@ -78,18 +78,23 @@ public:
      * @return
      */
     virtual int16_t receiveMode() {
-      // Set mode to RX.
-      _mode = RFQRADIO_MODE_RX;
-      RFQUACK_LOG_TRACE(F("Entering RX mode."))
+      if (_mode != RFQRADIO_MODE_RX) {
 
-      // Start async RX
-      int16_t state = T::startReceive();
-      if (state != ERR_NONE)
-        return state;
+        // Set mode to RX.
+        _mode = RFQRADIO_MODE_RX;
+        RFQUACK_LOG_TRACE(F("Entering RX mode."))
 
-      // Register an interrupt routine to set flag when radio receives something.
-      setFlag(false);
-      setInterruptAction(radioInterrupt);
+        // Start async RX
+        int16_t state = T::startReceive();
+        if (state != ERR_NONE)
+          return state;
+
+        // Register an interrupt routine to set flag when radio receives something.
+        setFlag(false);
+        setInterruptAction(radioInterrupt);
+      } else {
+        RFQUACK_LOG_TRACE(F("Already in RX mode. RadioLibWrapper"))
+      }
 
       return ERR_NONE;
     }
@@ -219,7 +224,7 @@ public:
      * True whenever there's data available on radio's RX FIFO.
      * @return
      */
-    bool isIncomingDataAvailable() {
+    virtual bool isIncomingDataAvailable() {
       // Flag makes sense only if in RX mode.
       if (_mode != RFQRADIO_MODE_RX) {
         return false;
@@ -242,7 +247,7 @@ public:
       }
 
       // Let's assume readData() call rate is so high that there's
-      // always almost a packet to read from radio.
+      // always at most a packet to read from radio.
       setFlag(false);
 
       // Shame on RadioLib, after readData driver resets interrupts and goes in STANDBY.
@@ -262,6 +267,7 @@ public:
 
         // Pop packet from RX FIFO.
         uint8_t packetLen = getPacketLength(false);
+        uint64_t startReceive = millis();
         int16_t result = readData((uint8_t *) pkt.data.bytes, packetLen);
         RFQUACK_LOG_TRACE("Recieved packet, resultCode=%d", result)
 
@@ -277,7 +283,7 @@ public:
 
         // Fill missing data
         pkt.data.size = packetLen;
-        pkt.millis = millis();
+        pkt.millis = startReceive;
         pkt.has_millis = true;
 
         // Filter packet

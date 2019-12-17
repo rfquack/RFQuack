@@ -47,7 +47,7 @@ public:
     // NOTE: nRF24 does not have a "setSyncword()" method since it's called "address" and is set
     // per pipe during TX/RX.
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
-      //Note: this command will bring radio back to standby mode.
+      // Note: this command will bring radio back to standby mode.
       _mode = RFQRADIO_MODE_STANDBY;
 
       // First try to set addr width.
@@ -76,6 +76,7 @@ public:
 
     int16_t setPromiscuousMode(bool isEnabled) override {
       // Set syncWord as preamble's tail.
+      // TODO: syncWord should be changed back when exiting
       byte sync[2] = {0xAA, 0xAA};
       int16_t state = setSyncWord(sync, 2);
       if (state != ERR_NONE) {
@@ -83,13 +84,13 @@ public:
       }
 
       // Disable auto ACK
-      state = nRF24::setAutoAck(false);
+      state = nRF24::setAutoAck(!isEnabled);
       if (state != ERR_NONE) {
         return state;
       }
 
       // Disable CRC
-      state = nRF24::setCrcFiltering(false);
+      state = nRF24::setCrcFiltering(!isEnabled);
       if (state != ERR_NONE) {
         return state;
       }
@@ -103,8 +104,8 @@ public:
       detachInterrupt(digitalPinToInterrupt(_mod->getInt1()));
     }
 
-    void setInterruptAction(void (*func)(void*)) override {
-      attachInterruptArg(digitalPinToInterrupt(_mod->getInt1()), func, (void*)(&_flag), FALLING);
+    void setInterruptAction(void (*func)(void *)) override {
+      attachInterruptArg(digitalPinToInterrupt(_mod->getInt1()), func, (void *) (&_flag), FALLING);
     }
 
 private:
