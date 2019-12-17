@@ -1,6 +1,0 @@
-{
-    "terminal.integrated.env.osx": {
-        "PATH": "/Users/federico_maggi/.platformio/penv/bin:/Users/federico_maggi/.platformio/penv:/Users/federico_maggi/.pyenv/plugins/pyenv-virtualenv/shims:/Users/federico_maggi/.pyenv/shims:/Users/federico_maggi/.pyenv/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/bin:/usr/sbin:/sbin:/Applications/VMware Fusion.app/Contents/Public:/Library/TeX/texbin:/usr/local/share/dotnet:/usr/local/munki:/opt/X11/bin:~/.dotnet/tools:/Applications/Wireshark.app/Contents/MacOS:/Users/federico_maggi/bin:/Users/federico_maggi/reversing/tools/afl:/usr/local/opt/qt/bin:/Users/federico_maggi/.cabal/bin:/opt/local/bin:/Users/federico_maggi/.rvm/bin",
-        "PLATFORMIO_CALLER": "vscode"
-    }
-}
