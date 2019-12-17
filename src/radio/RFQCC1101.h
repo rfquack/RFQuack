@@ -102,12 +102,12 @@ public:
       uint8_t bytesInFIFO = SPIgetRegValue(CC1101_REG_RXBYTES, 6, 0);
       uint8_t readBytes = 0;
 
-      unsigned long startTime = millis();
+      unsigned long lastPop = millis();
 
       // Keep reading from FIFO until we get all the message.
       while (readBytes < len) {
-        if (millis() - startTime > 100) {
-          RFQUACK_LOG_TRACE(F("Waiting for more than 100mS. Stop here."));
+        if (millis() - lastPop > 10) {
+          RFQUACK_LOG_TRACE(F("No data for more than 10mS. Stop here."));
           break;
         }
 
@@ -125,6 +125,7 @@ public:
         // Read data from FIFO
         SPIreadRegisterBurst(CC1101_REG_FIFO, bytesToRead, (data + readBytes));
         readBytes += bytesToRead;
+        lastPop = millis();
 
         // Get how many bytes are left in FIFO.
         bytesInFIFO = SPIgetRegValue(CC1101_REG_RXBYTES, 6, 0);
