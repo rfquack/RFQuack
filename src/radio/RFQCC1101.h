@@ -13,24 +13,9 @@ public:
     using CC1101::variablePacketLengthMode;
     using CC1101::fixedPacketLengthMode;
     using CC1101::setCrcFiltering;
+    using CC1101::setOOK;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module) {}
-
-    int16_t ookMode() {
-      // Set ASK modulation
-      uint8_t state = SPIsetRegValue(CC1101_REG_MDMCFG2, CC1101_MOD_FORMAT_ASK_OOK, 6, 4);
-
-      // Set PA_TABLE to be used when transmitting "1"
-      state |= SPIsetRegValue(CC1101_REG_FREND0, 1, 2, 0);
-
-      // Set PA_TABLE values:
-      // PA_TABLE[0] power to be used when transmitting a 0  (no power)
-      // PA_TABLE[0] power to be used when transmitting a 1  (full power)
-      byte paValues[2] = {0x00, 0x60};
-      SPIwriteRegisterBurst(CC1101_REG_PATABLE, paValues, 2);
-
-      return (state);
-    }
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       if (size == 0) {

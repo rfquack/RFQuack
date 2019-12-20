@@ -266,7 +266,7 @@ public:
         rfquack_Packet pkt;
 
         // Pop packet from RX FIFO.
-        uint8_t packetLen = getPacketLength(false);
+        uint8_t packetLen = getPacketLength(true);
         uint64_t startReceive = millis();
         int16_t result = readData((uint8_t *) pkt.data.bytes, packetLen);
         RFQUACK_LOG_TRACE("Recieved packet, resultCode=%d", result)
