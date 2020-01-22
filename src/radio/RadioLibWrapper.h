@@ -20,11 +20,9 @@
 
 #include <RadioLib.h>
 #include "../defaults/radio.h"
-#include "../rfquack.pb.h"
+#include "../modules/ModulesDispatcher.h"
 
-#ifndef RFQUACK_RADIO_RX_QUEUE_LEN
-#define RFQUACK_RADIO_RX_QUEUE_LEN RFQUACK_RADIO_RX_QUEUE_LEN_DEFAULT
-#endif
+extern ModulesDispatcher modulesDispatcher;
 
 typedef uint16_t rfquack_register_address_t;
 typedef uint8_t rfquack_register_value_t;
@@ -60,6 +58,14 @@ public:
 
     RadioLibWrapper(Module *module) : T(module) {
       _rxQueue = new Queue(sizeof(rfquack_Packet), RFQUACK_RADIO_RX_QUEUE_LEN, FIFO, true);
+    }
+
+    /**
+     * Set if this instance is either RADIOA or RADIOB
+     * @param whichRadio
+     */
+    void setWhichRadio(WhichRadio whichRadio) {
+      _whichRadio = whichRadio;
     }
 
     /**
@@ -287,7 +293,7 @@ public:
         pkt.has_millis = true;
 
         // Filter packet
-        if (rfquack_packet_filter(&pkt)) {
+        if (modulesDispatcher.onPacketReceived(pkt, _whichRadio)) {
           // If packet passed filtering put it in rxQueue.
           enqueuePacket(&pkt);
         }
@@ -399,6 +405,7 @@ public:
 protected:
     uint8_t _mode = RFQRADIO_MODE_STANDBY; // RFQRADIO_MODE_[STANDBY|RX|TX]
 private:
+    WhichRadio _whichRadio;
     rfquack_Stats _rfquackStats;
     Queue *_rxQueue;
 
@@ -414,7 +421,7 @@ private:
       }
 
       _rxQueue->push(packet);
-      RFQUACK_LOG_TRACE("Packet put in rxQueue, size %d bytes", packet->data.size);
+      RFQUACK_LOG_TRACE(F("Packet put in rxQueue, size %d bytes"), packet->data.size);
     }
 };
 

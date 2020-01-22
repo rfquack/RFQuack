@@ -101,11 +101,11 @@ public:
 
     void removeInterrupts() override {
       nRF24::clearIRQ();
-      detachInterrupt(digitalPinToInterrupt(_mod->getInt1()));
+      detachInterrupt(digitalPinToInterrupt(_mod->getIrq()));
     }
 
     void setInterruptAction(void (*func)(void *)) override {
-      attachInterruptArg(digitalPinToInterrupt(_mod->getInt1()), func, (void *) (&_flag), FALLING);
+      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
 
 private:

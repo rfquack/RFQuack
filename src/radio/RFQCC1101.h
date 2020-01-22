@@ -74,7 +74,7 @@ public:
 
       // GDO0 is asserted if:
       // "RX FIFO is filled at or above the RX FIFO threshold or the end of packet is reached"
-      return digitalRead(_mod->getInt0());
+      return digitalRead(_mod->getIrq());
     }
 
     int16_t readData(uint8_t *data, size_t len) override {
@@ -130,11 +130,11 @@ public:
     }
 
     void removeInterrupts() override {
-      detachInterrupt(digitalPinToInterrupt(_mod->getInt0()));
+      detachInterrupt(digitalPinToInterrupt(_mod->getIrq()));
     }
 
     void setInterruptAction(void (*func)(void *)) override {
-      attachInterruptArg(digitalPinToInterrupt(_mod->getInt0()), func, (void *) (&_flag), FALLING);
+      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
 
     void printRegisters() {

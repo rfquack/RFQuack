@@ -25,7 +25,6 @@
 #include "rfquack_common.h"
 #include "rfquack_logging.h"
 #include "rfquack_transport.h"
-
 #include "rfquack.pb.h"
 
 #include <cppQueue.h>
@@ -41,6 +40,12 @@ typedef RFQnRF24 RadioA;
 #include <radio/RFQCC1101.h>
 
 typedef RFQCC1101 RadioA;
+
+#elif defined(RFQUACK_RADIOA_MOCK)
+
+#include <radio/RFQMock.h>
+
+typedef RFQMock RadioA;
 #else
 #error "Please select the driver for the first radio using RFQUACK_RADIOA_*"
 #endif
@@ -67,14 +72,14 @@ typedef void RadioB;
     int16_t result = ERR_UNKNOWN; \
     __VA_ARGS__; \
     if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(#__VA_ARGS__ " on RadioA, resultCode=%d", result); \
+    RFQUACK_LOG_TRACE(F(#__VA_ARGS__ " on RadioA, resultCode=%d"), result); \
   } \
  if (whichRadio == RADIOB){ \
     RadioA *radio = _radioB; \
     int16_t result = ERR_UNKNOWN; \
     __VA_ARGS__; \
     if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(#__VA_ARGS__ " on RadioB, resultCode=%d", result); \
+    RFQUACK_LOG_TRACE(F(#__VA_ARGS__ " on RadioB, resultCode=%d"), result); \
   } \
 }
 #else
@@ -84,7 +89,7 @@ typedef void RadioB;
     int16_t result = ERR_UNKNOWN; \
     __VA_ARGS__; \
     if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(#__VA_ARGS__ " on RadioA, resultCode=%d", result); \
+    RFQUACK_LOG_TRACE(F(#__VA_ARGS__ " on RadioA, resultCode=%d"), result); \
   } \
 }
 #endif
@@ -92,14 +97,17 @@ typedef void RadioB;
 // Macro to execute a method on both _radioA and _radioB
 #ifndef RFQUACK_SINGLE_RADIO
 #define RADIO_A_AND_B_CMD(...) { \
+  WhichRadio whichRadio = RADIOA; \
   RadioA *radio = _radioA; \
   __VA_ARGS__; \
 }{ \
+  WhichRadio whichRadio = RADIOB; \
    RadioA *radio = _radioB; \
   __VA_ARGS__; \
 }
 #else
 #define RADIO_A_AND_B_CMD(...) { \
+  WhichRadio whichRadio = RADIOA; \
   RadioA *radio = _radioA; \
   __VA_ARGS__; \
 }
@@ -117,16 +125,13 @@ public:
 
 #endif
 
-    enum Radio {
-        RADIOA = 0, RADIOB
-    };
 
     /**
      * @brief Changes the radio state in the radio driver.
      * @param mode
      * @param whichRadio
      */
-    void setMode(rfquack_Mode mode, Radio whichRadio = RADIOA) {
+    void setMode(rfquack_Mode mode, WhichRadio whichRadio = RADIOA) {
       RADIO_A_OR_B_CMD(whichRadio, result = radio->setMode(mode))
     }
 
@@ -134,8 +139,11 @@ public:
      * @brief Inits radio driver.
      * @param whichRadio
      */
-    void begin(Radio whichRadio = RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, result = radio->begin())
+    void begin(WhichRadio whichRadio = RADIOA) {
+      RADIO_A_OR_B_CMD(whichRadio, {
+        radio->setWhichRadio(whichRadio);
+        result = radio->begin();
+      })
     }
 
     /**
@@ -157,41 +165,30 @@ public:
      * we want to give other functions in the loop their share of time.
      */
     void rxLoop() {
-      // Read packets from RX FIFO from both radios. (first radioA, than radioB if any).
+      // Fetch packets from radios RX FIFOs. (first radioA, than radioB if any).
       RADIO_A_AND_B_CMD({ radio->rxLoop(); })
 
-      // Handle packets received from both radios.
+      // Fetch packets packets from both drivers queues.
       RADIO_A_AND_B_CMD({
                           rfquack_Packet pkt;
 
                           // Pick *ONE* packet from RX QUEUE (read method description)
-                          while (radio->getRxQueue()->pop(&pkt)) {
+                          if (radio->getRxQueue()->pop(&pkt)) {
 
-                            // If we are in repeat mode, apply modifications and resend.
-                            if (rfq.mode == rfquack_Mode_REPEAT) {
-                              // apply all packet modifications
-                              rfquack_apply_packet_modifications(&pkt);
+                            // Send packet to the chain of registered modules.
+                            if (modulesDispatcher.afterPacketReceived(pkt, whichRadio)) {
 
-                              pkt.has_repeat = true;
-                              pkt.repeat = rfq.tx_repeat_default;
-
-                              // send packet
-                              radio->transmit(&pkt);
-                              break;
+                              // Send packet to transport if no module prevented this from happening.
+                              PB_ENCODE_AND_SEND(rfquack_Packet_fields, pkt, RFQUACK_OUT_TOPIC
+                              RFQUACK_TOPIC_SEP
+                              RFQUACK_TOPIC_PACKET);
                             }
-
-                            // Send packet to transport.
-                            PB_ENCODE_AND_SEND(rfquack_Packet_fields, pkt, RFQUACK_OUT_TOPIC
-                            RFQUACK_TOPIC_SEP
-                            RFQUACK_TOPIC_PACKET);
-
-                            break;
                           }
                         })
     }
 
 
-    void transmit(rfquack_Packet *pkt, Radio whichRadio = RADIOA) {
+    void transmit(rfquack_Packet *pkt, WhichRadio whichRadio = RADIOA) {
       RADIO_A_OR_B_CMD(whichRadio, result = radio->transmit(pkt))
     }
 
@@ -202,7 +199,7 @@ public:
      *
      * @return Value from the register.
      */
-    uint8_t readRegister(uint8_t reg, Radio whichRadio = RADIOA) {
+    uint8_t readRegister(uint8_t reg, WhichRadio whichRadio = RADIOA) {
       RADIO_A_OR_B_CMD(whichRadio, return radio->readRegister(reg))
 
       // If radio is neither A or B.
@@ -215,7 +212,7 @@ public:
      * @param addr Address of the register
      *
      */
-    void writeRegister(uint8_t reg, uint8_t value, Radio whichRadio = RADIOA) {
+    void writeRegister(uint8_t reg, uint8_t value, WhichRadio whichRadio = RADIOA) {
       RADIO_A_OR_B_CMD(whichRadio, return radio->writeRegister(reg, value))
     }
 
@@ -223,7 +220,7 @@ public:
      * @brief Sets the packet format (fixed or variable), and its length.
      *
      */
-    void setPacketFormat(rfquack_PacketFormat &fmt, Radio whichRadio = RADIOA) {
+    void setPacketFormat(rfquack_PacketFormat &fmt, WhichRadio whichRadio = RADIOA) {
       if (fmt.fixed) {
         RFQUACK_LOG_TRACE("Setting radio to fixed len of %d bytes", (uint8_t) fmt.len)
         RADIO_A_OR_B_CMD(whichRadio, result = radio->fixedPacketLengthMode((uint8_t) fmt.len))
@@ -233,11 +230,11 @@ public:
       }
     }
 
-    void rfquack_set_promiscuous(bool promiscuous, Radio whichRadio = RADIOA) {
+    void setPromiscuous(bool promiscuous, WhichRadio whichRadio = RADIOA) {
       RADIO_A_OR_B_CMD(whichRadio, result = radio->setPromiscuousMode(promiscuous))
     }
 
-    uint8_t setModemConfig(rfquack_ModemConfig &modemConfig, Radio whichRadio = RADIOA) {
+    uint8_t setModemConfig(rfquack_ModemConfig &modemConfig, WhichRadio whichRadio = RADIOA) {
       uint8_t changes = 0;
 
       RFQUACK_LOG_TRACE(F("Changing modem configuration"))

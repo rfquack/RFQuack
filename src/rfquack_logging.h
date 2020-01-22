@@ -66,9 +66,10 @@ SoftwareSerial LogPrinter(RFQUACK_LOG_SS_RX_PIN, RFQUACK_LOG_SS_TX_PIN, false,
 #elif !defined(RFQUACK_TRANSPORT_SERIAL)
 #define LogPrinter Serial // Main hardware serial is free for logging
 #elif defined(RFQUACK_TRANSPORT_SERIAL)
-#define LogPrinter Serial1 // Secondary hardware serial is used for logging
+#define LogPrinter Serial // Secondary hardware serial is used for logging
 #endif
 
+#define RFQUACK_LOG_ENABLED
 #ifdef RFQUACK_LOG_ENABLED
 #define RFQUACK_LOG_TRACE(...) {     Log.trace(__VA_ARGS__); }
 #else

@@ -94,7 +94,15 @@
 
 #define RFQUACK_TOPIC_PROMISCUOUS_DEFAULT "promiscuous"
 
+#define RFQUACK_MAX_VERB_LEN_DEFAULT 7
+
 #define RFQUACK_MAX_TOPIC_LEN_DEFAULT 64
+
+#define RFQUACK_MAX_TOKEN_LEN_DEFAULT 20
+
+#define RFQUACK_TOPIC_MAX_TOPIC_ARGS_DEFAULT 5
+
+#define RFQUACK_TOPIC_RULES_DEFAULT "rules"
 
 /*****************************************************************************
  * Serial Configuration
