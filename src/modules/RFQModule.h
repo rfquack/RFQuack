@@ -4,7 +4,7 @@
 #include <rfquack_common.h>
 
 #define CMD_MATCHES(verb, verbValue, argx, argxValue, ...) { \
-  if (strcmp(verb, verbValue) == 0 && strcmp(argx, argxValue) == 0) { \
+  if (argx != NULL && strcmp(verb, verbValue) == 0 && strcmp(argx, argxValue) == 0) { \
       __VA_ARGS__; \
       return; \
   } \
@@ -70,7 +70,7 @@ public:
 
 private:
     char *name; // Name of the module.
-    bool enabled = false; // Whatever the module is enabled
+    bool enabled = true; // Whatever the module is enabled when loaded.
 };
 
 #endif //RFQUACK_PROJECT_RFQMODULE_H

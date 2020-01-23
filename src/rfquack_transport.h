@@ -37,7 +37,7 @@ void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_leng
   // Split topic into single tokens.
   char *moduleName = NULL;  // <module_name>
   char *verb = NULL;        // <verb>
-  char *args[RFQUACK_TOPIC_MAX_TOPIC_ARGS]; // Array of 0 or more pointers to args.
+  char *args[RFQUACK_TOPIC_MAX_TOPIC_ARGS] = {NULL}; // Array of 0 or more pointers to args.
   uint8_t argsLen = 0; // Len of 'args' array.
 
   // Start tokenizing.

@@ -29,4 +29,4 @@
 rfquack.ModemConfig.syncWords       max_size:8
 rfquack.Packet.data                 max_size:64
 rfquack.PacketModification.pattern  max_size:255
-rfquack.PacketFilterModule.pattern        max_size:255
+rfquack.PacketFilter.pattern        max_size:255

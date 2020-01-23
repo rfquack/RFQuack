@@ -5,7 +5,7 @@
 ```c++
     class MyAwesomeModule : public RFQModule {
     public:
-        DriverConfigModule() : RFQModule("AwesomeModuleSlug") {}
+        MyAwesomeModule() : RFQModule("AwesomeModuleSlug") {}
     
         void onInit() override {
         	// onInit() is called once when module is loaded.
@@ -45,8 +45,8 @@
     	  // You should use this method to set module's config parameters.
     	  
     	  // Example:
-          // Set modem configuration: "rfquack/in/set/driver/modem_config"
-          CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], RFQUACK_TOPIC_MODEM_CONFIG,
+          // Set modem configuration: "rfquack/in/set/AwesomeModuleSlug/ARG0"
+          CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], "ARG0",
                       set_modem_config(messagePayload, messageLen))
     
         }

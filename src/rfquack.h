@@ -32,7 +32,6 @@
 #include "modules/defaults/DriverConfigModule.h"
 #include "modules/defaults/PacketModificationModule.h"
 #include "modules/defaults/PacketFilterModule.h"
-#include "modules/defaults/StatsModule.h"
 
 
 /**
@@ -45,7 +44,6 @@ rfquack_Status rfq; // Status of RFQuack
 DriverConfigModule driverConfigModule;
 PacketModificationModule packetModificationModule;
 PacketFilterModule packetFilterModule;
-StatsModule statsModule;
 
 
 /*****************************************************************************

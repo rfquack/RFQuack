@@ -50,7 +50,21 @@ public:
       // Send packet over the air:  "rfquack/in/set/driver/packet"
       CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], RFQUACK_TOPIC_PACKET, set_packet(messagePayload, messageLen))
 
+      // Get modem status: "rfquack/in/set/driver/status"
+      CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], RFQUACK_TOPIC_STATUS,
+                  set_mode(messagePayload, messageLen))
+
+      // Set modem status: "rfquack/in/get/driver/status"
+      CMD_MATCHES(verb, RFQUACK_TOPIC_GET, args[0], RFQUACK_TOPIC_STATUS,
+                  sendStatus())
+
       Log.warning(F("Don't know how to handle command."));
+    }
+
+    void set_mode(char *messagePayload, unsigned int messageLen) {
+      rfquack_Status pkt = rfquack_Status_init_default;
+      PB_DECODE(pkt, rfquack_Status_fields, messagePayload, messageLen);
+      rfqRadio->setMode(pkt.mode);
     }
 
     void set_modem_config(char *messagePayload, unsigned int messageLen) {
@@ -148,6 +162,17 @@ public:
                         rfq.stats.tx_packets, rfq.stats.tx_failures, rfq.stats.rx_packets,
                         rfq.stats.rx_failures, rfq.stats.tx_queue, rfq.stats.rx_queue);
     }
+
+    void sendStatus() {
+      rfqRadio->updateRadiosStats();
+
+      // Send rfq
+      PB_ENCODE_AND_SEND(rfquack_Status_fields, rfq,
+                         RFQUACK_OUT_TOPIC
+                           RFQUACK_TOPIC_SEP
+                           RFQUACK_TOPIC_STATUS);
+    }
+
 };
 
 #endif //RFQUACK_PROJECT_DRIVERCONFIGMODULE_H
