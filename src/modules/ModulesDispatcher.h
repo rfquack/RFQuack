@@ -16,16 +16,20 @@ public:
       RFQUACK_LOG_TRACE(F("Got command for moduleName: %s, verb: %s, argsLen: %d, messageLen %d"),
                         moduleName, verb, argsLen, messageLen);
 
-      // Redirect the received command to the right module.
+      // INFO verb is used when client wants information about current RFQuack supported modules/cmds
+      bool isInfo = strncmp(verb, RFQUACK_TOPIC_INFO, strlen(RFQUACK_TOPIC_INFO)) == 0;
+
+      // Redirect the received command to the right module(s).
       for (int i = 0; i < loadedModules; i++) {
         RFQModule *module = this->modules[i];
-        if (strcmp(moduleName, module->getName()) == 0) {
+        if (isInfo || strcmp(moduleName, module->getName()) == 0) {
           module->executeUserCommand(verb, args, argsLen, messagePayload, messageLen);
-          return;
+          if (!isInfo) return;
         }
       }
 
-      Log.error(F("Module '%s' not found."), moduleName);
+      if (!isInfo)
+        Log.error(F("Module '%s' not found."), moduleName);
     }
 
     /**
@@ -36,7 +40,7 @@ public:
      * @param whichRadio Radio which received the packet (RADIOA or RADIOB)
      * @return whatever to push packet in RX Queue.
      */
-    bool onPacketReceived(rfquack_Packet &packet, WhichRadio whichRadio) {
+    bool onPacketReceived(rfquack_Packet &packet, rfquack_WhichRadio whichRadio) {
       for (int i = 0; i < loadedModules; i++) {
         RFQModule *module = this->modules[i];
 
@@ -59,7 +63,7 @@ public:
      * @param whichRadio Radio which received the packet (RADIOA or RADIOB)
      * @return whatever to send packet to client.
      */
-    bool afterPacketReceived(rfquack_Packet &packet, WhichRadio whichRadio) {
+    bool afterPacketReceived(rfquack_Packet &packet, rfquack_WhichRadio whichRadio) {
       for (int i = 0; i < loadedModules; i++) {
         RFQModule *module = this->modules[i];
 

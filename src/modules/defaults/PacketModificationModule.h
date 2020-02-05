@@ -7,57 +7,21 @@
 #include "../../rfquack.pb.h"
 #include "../../rfquack_config.h"
 
-
-/**
- * @brief Array of packet modification rules along with compiled patterns
- */
-typedef struct packet_modifications {
-    /**
-     * @brief set of packet modifications
-     */
-    rfquack_PacketModification rules[RFQUACK_MAX_PACKET_MODIFICATIONS];
-
-    /**
-     * @brief Pre-compiled patterns, one per rule
-     */
-    re_t patterns[RFQUACK_MAX_PACKET_MODIFICATIONS];
-
-    /**
-     * @brief Number of usable rules
-     */
-    uint8_t size = 0;
-} packet_modifications_t;
-
-/**
- * @TODO ADD CONFIGS:
- *   - How many repeat
- *   - Which radio to use to repeat
- *   - Whatever to stop or continue the chain after packet is repeated.
- */
 class PacketModificationModule : public RFQModule {
 public:
     PacketModificationModule() : RFQModule(RFQUACK_TOPIC_PACKET_MODIFICATION) {}
 
     void onInit() override {
-      reset_packet_modification();
     }
 
-    bool onPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) override {
+    bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // apply all packet modifications
       apply_packet_modifications(&pkt);
 
-      pkt.has_repeat = true;
-      // Todo retrieve from module prop
-      pkt.repeat = rfq.tx_repeat_default;
-
-      // send packet
-      rfqRadio->transmit(&pkt, whichRadio);
-
-      // Return 'true', packet will be passed to subsequent modules.
       return true;
     }
 
-    bool afterPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) override {
+    bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // Packet will be passed to the following module.
       return true;
     }
@@ -67,22 +31,20 @@ public:
       // Handle base commands
       RFQModule::executeUserCommand(verb, args, argsLen, messagePayload, messageLen);
 
-      // Add a new packet modification: "rfquack/in/set/packet_modification/rules"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], RFQUACK_TOPIC_RULES,
-                  add_packet_modification(messagePayload, messageLen))
+      // Add a new packet modification rule:
+      CMD_MATCHES_METHOD_CALL(rfquack_PacketModification, "add", "Adds a packet modification rule",
+                              add(pkt, reply))
 
-      // Reset all packet modifications: "rfquack/in/unset/packet_modification/rules"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_UNSET, args[0], RFQUACK_TOPIC_RULES, reset_packet_modification())
+      // Reset all packet modification rules:
+      CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "reset", "Removes all packet modification rules",
+                              reset(reply))
 
-      // Dump all packet modifications: "rfquack/in/get/packet_modification/rules"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_GET, args[0], RFQUACK_TOPIC_RULES, get_packet_modification())
-
-      Log.warning(F("Don't know how to handle command."));
+      // Dump all packet modification rules:
+      CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "dump", "Dumps all packet modification rules",
+                              dump(reply))
     }
 
-    void add_packet_modification(char *payload, int payload_length) {
-      rfquack_PacketModification pkt;
-      PB_DECODE(pkt, rfquack_PacketModification_fields, payload, payload_length);
+    void add(rfquack_PacketModification &pkt, rfquack_CmdReply &reply) {
 
       int idx = pms.size;
       pms.size++;
@@ -98,19 +60,26 @@ public:
       // add rule to ruleset
       memcpy(&(pms.rules[idx]), &pkt, sizeof(rfquack_PacketModification));
       RFQUACK_LOG_TRACE(F("Added new packet modification"))
+
+      // Reply to client
+      reply.has_message = true;
+      snprintf(reply.message, sizeof(reply.message), "Rule added, there are %d modification rule(s).", pms.size);
     }
 
-    void reset_packet_modification() {
+    void reset(rfquack_CmdReply &reply) {
       RFQUACK_LOG_TRACE(F("Packet modification data initialized"))
       pms.size = 0;
+
+      // Reply to client
+      reply.has_message = true;
+      strcpy(reply.message, "All rules removed");
+      PB_ENCODE_AND_SEND(rfquack_CmdReply, reply, RFQUACK_TOPIC_GET, this->name, "reset")
     }
 
-    void get_packet_modification() {
+    void dump(rfquack_CmdReply &reply) {
       RFQUACK_LOG_TRACE(F("Dumping all packet modifications"))
       for (uint8_t i = 0; i < pms.size; i++) {
-        PB_ENCODE_AND_SEND(rfquack_PacketModification_fields, pms.rules[i],
-                           RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP
-                             RFQUACK_TOPIC_PACKET_MODIFICATION)
+        PB_ENCODE_AND_SEND(rfquack_PacketModification, pms.rules[i], RFQUACK_TOPIC_GET, this->name, "dump")
       }
     }
 
@@ -148,6 +117,29 @@ public:
 #ifdef RFQUACK_DEV
       rfquack_log_packet(pkt);
 #endif
+
+      // packet prepend / append
+      if (rule.has_payload) {
+        if ((pkt->data.size + rule.payload.size > RFQUACK_RADIO_MAX_MSG_LEN)) {
+          RFQUACK_LOG_TRACE(F("Unable to append/prepend payload, message will exceed allowed len."))
+          return;
+        } else {
+          if (rule.operation == rfquack_PacketModification_Op_PREPEND) {
+            // Copy the original payload
+            rfquack_Packet_data_t data;
+            memcpy(&data, &(pkt->data), sizeof(rfquack_Packet_data_t));
+
+            // Re-assemble the packet
+            memcpy(&(pkt->data.bytes[0]), rule.payload.bytes, rule.payload.size);
+            memcpy(&(pkt->data.bytes[rule.payload.size]), data.bytes, data.size);
+            pkt->data.size += rule.payload.size;
+          }
+          if (rule.operation == rfquack_PacketModification_Op_APPEND) {
+            memcpy(&(pkt->data.bytes[pkt->data.size]), rule.payload.bytes, rule.payload.size);
+            pkt->data.size += rule.payload.size;
+          }
+        }
+      }
 
       // for all octects
       for (uint32_t i = 0; i < pkt->data.size; i++) {
@@ -198,14 +190,40 @@ public:
 
                 case rfquack_PacketModification_Op_NOT:
                   // doesn't make a lot of sense, but let's handle this case
-                  // so the compiler is hapy and doesn't throw a warning
+                  // so the compiler is happy and doesn't throw a warning
                   pkt->data.bytes[i] = ~rule.operand;
                   break;
               }
-            else
+            else {
               // packet[position] = ~packet[position]
-            if (rule.operation == rfquack_PacketModification_Op_NOT)
-              pkt->data.bytes[i] = ~pkt->data.bytes[i];
+              if (rule.operation == rfquack_PacketModification_Op_NOT) {
+                pkt->data.bytes[i] = ~pkt->data.bytes[i];
+              }
+
+              // packet = packet[0 : position] + payload + packet[position : packet.size]
+              if (rule.operation == rfquack_PacketModification_Op_INSERT) {
+                if ((pkt->data.size + rule.payload.size > RFQUACK_RADIO_MAX_MSG_LEN)) {
+                  RFQUACK_LOG_TRACE(F("Unable to insert payload, message will exceed allowed len."))
+                  return;
+                }
+                RFQUACK_LOG_TRACE(F("Inserting payload in position %d"), i)
+                // Copy the original payload
+                rfquack_Packet_data_t data;
+                memcpy(&data, &(pkt->data), sizeof(rfquack_Packet_data_t));
+
+                // Keep data up to "i".
+
+                // Then append payload:
+                memcpy(&(pkt->data.bytes[i]), rule.payload.bytes, rule.payload.size);
+
+                // Then append remaining data (if any)
+                if ((data.size - i) > 0)
+                  memcpy(&(pkt->data.bytes[rule.payload.size + i]), &(data.bytes[i]), (data.size - i));
+
+                // Update len
+                pkt->data.size += rule.payload.size;
+              }
+            }
           }
         }
 
@@ -216,8 +234,30 @@ public:
     }
 
 private:
-    packet_modifications_t pms;
 
+    /**
+     * @brief Array of packet modification rules along with compiled patterns
+     */
+    typedef struct packet_modifications {
+        /**
+         * @brief set of packet modifications
+         */
+        rfquack_PacketModification rules[RFQUACK_MAX_PACKET_MODIFICATIONS];
+
+        /**
+         * @brief Pre-compiled patterns, one per rule
+         */
+        re_t patterns[RFQUACK_MAX_PACKET_MODIFICATIONS];
+
+        /**
+         * @brief Number of usable rules
+         */
+        uint8_t size = 0;
+    } packet_modifications_t;
+
+    packet_modifications_t pms;
+    uint8_t howManyRepeat = 1;
+    bool silentRepeat = false;
 };
 
 #endif //RFQUACK_PROJECT_PACKETMODIFICATIONMODULE_H

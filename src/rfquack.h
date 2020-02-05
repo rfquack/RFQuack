@@ -22,6 +22,7 @@
 #ifndef rfquack_h
 #define rfquack_h
 
+#include <modules/defaults/PacketRepeater.h>
 #include "rfquack_common.h"
 #include "rfquack_network.h"
 #include "rfquack_radio.h"
@@ -29,40 +30,28 @@
 #include "modules/ModulesDispatcher.h"
 
 // Modules:
-#include "modules/defaults/DriverConfigModule.h"
+#include "modules/defaults/RadioModule.h"
 #include "modules/defaults/PacketModificationModule.h"
 #include "modules/defaults/PacketFilterModule.h"
-
+#include "modules/defaults/RollJamModule.h"
 
 /**
  * Global instances
  */
+
 RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
-rfquack_Status rfq; // Status of RFQuack
 
 
-DriverConfigModule driverConfigModule;
+RadioModule driverConfigModule("radioA", rfquack_WhichRadio_RADIOA);
 PacketModificationModule packetModificationModule;
 PacketFilterModule packetFilterModule;
+RollJamModule rollJamModule;
+PacketRepeaterModule packetRepeaterModule;
 
 
 /*****************************************************************************
  * Body
  *****************************************************************************/
-
-/*
- * Initialize data structures
- */
-void rfquack_init() {
-  // we'll ignore the defaults, because we're using our constants
-  rfquack_Stats stats = rfquack_Stats_init_zero;
-  rfq.stats = stats;
-  rfq.has_stats = true;
-  rfq.mode = rfquack_Mode_IDLE; // safe default
-  rfq.has_mode = true;
-
-  RFQUACK_LOG_TRACE(F("RFQuack data structure initialized, NODE ID: %s"), RFQUACK_UNIQ_ID);
-}
 
 extern ModulesDispatcher modulesDispatcher;
 
@@ -72,10 +61,6 @@ void rfquack_setup(RadioA &radioA
 #endif
 ) {
   rfquack_logging_setup();
-
-  delay(100);
-
-  rfquack_init();
 
   delay(100);
 
@@ -95,19 +80,21 @@ void rfquack_setup(RadioA &radioA
 
 #ifdef RFQUACK_SINGLE_RADIO
   rfqRadio = new RFQRadio(&radioA);
-  rfqRadio->begin(RADIOA);
-#elif
+  rfqRadio->begin(rfquack_WhichRadio_RADIOA);
+#else
   rfqRadio = new RFQRadio(&radioA, &radioB);
-  rfqRadio->begin(RADIOA);
-  rfqRadio->begin(RADIOB);
+  rfqRadio->begin(rfquack_WhichRadio_RADIOA);
+  rfqRadio->begin(rfquack_WhichRadio_RADIOB);
 #endif
 
   delay(100);
 
   // Register modules
-  modulesDispatcher.registerModule(driverConfigModule);
-  modulesDispatcher.registerModule(packetModificationModule);
   modulesDispatcher.registerModule(packetFilterModule);
+  modulesDispatcher.registerModule(packetModificationModule);
+  modulesDispatcher.registerModule(packetRepeaterModule);
+  modulesDispatcher.registerModule(rollJamModule);
+  modulesDispatcher.registerModule(driverConfigModule);
 
   delay(100);
 }

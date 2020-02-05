@@ -1,21 +1,96 @@
 #ifndef RFQUACK_PROJECT_RFQMODULE_H
 #define RFQUACK_PROJECT_RFQMODULE_H
 
-#include <rfquack_common.h>
+#include "rfquack_common.h"
 
-#define CMD_MATCHES(verb, verbValue, argx, argxValue, ...) { \
-  if (argx != NULL && strcmp(verb, verbValue) == 0 && strcmp(argx, argxValue) == 0) { \
-      __VA_ARGS__; \
+// Decodes a protobuf payload
+#define PB_DECODE(pkt, fields, payload, payload_length) { \
+  pb_istream_t istream = pb_istream_from_buffer((uint8_t *) payload, payload_length); \
+  if (!pb_decode(&istream, fields, &(pkt))) { \
+    Log.error(F("Cannot decode fields: " #fields ", Packet: %s"), PB_GET_ERROR(&istream)); \
+    return; \
+  } \
+}
+
+// rfquack/in/set/<moduleName>/<protobuf_type>/<cmdValue>
+// Example: rfquack/in/set/driver/rfquack_FloatValue/frequency
+#define _CMD_MATCHES_SET(pbStruct, cmdValue, command) { \
+  if (strcmp(verb, RFQUACK_TOPIC_SET) == 0 && (args[0] != NULL && strcmp(args[0], #pbStruct) == 0) \
+      && (args[1] != NULL && strcmp(args[1], cmdValue) == 0) ) { \
+    pbStruct pkt =  pbStruct ## _init_default ; \
+    PB_DECODE(pkt, pbStruct ## _fields, messagePayload, messageLen); \
+    rfquack_CmdReply reply = rfquack_CmdReply_init_default; \
+    command; \
+    PB_ENCODE_AND_SEND(rfquack_CmdReply, reply, RFQUACK_TOPIC_SET, this->name, cmdValue) \
+    return; \
+  } \
+}
+
+// rfquack/in/get/<moduleName>/<cmdValue>
+// Example: rfquack/in/get/driver/frequency
+#define _CMD_MATCHES_GET(cmdValue, command) { \
+  if (strcmp(verb, RFQUACK_TOPIC_GET) == 0 && (args[0] != NULL && strcmp(args[0], cmdValue) == 0)) { \
+      command; \
       return; \
   } \
 }
 
+// Replies to rfquack/in/info with command info.
+#define _DESCRIPTION(cmdValue, cmdDescription, pbStruct, _cmdType) { \
+  if (strcmp(verb, RFQUACK_TOPIC_INFO) == 0){ \
+    rfquack_CmdInfo pkt = rfquack_CmdInfo_init_default; \
+    strcpy(pkt.argumentType, #pbStruct);\
+    strcpy(pkt.description, #cmdDescription); \
+    pkt.cmdType = _cmdType; \
+    RFQUACK_LOG_TRACE(F("Sending " #cmdValue " info to client")); \
+    PB_ENCODE_AND_SEND(rfquack_CmdInfo, pkt, RFQUACK_TOPIC_INFO, this->name, cmdValue)  \
+  } \
+}
+
+// Replies to SET/GET requests.
+#define _CMD_MATCHES_PRIMITIVE_PB(pbStruct, cmdValue, targetVariable, cmdDescription) { \
+  /* Matches "SET" command: decode the message then calls "onSet" code block. */ \
+  _CMD_MATCHES_SET(pbStruct, cmdValue, { \
+    targetVariable = pkt.value; \
+  }) \
+  /* Matches "GET" command: creates a pb message then executes "onGet" code block */ \
+  _CMD_MATCHES_GET(cmdValue, { \
+    pbStruct pkt = pbStruct ## _init_default ; \
+    pkt.value = targetVariable; \
+    RFQUACK_LOG_TRACE(F("Sending " #cmdValue " value to client")); \
+    PB_ENCODE_AND_SEND(pbStruct, pkt, RFQUACK_TOPIC_GET, this->name, cmdValue) \
+  })  \
+  /* Send info to the client about current command. */ \
+  _DESCRIPTION(cmdValue, cmdDescription, pbStruct, rfquack_CmdInfo_CmdTypeEnum_ATTRIBUTE) \
+}
+
+#define CMD_MATCHES_BOOL(cmdValue, description, targetVariable) { \
+  _CMD_MATCHES_PRIMITIVE_PB(rfquack_BoolValue, cmdValue, targetVariable, description) \
+}
+
+#define CMD_MATCHES_UINT(cmdValue, description, targetVariable) { \
+  _CMD_MATCHES_PRIMITIVE_PB(rfquack_UintValue, cmdValue, targetVariable, description) \
+}
+
+#define CMD_MATCHES_INT(cmdValue, description, targetVariable) { \
+  _CMD_MATCHES_PRIMITIVE_PB(rfquack_IntValue, cmdValue, targetVariable, description) \
+}
+
+#define CMD_MATCHES_FLOAT(cmdValue, description, targetVariable) { \
+  _CMD_MATCHES_PRIMITIVE_PB(rfquack_FloatValue, cmdValue, targetVariable, description) \
+}
+
+#define CMD_MATCHES_WHICHRADIO(cmdValue, description, targetVariable) { \
+  _CMD_MATCHES_PRIMITIVE_PB(rfquack_WhichRadioValue, cmdValue, targetVariable, description) \
+}
+
+#define CMD_MATCHES_METHOD_CALL(pbStruct, cmdValue, description, command) _CMD_MATCHES_SET(pbStruct, cmdValue, command) _DESCRIPTION(cmdValue, description, pbStruct, rfquack_CmdInfo_CmdTypeEnum_METHOD)
+
 class RFQModule {
 public:
     RFQModule(const char *moduleName) {
-      uint8_t len = strlen(moduleName) + 1;
-      this->name = new char[len];
-      memcpy(this->name, moduleName, len);
+      this->name = new char[strlen(moduleName) + 1];
+      strcpy(this->name, moduleName);
     }
 
 public:
@@ -30,7 +105,7 @@ public:
      * @param whichRadio which radio received the packet (RADIOA or RADIOB)
      * @return 'false' will instantly trash the packet, 'true' will pass it to next module.
      */
-    virtual bool onPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) = 0;
+    virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) = 0;
 
     /**
      * Called as soon as a packet is popped from RX QUEUE.
@@ -40,7 +115,7 @@ public:
      * @param whichRadio
      * @return 'false' will instantly trash the packet, 'true' will pass it to next module.
      */
-    virtual bool afterPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) = 0;
+    virtual bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) = 0;
 
     /**
      * Called when user sends a command to configure this module.
@@ -55,11 +130,8 @@ public:
 
       /* Following commands are common to all modules: */
 
-      // Enable module:  "rfquack/in/set/<moduleName>/enabled"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], "enabled", enabled = true)
-
-      // Disable module:  "rfquack/in/unset/<moduleName>/enabled"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_UNSET, args[0], "enabled", enabled = false)
+      // Enable / Disable module:
+      CMD_MATCHES_BOOL("enabled", "Enable or disable this module.", enabled)
     }
 
     char *getName() { return this->name; }
@@ -68,9 +140,9 @@ public:
       return enabled;
     }
 
-private:
+protected:
     char *name; // Name of the module.
-    bool enabled = true; // Whatever the module is enabled when loaded.
+    bool enabled = false; // Whatever the module is enabled when loaded.
 };
 
 #endif //RFQUACK_PROJECT_RFQMODULE_H

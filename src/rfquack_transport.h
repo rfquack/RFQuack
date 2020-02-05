@@ -24,7 +24,7 @@
 
 #include "rfquack_common.h"
 #include "rfquack_network.h"
-#include <modules/ModulesDispatcher.h>
+#include "modules/ModulesDispatcher.h"
 
 extern ModulesDispatcher modulesDispatcher;
 

@@ -10,7 +10,7 @@ public:
       _rxQueue = new Queue(sizeof(rfquack_Packet), RFQUACK_RADIO_RX_QUEUE_LEN, FIFO, true);
     }
 
-    void setWhichRadio(WhichRadio whichRadio) {
+    void setWhichRadio(rfquack_WhichRadio whichRadio) {
       _whichRadio = whichRadio;
     }
 
@@ -19,19 +19,19 @@ public:
     }
 
     int16_t standbyMode() {
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
       RFQUACK_LOG_TRACE("Idle mode entered");
       return ERR_NONE;
     }
 
     int16_t receiveMode() {
-      _mode = RFQRADIO_MODE_RX;
+      _mode = rfquack_Mode_RX;
       RFQUACK_LOG_TRACE("Rx mode entered");
       return ERR_NONE;
     }
 
     int16_t transmitMode() {
-      _mode = RFQRADIO_MODE_TX;
+      _mode = rfquack_Mode_TX;
       RFQUACK_LOG_TRACE("Tx mode entered");
       return ERR_NONE;
     }
@@ -40,7 +40,6 @@ public:
       switch (mode) {
         case rfquack_Mode_IDLE:
           return standbyMode();
-        case rfquack_Mode_REPEAT:
         case rfquack_Mode_RX:
           return receiveMode();
         case rfquack_Mode_TX:
@@ -49,6 +48,11 @@ public:
           return ERR_UNKNOWN;
       }
     }
+
+    rfquack_Mode getMode() {
+      return _mode;
+    }
+
 
     int16_t transmit(uint8_t *data, size_t len) {
       return ERR_NONE;
@@ -66,7 +70,7 @@ public:
 
     void rxLoop() {
       // Check if there's pending data on radio's RX FIFO.
-      if (_mode == RFQRADIO_MODE_RX && (millis() - lastRX) > 2000) {
+      if (_mode == rfquack_Mode_RX && (millis() - lastRX) > 2000) {
         lastRX = millis();
 
         rfquack_Packet pkt = rfquack_Packet_init_default;
@@ -133,10 +137,31 @@ public:
       return _rxQueue;
     }
 
+    int16_t setCrcFiltering(bool isPromiscuous) {
+      return true;
+    }
+
+    int16_t setModulation(rfquack_Modulation modulation) {
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setRxBandwidth(float rxBw) {
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setBitRate(float br) {
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setFrequencyDeviation(float freqDev) {
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+
 private:
-    uint8_t _mode = RFQRADIO_MODE_STANDBY;
+    rfquack_Mode _mode = rfquack_Mode_IDLE;
     Queue *_rxQueue;
-    WhichRadio _whichRadio;
+    rfquack_WhichRadio _whichRadio;
 
     void enqueuePacket(rfquack_Packet *packet) {
       if (packet->data.size > sizeof(rfquack_Packet)) {

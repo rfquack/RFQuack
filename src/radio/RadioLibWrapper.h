@@ -5,11 +5,6 @@
 #define ERR_COMMAND_NOT_IMPLEMENTED -590
 #define ERR_WRONG_MODE              -591
 
-// Driver status
-#define RFQRADIO_MODE_STANDBY 0
-#define RFQRADIO_MODE_TX 1
-#define RFQRADIO_MODE_RX 2
-
 // Enable super powers :)
 #define RADIOLIB_GODMODE
 
@@ -19,6 +14,7 @@
 #define _RADIOLIB_MQTT_H
 
 #include <RadioLib.h>
+#include <cppQueue.h>
 #include "../defaults/radio.h"
 #include "../modules/ModulesDispatcher.h"
 
@@ -64,7 +60,7 @@ public:
      * Set if this instance is either RADIOA or RADIOB
      * @param whichRadio
      */
-    void setWhichRadio(WhichRadio whichRadio) {
+    void setWhichRadio(rfquack_WhichRadio whichRadio) {
       _whichRadio = whichRadio;
     }
 
@@ -73,7 +69,7 @@ public:
      * @return
      */
     virtual int16_t standbyMode() {
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
       removeInterrupts();
       RFQUACK_LOG_TRACE(F("Entering STANDBY mode."))
       return T::standby();
@@ -84,10 +80,10 @@ public:
      * @return
      */
     virtual int16_t receiveMode() {
-      if (_mode != RFQRADIO_MODE_RX) {
+      if (_mode != rfquack_Mode_RX) {
 
         // Set mode to RX.
-        _mode = RFQRADIO_MODE_RX;
+        _mode = rfquack_Mode_RX;
         RFQUACK_LOG_TRACE(F("Entering RX mode."))
 
         // Start async RX
@@ -111,14 +107,40 @@ public:
      */
     virtual int16_t transmitMode() {
       // If we are not in TX mode, change mode and set flag (means channel is free)
-      if (_mode != RFQRADIO_MODE_TX) {
-        _mode = RFQRADIO_MODE_TX;
+      if (_mode != rfquack_Mode_TX) {
+        _mode = rfquack_Mode_TX;
         removeInterrupts();
 
         // NOTE: In TX mode the flag is present (true) if TX channel is free to use.
         setFlag(true);
         RFQUACK_LOG_TRACE(F("Entering TX mode."))
       }
+
+      return ERR_NONE;
+    }
+
+    /**
+     * Puts the radio in JAM mode (starts jamming)
+     * @return
+     */
+    uint8_t jamMode() {
+      // Put radio in TX Mode
+      uint8_t result = transmitMode();
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Put radio in fixed len mode
+      result = fixedPacketLengthMode(5);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Transmit an empty packet.
+      rfquack_Packet packet = rfquack_Packet_init_zero;
+      packet.data.bytes[0] = 0xFF;
+      packet.data.size = 0;
+      transmit(&packet);
 
       return ERR_NONE;
     }
@@ -132,14 +154,19 @@ public:
       switch (mode) {
         case rfquack_Mode_IDLE:
           return standbyMode();
-        case rfquack_Mode_REPEAT:
         case rfquack_Mode_RX:
           return receiveMode();
         case rfquack_Mode_TX:
           return transmitMode();
+        case rfquack_Mode_JAM:
+          return jamMode();
         default:
           return ERR_UNKNOWN;
       }
+    }
+
+    rfquack_Mode getMode() {
+      return _mode;
     }
 
     /**
@@ -150,7 +177,7 @@ public:
      */
     virtual int16_t transmit(uint8_t *data, size_t len) {
       // Exit if radio is not in TX mode.
-      if (_mode != RFQRADIO_MODE_TX) {
+      if (_mode != rfquack_Mode_TX) {
         RFQUACK_LOG_TRACE(F("In order to transmit you must be in TX mode."))
         return ERR_WRONG_MODE;
       }
@@ -232,7 +259,7 @@ public:
      */
     virtual bool isIncomingDataAvailable() {
       // Flag makes sense only if in RX mode.
-      if (_mode != RFQRADIO_MODE_RX) {
+      if (_mode != rfquack_Mode_RX) {
         return false;
       }
 
@@ -247,7 +274,7 @@ public:
      */
     virtual int16_t readData(uint8_t *data, size_t len) {
       // Exit if not in RX mode.
-      if (_mode != RFQRADIO_MODE_RX) {
+      if (_mode != rfquack_Mode_RX) {
         RFQUACK_LOG_TRACE(F("Trying to readData without being in RX mode."))
         return ERR_WRONG_MODE;
       }
@@ -257,7 +284,7 @@ public:
       setFlag(false);
 
       // Shame on RadioLib, after readData driver resets interrupts and goes in STANDBY.
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
 
       // Read data from fifo.
       return T::readData(data, len);
@@ -291,8 +318,10 @@ public:
         pkt.data.size = packetLen;
         pkt.millis = startReceive;
         pkt.has_millis = true;
+        pkt.rxRadio = this->_whichRadio;
+        pkt.has_rxRadio = true;
 
-        // Filter packet
+        // onPacketReceived() hook
         if (modulesDispatcher.onPacketReceived(pkt, _whichRadio)) {
           // If packet passed filtering put it in rxQueue.
           enqueuePacket(&pkt);
@@ -318,40 +347,66 @@ public:
       T::_mod->SPIwriteRegister((uint8_t) reg, (uint8_t) value);
     }
 
+
     /**
      * Sets transmitted / received preamble length.
      * @param size size
      * @return
      */
     virtual int16_t setPreambleLength(uint32_t size) {
+      Log.error(F("setPreambleLength was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
-     * Sents radio frequency.
+     * Sets radio frequency.
      * @param carrierFreq
      * @return
      */
     virtual int16_t setFrequency(float carrierFreq) {
+      Log.error(F("setFrequency was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
+     * Sets Sets receiver bandwidth.
+     * @param rxBw
+     * @return
+     */
+    virtual int16_t setRxBandwidth(float rxBw) {
+      Log.error(F("setRxBandwidth was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Sets bit rate
+     * @param br  in kbps
+     * @return
+     */
+    virtual int16_t setBitRate(float br) {
+      Log.error(F("setBitRate was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+
+    /**
      * Sets radio output power.
-     * @param txPower
+     * @param txPower  in dBm.
      * @return
      */
     virtual int16_t setOutputPower(uint32_t txPower) {
+      Log.error(F("setOutputPower was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
      * Sets radio syncWord and it's size.
-     * @param bytes pointer to syncword.
-     * @param size syncword size.
+     * @param bytes pointer to syncWord.
+     * @param size syncWord size.
      * @return
      */
     virtual int16_t setSyncWord(uint8_t *bytes, pb_size_t size) {
+      Log.error(F("setSyncWord was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -361,6 +416,7 @@ public:
      * @return
      */
     virtual int16_t fixedPacketLengthMode(uint8_t len) {
+      Log.error(F("fixedPacketLengthMode was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -370,6 +426,7 @@ public:
      * @return
      */
     virtual int16_t variablePacketLengthMode(uint8_t len) {
+      Log.error(F("variablePacketLengthMode was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -379,6 +436,27 @@ public:
      * @return
      */
     virtual int16_t setPromiscuousMode(bool isPromiscuous) {
+      Log.error(F("setPromiscuousMode was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Enables / Disables CRC filtering
+     * @param crcOn
+     * @return
+     */
+    virtual int16_t setCrcFiltering(bool crcOn) {
+      Log.error(F("setCrcFiltering was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Sets modulation.
+     * @param modulation
+     * @return
+     */
+    virtual int16_t setModulation(rfquack_Modulation modulation) {
+      Log.error(F("setModulation was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -403,9 +481,9 @@ public:
     virtual void removeInterrupts() = 0;
 
 protected:
-    uint8_t _mode = RFQRADIO_MODE_STANDBY; // RFQRADIO_MODE_[STANDBY|RX|TX]
+    uint8_t _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX]
 private:
-    WhichRadio _whichRadio;
+    rfquack_WhichRadio _whichRadio;
     rfquack_Stats _rfquackStats;
     Queue *_rxQueue;
 

@@ -7,65 +7,42 @@
 #include "../../rfquack.pb.h"
 #include "../../rfquack_config.h"
 
-/**
- * @brief Array of packet-filtering rules along with compiled patterns
- */
-typedef struct packet_filters {
-    /**
-     * @brief set of packet filters
-     */
-    rfquack_PacketFilter filters[RFQUACK_MAX_PACKET_FILTERS];
-
-    /**
-     * @brief Pre-compiled patterns, one per rule
-     */
-    re_t patterns[RFQUACK_MAX_PACKET_FILTERS];
-
-    /**
-     * @brief Number of usable rules
-     */
-    uint8_t size = 0;
-} packet_filters_t;
-
 class PacketFilterModule : public RFQModule {
 public:
     PacketFilterModule() : RFQModule(RFQUACK_TOPIC_PACKET_FILTER) {}
 
     virtual void onInit() {
-      reset_packet_filter();
     }
 
-    virtual bool onPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) {
-      // Check the packet against loaded filters.
+    virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) {
+      // Check the packet against loaded filters. Will go to next module only if matches all rules.
       return matchesAllRules(&pkt);
     }
 
-    bool afterPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) override {
+    bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // Packet will be passed to the following module.
       return true;
     }
 
     virtual void
     executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload, unsigned int messageLen) {
+      // Handle base commands
       RFQModule::executeUserCommand(verb, args, argsLen, messagePayload, messageLen);
 
-      // Add a new packet filter: "rfquack/in/set/packet_filter/rules"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_SET, args[0], RFQUACK_TOPIC_RULES,
-                  add_packet_filter(messagePayload, messageLen))
+      // Add a new packet filter:
+      CMD_MATCHES_METHOD_CALL(rfquack_PacketFilter, "add", "Adds a packet filtering rule",
+                              add(pkt, reply))
 
-      // Reset all packet filter: "rfquack/in/unset/packet_filter/rules"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_UNSET, args[0], RFQUACK_TOPIC_RULES, reset_packet_filter())
+      // Reset all packet filter:
+      CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "reset", "Removes all packet filtering rules",
+                              reset(reply))
 
-      // Dump all packet filter: "rfquack/in/get/packet_filter/rules"
-      CMD_MATCHES(verb, RFQUACK_TOPIC_GET, args[0], RFQUACK_TOPIC_RULES, get_packet_filters())
-
-      Log.warning(F("Don't know how to handle command."));
+      // Dump all packet filter:
+      CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "dump", "Dumps all packet filtering rules",
+                              dump(reply))
     }
 
-    void add_packet_filter(char *payload, int payload_length) {
-      rfquack_PacketFilter pkt;
-      PB_DECODE(pkt, rfquack_PacketFilter_fields, payload, payload_length);
-
+    void add(rfquack_PacketFilter &pkt, rfquack_CmdReply &reply) {
       int idx = pfs.size;
       pfs.size++;
 
@@ -78,18 +55,27 @@ public:
       // add rule to ruleset
       memcpy(&(pfs.filters[idx]), &pkt, sizeof(rfquack_PacketFilter));
       RFQUACK_LOG_TRACE(F("Added pattern %s to filters."), pfs.filters[idx].pattern);
+
+      // Reply for client
+      reply.has_message = true;
+      snprintf(reply.message, sizeof(reply.message), "Rule added, there are %d filtering rule(s).", pfs.size);
     }
 
-    void reset_packet_filter() {
+    void reset(rfquack_CmdReply &reply) {
       RFQUACK_LOG_TRACE(F("Packet filters data initialized"))
       pfs.size = 0;
+
+      // Reply for client
+      reply.has_message = true;
+      strcpy(reply.message, "All rules were deleted");
     }
 
     /**
      * @brief Loop through all packet filters and send them
      * to the nodes.
      */
-    void get_packet_filters() {
+    void dump(rfquack_CmdReply &reply) {
+      // Send dumps
       RFQUACK_LOG_TRACE(F("Dumping all packet filters"))
       for (uint8_t i = 0; i < pfs.size; i++)
         sendPacketFilter(i);
@@ -101,19 +87,16 @@ public:
      * @param index Position in the list of packet filter list
      */
     void sendPacketFilter(uint8_t index) {
-      PB_ENCODE_AND_SEND(rfquack_PacketFilter_fields, pfs.filters[index],
-                         RFQUACK_OUT_TOPIC
-                           RFQUACK_TOPIC_SEP
-                           RFQUACK_TOPIC_PACKET_FILTER);
+      PB_ENCODE_AND_SEND(rfquack_PacketFilter, pfs.filters[index], RFQUACK_TOPIC_GET, this->name, "dump")
     }
 
     /**
- * @brief Checks if a packet matches all the filters
- *
- * @param pkt Pointer to packet
- *
- * @return Whether the packet matches all the filters
- */
+    * @brief Checks if a packet matches all the filters
+    *
+    * @param pkt Pointer to packet
+    *
+    * @return Whether the packet matches all the filters
+    */
     bool matchesAllRules(rfquack_Packet *pkt) {
       if (pfs.size == 0) {
         RFQUACK_LOG_TRACE(F("No filters"));
@@ -145,6 +128,27 @@ public:
 
 
 private:
+
+    /**
+     * @brief Array of packet-filtering rules along with compiled patterns
+     */
+    typedef struct packet_filters {
+        /**
+         * @brief set of packet filters
+         */
+        rfquack_PacketFilter filters[RFQUACK_MAX_PACKET_FILTERS];
+
+        /**
+         * @brief Pre-compiled patterns, one per rule
+         */
+        re_t patterns[RFQUACK_MAX_PACKET_FILTERS];
+
+        /**
+         * @brief Number of usable rules
+         */
+        uint8_t size = 0;
+    } packet_filters_t;
+
     packet_filters_t pfs;
 };
 

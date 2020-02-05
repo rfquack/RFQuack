@@ -38,31 +38,20 @@
 #include "utils/regex/re.h"
 #include "rfquack_logging.h"
 
+extern uint32_t rfquack_transport_send(const char *topic, const uint8_t *data, uint32_t len);
 
-// Enum to choose between RadioA and RadioB
-enum WhichRadio {
-    RADIOA = 0, RADIOB
-};
 
-// Utilities for sending/receiving from Transport
-#include "rfquack_transport.h"
-
-#define PB_ENCODE_AND_SEND(fields, data, topic){ \
+#define PB_ENCODE_AND_SEND(pbStruct, data, verb, moduleName, cmdValue) { \
+  char topic[RFQUACK_MAX_TOPIC_LEN] = RFQUACK_OUT_TOPIC RFQUACK_TOPIC_SEP verb RFQUACK_TOPIC_SEP; \
+  strcat(topic, moduleName); \
+  strcat(topic, RFQUACK_TOPIC_SEP #pbStruct  RFQUACK_TOPIC_SEP cmdValue); \
   uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE]; \
   pb_ostream_t ostream = pb_ostream_from_buffer(buf, RFQUACK_MAX_PB_MSG_SIZE); \
-  if (!pb_encode(&ostream, fields, &(data))) { \
-    Log.error("Encoding " #fields " failed: %s", PB_GET_ERROR(&ostream)); \
+  if (!pb_encode(&ostream, pbStruct ##  _fields, &(data))) { \
+    Log.error("Encoding " #pbStruct " failed: %s", PB_GET_ERROR(&ostream)); \
   } else { \
     if (!rfquack_transport_send(topic, buf, ostream.bytes_written)) \
-      Log.error(F("Failed sending to transport " #topic)); \
-  } \
-}
-
-#define PB_DECODE(pkt, fields, payload, payload_length) { \
-  pb_istream_t istream = pb_istream_from_buffer((uint8_t *) payload, payload_length); \
-  if (!pb_decode(&istream, fields, &(pkt))) { \
-    Log.error("Cannot decode fields: " #fields ", Packet: %s", PB_GET_ERROR(&istream)); \
-    return; \
+      Log.error(F("Failed sending to transport ")); \
   } \
 }
 

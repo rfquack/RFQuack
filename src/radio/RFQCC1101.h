@@ -13,9 +13,33 @@ public:
     using CC1101::variablePacketLengthMode;
     using CC1101::fixedPacketLengthMode;
     using CC1101::setCrcFiltering;
-    using CC1101::setOOK;
+    using CC1101::setBitRate;
+    using CC1101::setRxBandwidth;
+    using CC1101::setFrequencyDeviation;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module) {}
+
+    void printRegisters() {
+      Serial.println("DUMP: ");
+      // From 0x00 to 0x28
+      for (uint8_t i = 0; i < 0x2E; i++) {
+        Serial.print(i, HEX);
+        Serial.print(": ");
+        Serial.println(SPIreadRegister(i), HEX);
+      }
+
+      uint8_t data[2];
+      SPIreadRegisterBurst(CC1101_REG_PATABLE, 2, data);
+
+      Serial.print("PA0");
+      Serial.print(": ");
+      Serial.println(data[0], HEX);
+
+
+      Serial.print("PA1");
+      Serial.print(": ");
+      Serial.println(data[1], HEX);
+    }
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       if (size == 0) {
@@ -31,7 +55,7 @@ public:
     }
 
     int16_t receiveMode() override {
-      if (_mode == RFQRADIO_MODE_RX) {
+      if (_mode == rfquack_Mode_RX) {
         return ERR_NONE;
       }
 
@@ -61,14 +85,14 @@ public:
 
       // Issue receive mode.
       SPIsendCommand(CC1101_CMD_RX);
-      _mode = RFQRADIO_MODE_RX;
+      _mode = rfquack_Mode_RX;
 
       return ERR_NONE;
     }
 
     bool isIncomingDataAvailable() override {
       // Makes sense only if in RX mode.
-      if (_mode != RFQRADIO_MODE_RX) {
+      if (_mode != rfquack_Mode_RX) {
         return false;
       }
 
@@ -79,7 +103,7 @@ public:
 
     int16_t readData(uint8_t *data, size_t len) override {
       // Exit if not in RX mode.
-      if (_mode != RFQRADIO_MODE_RX) {
+      if (_mode != rfquack_Mode_RX) {
         RFQUACK_LOG_TRACE(F("Trying to readData without being in RX mode."))
         return ERR_WRONG_MODE;
       }
@@ -125,8 +149,18 @@ public:
 
     int16_t setFrequency(float carrierFreq) override {
       // This command, as side effect, sets mode to Standby
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
       return CC1101::setFrequency(carrierFreq);
+    }
+
+    int16_t setModulation(rfquack_Modulation modulation) override {
+      if (modulation == rfquack_Modulation_OOK) {
+        return CC1101::setOOK(true);
+      }
+      if (modulation == rfquack_Modulation_FSK2) {
+        return CC1101::setOOK(true);
+      }
+      return ERR_UNSUPPORTED_ENCODING;
     }
 
     void removeInterrupts() override {
@@ -137,27 +171,6 @@ public:
       attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
 
-    void printRegisters() {
-      Serial.println("DUMP: ");
-      // From 0x00 to 0x28
-      for (uint8_t i = 0; i < 0x2E; i++) {
-        Serial.print(i, HEX);
-        Serial.print(": ");
-        Serial.println(SPIreadRegister(i), HEX);
-      }
-
-      uint8_t data[2];
-      SPIreadRegisterBurst(CC1101_REG_PATABLE, 2, data);
-
-      Serial.print("PA0");
-      Serial.print(": ");
-      Serial.println(data[0], HEX);
-
-
-      Serial.print("PA1");
-      Serial.print(": ");
-      Serial.println(data[1], HEX);
-    }
 
 };
 

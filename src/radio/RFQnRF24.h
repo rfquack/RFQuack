@@ -6,6 +6,8 @@
 
 class RFQnRF24 : public RadioLibWrapper<nRF24> {
 public:
+    using nRF24::setCrcFiltering;
+
     RFQnRF24(Module *module) : RadioLibWrapper(module) {}
 
     virtual int16_t transmitMode() override {
@@ -48,7 +50,7 @@ public:
     // per pipe during TX/RX.
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       // Note: this command will bring radio back to standby mode.
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
 
       // First try to set addr width.
       int16_t result = nRF24::setAddressWidth(size);
@@ -64,13 +66,13 @@ public:
 
     // Wrap base method since it changes radio mode.
     int16_t setOutputPower(uint32_t txPower) override {
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
       return nRF24::setOutputPower(txPower);
     }
 
     // Wrap base method since it changes radio mode.
     int16_t setFrequency(float carrierFreq) override {
-      _mode = RFQRADIO_MODE_STANDBY;
+      _mode = rfquack_Mode_IDLE;
       return nRF24::setFrequency(carrierFreq);
     }
 

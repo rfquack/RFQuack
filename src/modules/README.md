@@ -11,7 +11,7 @@
         	// onInit() is called once when module is loaded.
         }
     
-        bool onPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) override {
+        bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
            // onPacketReceived() is called when a packet is captured. 
            // This method is called by the driver itself; you should use this method
            // for tasks which should be performed as soon as a packet is received.
@@ -23,7 +23,7 @@
           return true;
         }
     
-        bool afterPacketReceived(rfquack_Packet &pkt, WhichRadio whichRadio) override {
+        bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
           // afterPacketReceived() is called when a packet gets popped from RFQuack's
           // internal RX queue. 
           // Here you should perform non-time-sensitive tasks as well as packet 
