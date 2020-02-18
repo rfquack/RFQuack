@@ -16,6 +16,7 @@ public:
     }
 
     bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
+      return true;
     }
 
     bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
@@ -51,7 +52,7 @@ public:
 private:
     uint8_t repeat = 1;
     bool dropAfterRepeat = false;
-    rfquack_WhichRadio repeatRadio = rfquack_WhichRadio_RADIOA;
+    rfquack_WhichRadio repeatRadio = rfquack_WhichRadio_RadioA;
 };
 
 #endif //RFQUACK_PROJECT_PACKETREPEATERMODULE_H

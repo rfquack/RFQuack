@@ -78,21 +78,21 @@ public:
     }
 
 
-    void registerModule(RFQModule &module) {
+    void registerModule(RFQModule *module) {
       if (loadedModules >= RFQUACK_MAX_MODULES) {
         Log.fatal(F("Too many modules, increase RFQUACK_MAX_MODULES."));
         return;
       }
 
       // Initialize module
-      module.onInit();
+      module->onInit();
 
       // Save reference to module in order to be able to query it.
-      this->modules[loadedModules] = &module;
+      this->modules[loadedModules] = module;
 
       // Increment the number of loaded modules.
       loadedModules++;
-      RFQUACK_LOG_TRACE(F("Module '%s' registered."), module.getName())
+      RFQUACK_LOG_TRACE(F("Module '%s' registered."), module->getName())
     }
 
 private:

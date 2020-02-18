@@ -7,6 +7,7 @@
 class RFQnRF24 : public RadioLibWrapper<nRF24> {
 public:
     using nRF24::setCrcFiltering;
+    using nRF24::setFrequencyDeviation;
 
     RFQnRF24(Module *module) : RadioLibWrapper(module) {}
 

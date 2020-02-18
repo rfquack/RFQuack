@@ -70,12 +70,12 @@ public:
 
     void rxLoop() {
       // Check if there's pending data on radio's RX FIFO.
-      if (_mode == rfquack_Mode_RX && (millis() - lastRX) > 2000) {
+      if (_mode == rfquack_Mode_RX && (millis() - lastRX) > 5000) {
         lastRX = millis();
 
         rfquack_Packet pkt = rfquack_Packet_init_default;
 
-        char str[] = "CIAONE DA RFQUACK!";
+        char str[] = "HELLO WORLD";
         int len = strlen(str); // Text without null terminator
         memcpy((uint8_t *) pkt.data.bytes, str, len);
         pkt.data.size = len;

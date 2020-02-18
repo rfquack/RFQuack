@@ -28,128 +28,104 @@
 #include "rfquack.pb.h"
 
 #include <cppQueue.h>
-
-// Choose _radioA type (mandatory)
-#ifdef RFQUACK_RADIOA_NRF24
-
-#include <radio/RFQnRF24.h>
-
-typedef RFQnRF24 RadioA;
-#elif defined(RFQUACK_RADIOA_CC1101)
-
-#include <radio/RFQCC1101.h>
-
-typedef RFQCC1101 RadioA;
-
-#elif defined(RFQUACK_RADIOA_MOCK)
-
-#include <radio/RFQMock.h>
-
-typedef RFQMock RadioA;
-#else
-#error "Please select the driver for the first radio using RFQUACK_RADIOA_*"
-#endif
-
-// Choose radioB type (optional)
-#ifdef RFQUACK_RADIOB_NRF24
-#include <radio/RFQnRF24.h>
-typedef RFQnRF24 RadioB;
-#elif defined(RFQUACK_RADIOB_CC1101)
-
-#include <radio/RFQCC1101.h>
-
-typedef RFQCC1101 RadioB;
-#elif defined(RFQUACK_RADIOB_MOCK)
-
-#include <radio/RFQMock.h>
-
-typedef RFQMock RadioB;
-#else
-#define RFQUACK_SINGLE_RADIO
-typedef void RadioB;
-#endif
-
+#include "radio/drivers.h"
 #include "defaults/radio.h"
 
-// Macro to execute a method on _radioA or _radioB based on whichRadio enum.
-#ifndef RFQUACK_SINGLE_RADIO
-#define RADIO_A_OR_B_CMD(whichRadio, ...) { \
- if (whichRadio == rfquack_WhichRadio_RADIOA){ \
-    RadioA *radio = _radioA; \
-    int16_t result = ERR_UNKNOWN; \
-    __VA_ARGS__; \
-    if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(F(#__VA_ARGS__ " on RadioA, resultCode=%d"), result); \
-  } \
- if (whichRadio == rfquack_WhichRadio_RADIOB){ \
-    RadioB *radio = _radioB; \
-    int16_t result = ERR_UNKNOWN; \
-    __VA_ARGS__; \
-    if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(F(#__VA_ARGS__ " on RadioB, resultCode=%d"), result); \
+#define _EXECUTE_CMD(radioType, command){ \
+  { \
+    rfquack_WhichRadio whichRadio = rfquack_WhichRadio_ ## radioType; \
+    radioType *radio = _driver ## radioType; \
+    command; \
   } \
 }
+
+#ifdef USE_RADIOA
+#define _EXECUTE_RADIOA(command) _EXECUTE_CMD(RadioA, command)
 #else
-#define RADIO_A_OR_B_CMD(whichRadio, ...) { \
- if (whichRadio == rfquack_WhichRadio_RADIOA){ \
-    RadioA *radio = _radioA; \
-    int16_t result = ERR_UNKNOWN; \
-    __VA_ARGS__; \
-    if (result != ERR_NONE) RFQUACK_LOG_TRACE(F("⚠️ Error follows")) \
-    RFQUACK_LOG_TRACE(F(#__VA_ARGS__ " on RadioA, resultCode=%d"), result); \
-  } \
-}
+#define _EXECUTE_RADIOA(command) {}
 #endif
 
-// Macro to execute a method on both _radioA and _radioB
-#ifndef RFQUACK_SINGLE_RADIO
-#define RADIO_A_AND_B_CMD(...) { \
-  rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA; \
-  RadioA *radio = _radioA; \
-  __VA_ARGS__; \
-}{ \
-  rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOB; \
-   RadioB *radio = _radioB; \
-  __VA_ARGS__; \
-}
+#ifdef USE_RADIOB
+#define _EXECUTE_RADIOB(command) _EXECUTE_CMD(RadioB, command)
 #else
-#define RADIO_A_AND_B_CMD(...) { \
-  rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA; \
-  RadioA *radio = _radioA; \
-  __VA_ARGS__; \
-}
+#define _EXECUTE_RADIOB(command) {}
 #endif
+
+#ifdef USE_RADIOC
+#define _EXECUTE_RADIOC(command) _EXECUTE_CMD(RadioC, command)
+#else
+#define _EXECUTE_RADIOC(command) {}
+#endif
+
+#ifdef USE_RADIOD
+#define _EXECUTE_RADIOD(command) _EXECUTE_CMD(RadioD, command)
+#else
+#define _EXECUTE_RADIOD(command) {}
+#endif
+
+#ifdef USE_RADIOE
+#define _EXECUTE_RADIOE(command) _EXECUTE_CMD(RadioE, command)
+#else
+#define _EXECUTE_RADIOE(command) {}
+#endif
+
+#define _SWITCH_RADIO(_whichRadio, radioType, command){ \
+  if (_whichRadio == rfquack_WhichRadio_ ## radioType){ \
+    command; \
+  } \
+}
+
+// Macro to execute a method on correct _radioX base on whichRadio variable.
+#define SWITCH_RADIO(_whichRadio, command) { \
+  _SWITCH_RADIO(_whichRadio, RadioA, _EXECUTE_RADIOA(command)) \
+  _SWITCH_RADIO(_whichRadio, RadioB, _EXECUTE_RADIOB(command)) \
+  _SWITCH_RADIO(_whichRadio, RadioC, _EXECUTE_RADIOC(command)) \
+  _SWITCH_RADIO(_whichRadio, RadioD, _EXECUTE_RADIOD(command)) \
+  _SWITCH_RADIO(_whichRadio, RadioE, _EXECUTE_RADIOE(command)) \
+}
+
+// Macro to execute a method on each _radioX
+#define FOREACH_RADIO(command) { \
+  _EXECUTE_RADIOA(command) \
+  _EXECUTE_RADIOB(command) \
+  _EXECUTE_RADIOC(command) \
+  _EXECUTE_RADIOD(command) \
+  _EXECUTE_RADIOE(command) \
+}
+
+#define ASSERT_RESULT(result, message){ \
+  if (result != ERR_NONE){ \
+    RFQUACK_LOG_ERROR(F(message ", got code %d"), result) \
+  } \
+}
+
 
 class RFQRadio {
 public:
-#ifdef RFQUACK_SINGLE_RADIO
-
-    explicit RFQRadio(RadioA *radioA) : _radioA(radioA) {}
-
-#else
-
-    explicit RFQRadio(RadioA *radioA, RadioB *radioB) : _radioA(radioA), _radioB(radioB) {}
-
-#endif
+    explicit RFQRadio(RadioA *_radioA, RadioB *_radioB, RadioC *_radioC, RadioD *_radioD, RadioE *_radioE) :
+      _driverRadioA(_radioA), _driverRadioB(_radioB), _driverRadioC(_radioC), _driverRadioD(_radioD),
+      _driverRadioE(_radioE) {}
 
     /**
      * @brief Inits radio driver.
      * @param whichRadio
      */
-    void begin(rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, {
-        radio->setWhichRadio(whichRadio);
-        result = radio->begin();
-      })
+    void begin() {
+      FOREACH_RADIO({
+                      radio->setWhichRadio(whichRadio);
+                      uint8_t result = radio->begin();
+                      ASSERT_RESULT(result, "Unable to initialize radio")
+                    })
     }
 
     /**
      * @brief Update queue statistics.
      */
-    rfquack_Stats getRadiosStats(rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, {
+    rfquack_Stats getRadiosStats(rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, {
         return radio->getRfquackStats();
       });
+      RFQUACK_LOG_ERROR(F("Unable to fetch radio stats"))
     }
 
 
@@ -164,140 +140,181 @@ public:
      */
     void rxLoop() {
       // Fetch packets from radios RX FIFOs. (first radioA, than radioB if any).
-      RADIO_A_AND_B_CMD({ radio->rxLoop(); })
+      FOREACH_RADIO({ radio->rxLoop(); })
 
-      // Fetch packets packets from both drivers queues.
-      RADIO_A_AND_B_CMD({
-                          rfquack_Packet pkt;
+      // Check if any radio still has incoming data available.
+      bool aRadioNeedsCpuTime = false;
+      FOREACH_RADIO({
+                      if (radio->isIncomingDataAvailable()) aRadioNeedsCpuTime = true;
+                    })
 
-                          // Pick *ONE* packet from RX QUEUE (read method description)
-                          if (radio->getRxQueue()->pop(&pkt)) {
-                            // Send packet to the chain of registered modules.
-                            modulesDispatcher.afterPacketReceived(pkt, whichRadio);
-                          }
-                        })
+      // Fetch packets from drivers only if we have spare CPU time or queues are getting full.
+      FOREACH_RADIO({
+                      if (!aRadioNeedsCpuTime || radio->getRxQueue()->getRemainingCount() < 20) {
+                        rfquack_Packet pkt;
+
+                        // Pick *ONE* packet from RX QUEUE (read method description)
+                        if (radio->getRxQueue()->pop(&pkt)) {
+                          // Send packet to the chain of registered modules.
+                          modulesDispatcher.afterPacketReceived(pkt, pkt.rxRadio);
+                        }
+                      }
+                    }
+      )
 
     }
 
 
-    void transmit(rfquack_Packet *pkt, rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, result = radio->transmit(pkt))
+    uint8_t
+
+    transmit(rfquack_Packet
+             *pkt,
+             rfquack_WhichRadio whichRadio
+    ) {
+      uint8_t result = ERR_UNKNOWN;
+      SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
+      ASSERT_RESULT(result, "Unable to transmit message")
     }
 
-    /**
-     * @brief Read register value.
-     *
-     * @param addr Address of the register
-     *
-     * @return Value from the register.
-     */
-    uint8_t readRegister(uint8_t reg, rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, return radio->readRegister(reg))
-
-      // If radio is neither A or B.
+/**
+ * @brief Read register value.
+ *
+ * @param addr Address of the register
+ *
+ * @return Value from the register.
+ */
+    uint8_t readRegister(uint8_t reg, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->readRegister(reg))
       return -1;
     }
 
-    /**
-     * @brief Write register value
-     *
-     * @param addr Address of the register
-     *
-     */
-    void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, return radio->writeRegister(reg, value))
+/**
+ * @brief Write register value
+ *
+ * @param addr Address of the register
+ *
+ */
+    void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->writeRegister(reg, value))
     }
 
-    /**
-     * Sets transmitted packet length.
-     * @param pkt settings to apply
-     * @param whichRadio target radio
-     * @return
-     */
-    uint8_t setPacketLen(rfquack_PacketLen &pkt, rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
+/**
+ * Sets transmitted packet length.
+ * @param pkt settings to apply
+ * @param whichRadio target radio
+ * @return
+ */
+    uint8_t setPacketLen(rfquack_PacketLen &pkt, rfquack_WhichRadio whichRadio) {
       int len = (uint8_t) pkt.packetLen;
       if (pkt.isFixedPacketLen) {
         RFQUACK_LOG_TRACE("Setting radio to fixed len of %d bytes", len)
-        RADIO_A_OR_B_CMD(whichRadio, return radio->fixedPacketLengthMode(len))
+        SWITCH_RADIO(whichRadio,
+                     return radio->fixedPacketLengthMode(len))
       } else {
         RFQUACK_LOG_TRACE("Setting radio to variable len ( max %d bytes)", len)
-        RADIO_A_OR_B_CMD(whichRadio, return radio->variablePacketLengthMode(len))
+        SWITCH_RADIO(whichRadio,
+                     return radio->variablePacketLengthMode(len))
       }
+
+      RFQUACK_LOG_ERROR(F("Unable to set packet len"))
+      return ERR_UNKNOWN;
     }
 
-    /**
-     * Sets radio mode (TX, RX, IDLE, JAM)
-     * @param mode settings to apply
-     * @param whichRadio  target radio
-     * @return
-     */
-    uint8_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, return radio->setMode(mode))
+/**
+ * Sets radio mode (TX, RX, IDLE, JAM)
+ * @param mode settings to apply
+ * @param whichRadio  target radio
+ * @return
+ */
+    uint8_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->setMode(mode))
+      RFQUACK_LOG_ERROR(F("Unable to set mode"))
+      return ERR_UNKNOWN;
     }
 
-    rfquack_Mode getMode(rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      RADIO_A_OR_B_CMD(whichRadio, return radio->getMode())
+    rfquack_Mode getMode(rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->getMode())
+      RFQUACK_LOG_ERROR(F("Unable to get radio mode"))
+      return rfquack_Mode_IDLE;
     }
 
-    uint8_t
-    setModemConfig(rfquack_ModemConfig &modemConfig, rfquack_WhichRadio whichRadio = rfquack_WhichRadio_RADIOA) {
-      uint8_t changes = 0;
+#define ASSERT_SET_MODEM_CONFIG(error) { \
+  if (result == ERR_NONE){ \ 
+      changes++; \
+    }else{ \
+      failures++; \
+      RFQUACK_LOG_ERROR(F(error)) \
+    } \
+}
+
+    void
+    setModemConfig(rfquack_ModemConfig &modemConfig, rfquack_WhichRadio whichRadio, uint8_t &changes,
+                   uint8_t &failures) {
+      uint8_t result = ERR_UNKNOWN;
       RFQUACK_LOG_TRACE(F("Changing modem configuration"))
 
       if (modemConfig.has_carrierFreq) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setFrequency(modemConfig.carrierFreq))
-        changes++;
+        SWITCH_RADIO(whichRadio, result = radio->setFrequency(modemConfig.carrierFreq))
+        ASSERT_SET_MODEM_CONFIG("Unable to set frequency")
       }
 
       if (modemConfig.has_txPower) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setOutputPower(modemConfig.txPower))
-        changes++;
+        SWITCH_RADIO(whichRadio, result = radio->setOutputPower(modemConfig.txPower))
+        ASSERT_SET_MODEM_CONFIG("Unable to set tx power")
       }
 
       if (modemConfig.has_preambleLen) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setPreambleLength(modemConfig.preambleLen))
-        changes++;
+        SWITCH_RADIO(whichRadio, result = radio->setPreambleLength(modemConfig.preambleLen))
+        ASSERT_SET_MODEM_CONFIG("Unable to set preamble len")
       }
 
       if (modemConfig.has_syncWords) {
-        RADIO_A_OR_B_CMD(whichRadio,
-                         result = radio->setSyncWord(modemConfig.syncWords.bytes, modemConfig.syncWords.size))
-        changes++;
+        SWITCH_RADIO(whichRadio,
+                     result = radio->setSyncWord(modemConfig.syncWords.bytes, modemConfig.syncWords.size))
+        ASSERT_SET_MODEM_CONFIG("Unable to set syncword")
       }
 
       if (modemConfig.has_isPromiscuous) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setPromiscuousMode(modemConfig.isPromiscuous))
-        changes++;
+        SWITCH_RADIO(whichRadio, result = radio->setPromiscuousMode(modemConfig.isPromiscuous))
+        ASSERT_SET_MODEM_CONFIG("Unable to set promiscuous mode")
       }
 
       if (modemConfig.has_modulation) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setModulation(modemConfig.modulation))
+        SWITCH_RADIO(whichRadio, result = radio->setModulation(modemConfig.modulation))
+        ASSERT_SET_MODEM_CONFIG("Unable to set modulation")
       }
 
       if (modemConfig.has_useCRC) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setCrcFiltering(modemConfig.useCRC))
+        SWITCH_RADIO(whichRadio, result = radio->setCrcFiltering(modemConfig.useCRC))
+        ASSERT_SET_MODEM_CONFIG("Unable to set useCRC")
       }
 
       if (modemConfig.has_rxBandwidth) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setRxBandwidth(modemConfig.rxBandwidth))
+        SWITCH_RADIO(whichRadio, result = radio->setRxBandwidth(modemConfig.rxBandwidth))
+        ASSERT_SET_MODEM_CONFIG("Unable to set rxBandwidth")
       }
 
       if (modemConfig.has_bitRate) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setBitRate(modemConfig.bitRate))
+        SWITCH_RADIO(whichRadio, result = radio->setBitRate(modemConfig.bitRate))
+        ASSERT_SET_MODEM_CONFIG("Unable to set bitRate")
       }
 
       if (modemConfig.has_frequencyDeviation) {
-        RADIO_A_OR_B_CMD(whichRadio, result = radio->setFrequencyDeviation(modemConfig.frequencyDeviation))
+        SWITCH_RADIO(whichRadio, result = radio->setFrequencyDeviation(modemConfig.frequencyDeviation))
+        ASSERT_SET_MODEM_CONFIG("Unable to set frequencyDeviation")
       }
-
-      return changes;
     }
 
 public:
-    RadioA *_radioA;
-#ifndef RFQUACK_SINGLE_RADIO
-    RadioB *_radioB;
-#endif
+    RadioA *_driverRadioA = nullptr;
+    RadioB *_driverRadioB = nullptr;
+    RadioC *_driverRadioC = nullptr;
+    RadioD *_driverRadioD = nullptr;
+    RadioE *_driverRadioE = nullptr;
 };
 
 #endif

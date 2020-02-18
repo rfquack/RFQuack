@@ -22,14 +22,15 @@
 #ifndef rfquack_h
 #define rfquack_h
 
-#include <modules/defaults/PacketRepeater.h>
 #include "rfquack_common.h"
 #include "rfquack_network.h"
 #include "rfquack_radio.h"
 #include "rfquack_transport.h"
-#include "modules/ModulesDispatcher.h"
+
 
 // Modules:
+#include "modules/ModulesDispatcher.h"
+#include "modules/defaults/PacketRepeater.h"
 #include "modules/defaults/RadioModule.h"
 #include "modules/defaults/PacketModificationModule.h"
 #include "modules/defaults/PacketFilterModule.h"
@@ -41,13 +42,16 @@
 
 RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
 
-
-RadioModule driverConfigModule("radioA", rfquack_WhichRadio_RADIOA);
+// Modules
 PacketModificationModule packetModificationModule;
 PacketFilterModule packetFilterModule;
 RollJamModule rollJamModule;
 PacketRepeaterModule packetRepeaterModule;
-
+RadioModule *radioAModule;
+RadioModule *radioBModule;
+RadioModule *radioCModule;
+RadioModule *radioDModule;
+RadioModule *radioEModule;
 
 /*****************************************************************************
  * Body
@@ -55,11 +59,7 @@ PacketRepeaterModule packetRepeaterModule;
 
 extern ModulesDispatcher modulesDispatcher;
 
-void rfquack_setup(RadioA &radioA
-#ifndef RFQUACK_SINGLE_RADIO
-  , RadioB &radioB
-#endif
-) {
+void rfquack_setup(RadioA &_radioA, RadioB &_radioB, RadioC &_radioC, RadioD &_radioD, RadioE &_radioE) {
   rfquack_logging_setup();
 
   delay(100);
@@ -78,23 +78,39 @@ void rfquack_setup(RadioA &radioA
 
   delay(100);
 
-#ifdef RFQUACK_SINGLE_RADIO
-  rfqRadio = new RFQRadio(&radioA);
-  rfqRadio->begin(rfquack_WhichRadio_RADIOA);
-#else
-  rfqRadio = new RFQRadio(&radioA, &radioB);
-  rfqRadio->begin(rfquack_WhichRadio_RADIOA);
-  rfqRadio->begin(rfquack_WhichRadio_RADIOB);
-#endif
+  // Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
+  rfqRadio = new RFQRadio(&_radioA, &_radioB, &_radioC, &_radioD, &_radioE);
+  rfqRadio->begin();
 
   delay(100);
 
-  // Register modules
-  modulesDispatcher.registerModule(packetFilterModule);
-  modulesDispatcher.registerModule(packetModificationModule);
-  modulesDispatcher.registerModule(packetRepeaterModule);
-  modulesDispatcher.registerModule(rollJamModule);
-  modulesDispatcher.registerModule(driverConfigModule);
+  // Register default modules
+  modulesDispatcher.registerModule(&packetFilterModule);
+  modulesDispatcher.registerModule(&packetModificationModule);
+  modulesDispatcher.registerModule(&packetRepeaterModule);
+  modulesDispatcher.registerModule(&rollJamModule);
+
+  // Register driver modules.
+#ifdef USE_RADIOA
+  radioAModule = new RadioModule("radioA", rfquack_WhichRadio_RadioA);
+  modulesDispatcher.registerModule(radioAModule);
+#endif
+#ifdef USE_RADIOB
+  radioBModule = new RadioModule("radioB", rfquack_WhichRadio_RadioB);
+  modulesDispatcher.registerModule(radioBModule);
+#endif
+#ifdef USE_RADIOC
+  radioCModule = new RadioModule("radioC", rfquack_WhichRadio_RadioC);
+  modulesDispatcher.registerModule(radioCModule);
+#endif
+#ifdef USE_RADIOD
+  radioDModule = new RadioModule("radioD", rfquack_WhichRadio_RadioD);
+  modulesDispatcher.registerModule(radioDModule);
+#endif
+#ifdef USE_RADIOE
+  radioEModule = new RadioModule("radioE", rfquack_WhichRadio_RadioE);
+  modulesDispatcher.registerModule(radioEModule);
+#endif
 
   delay(100);
 }

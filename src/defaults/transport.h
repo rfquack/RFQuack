@@ -30,7 +30,7 @@
  * Protobuf message serialization settings
  *****************************************************************************/
 
-#define RFQUACK_MAX_PB_MSG_SIZE_DEFAULT 256
+#define RFQUACK_MAX_PB_MSG_SIZE_DEFAULT 512
 
 /*****************************************************************************
  * MQTT Configuration

@@ -123,15 +123,15 @@ public:
      * Puts the radio in JAM mode (starts jamming)
      * @return
      */
-    uint8_t jamMode() {
+    virtual uint8_t jamMode() {
       // Put radio in TX Mode
-      uint8_t result = transmitMode();
+      uint8_t result = this->transmitMode();
       if (result != ERR_NONE) {
         return result;
       }
 
       // Put radio in fixed len mode
-      result = fixedPacketLengthMode(5);
+      result = this->fixedPacketLengthMode(5);
       if (result != ERR_NONE) {
         return result;
       }
@@ -140,7 +140,7 @@ public:
       rfquack_Packet packet = rfquack_Packet_init_zero;
       packet.data.bytes[0] = 0xFF;
       packet.data.size = 0;
-      transmit(&packet);
+      this->transmit(&packet);
 
       return ERR_NONE;
     }
@@ -224,7 +224,7 @@ public:
      * @param pkt packet to transmit
      * @return
      */
-    int16_t transmit(rfquack_Packet *pkt) {
+    uint8_t transmit(rfquack_Packet *pkt) {
       if (pkt->has_repeat && pkt->repeat == 0) {
         RFQUACK_LOG_TRACE (F("Zero packet repeat: no transmission"))
         return ERR_NONE;
@@ -249,8 +249,9 @@ public:
           delay(pkt->delayMs);
       }
 
-      RFQUACK_LOG_TRACE("%d/%d packets transmitted", repeat, correct)
-      return ERR_NONE;
+      RFQUACK_LOG_TRACE(F("%d packets transmitted"), correct)
+      if (correct > 0) return ERR_NONE;
+      return ERR_UNKNOWN;
     }
 
     /**
@@ -296,7 +297,7 @@ public:
     void rxLoop() {
       // Check if there's pending data on radio's RX FIFO.
       if (isIncomingDataAvailable()) {
-        rfquack_Packet pkt;
+        rfquack_Packet pkt = rfquack_Packet_init_zero;
 
         // Pop packet from RX FIFO.
         uint8_t packetLen = getPacketLength(true);
@@ -481,7 +482,7 @@ public:
     virtual void removeInterrupts() = 0;
 
 protected:
-    uint8_t _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX]
+    rfquack_Mode _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX]
 private:
     rfquack_WhichRadio _whichRadio;
     rfquack_Stats _rfquackStats;

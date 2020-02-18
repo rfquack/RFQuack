@@ -16,7 +16,7 @@ public:
 
     virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) {
       // Check the packet against loaded filters. Will go to next module only if matches all rules.
-      return matchesAllRules(&pkt);
+      return isAllowedByRules(&pkt);
     }
 
     bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
@@ -30,7 +30,7 @@ public:
       RFQModule::executeUserCommand(verb, args, argsLen, messagePayload, messageLen);
 
       // Add a new packet filter:
-      CMD_MATCHES_METHOD_CALL(rfquack_PacketFilter, "add", "Adds a packet filtering rule",
+      CMD_MATCHES_METHOD_CALL(rfquack_PacketFilter, "add", "Adds a packet filtering rule on HEX values",
                               add(pkt, reply))
 
       // Reset all packet filter:
@@ -97,41 +97,31 @@ public:
     *
     * @return Whether the packet matches all the filters
     */
-    bool matchesAllRules(rfquack_Packet *pkt) {
+    bool isAllowedByRules(rfquack_Packet *pkt) {
       if (pfs.size == 0) {
         RFQUACK_LOG_TRACE(F("No filters"));
         return true;
       }
 
-      for (uint8_t i = 0; i < pfs.size; i++)
-        if (!rfquack_packet_matches(pfs.filters[i].pattern, pkt)) {
-          //
-          // TODO understand why matching against a pre-compiled pattern fails
-          // if (!rfquack_packet_matchesP(pfs.patterns[i], pkt)) {
-          //
+      for (uint8_t i = 0; i < pfs.size; i++) {
+        rfquack_PacketFilter packetFilterRule = pfs.filters[i];
+        bool matches = rfquack_packet_matches(packetFilterRule.pattern, pkt);
 
-#ifdef RFQUACK_DEV
-          rfquack_log_packet(pkt);
-          Log.trace("Packet doesn't match pattern '%s'", pfs.filters[i].pattern);
-#endif
+        if (packetFilterRule.negateRule)
+          matches = !matches;
 
+        if (!matches)
           return false;
-        }
-
-#ifdef RFQUACK_DEV
-      rfquack_log_packet(pkt);
-      Log.verbose("Packet matches all %d patterns", pfs.size);
-#endif
-
+      }
       return true;
     }
 
 
 private:
 
-    /**
-     * @brief Array of packet-filtering rules along with compiled patterns
-     */
+/**
+ * @brief Array of packet-filtering rules along with compiled patterns
+ */
     typedef struct packet_filters {
         /**
          * @brief set of packet filters

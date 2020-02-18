@@ -121,23 +121,24 @@ public:
       // packet prepend / append
       if (rule.has_payload) {
         if ((pkt->data.size + rule.payload.size > RFQUACK_RADIO_MAX_MSG_LEN)) {
-          RFQUACK_LOG_TRACE(F("Unable to append/prepend payload, message will exceed allowed len."))
-          return;
-        } else {
-          if (rule.operation == rfquack_PacketModification_Op_PREPEND) {
-            // Copy the original payload
-            rfquack_Packet_data_t data;
-            memcpy(&data, &(pkt->data), sizeof(rfquack_Packet_data_t));
+          RFQUACK_LOG_TRACE(F("Packet will be truncated since will exceed the packet len after prepend/append."))
+        }
+        if (rule.operation == rfquack_PacketModification_Op_PREPEND) {
+          // Copy the original payload
+          rfquack_Packet_data_t data;
+          memcpy(&data, &(pkt->data), sizeof(rfquack_Packet_data_t));
 
-            // Re-assemble the packet
-            memcpy(&(pkt->data.bytes[0]), rule.payload.bytes, rule.payload.size);
-            memcpy(&(pkt->data.bytes[rule.payload.size]), data.bytes, data.size);
-            pkt->data.size += rule.payload.size;
-          }
-          if (rule.operation == rfquack_PacketModification_Op_APPEND) {
-            memcpy(&(pkt->data.bytes[pkt->data.size]), rule.payload.bytes, rule.payload.size);
-            pkt->data.size += rule.payload.size;
-          }
+          // Re-assemble the packet
+          memcpy(&(pkt->data.bytes[0]), rule.payload.bytes, rule.payload.size);
+          int bytesToAdd = min(data.size, RFQUACK_RADIO_MAX_MSG_LEN - rule.payload.size);
+          memcpy(&(pkt->data.bytes[rule.payload.size]), data.bytes, bytesToAdd);
+          pkt->data.size += bytesToAdd;
+        }
+        if (rule.operation == rfquack_PacketModification_Op_APPEND) {
+          // Re-assemble the packet
+          int bytesToAdd = min(rule.payload.size, RFQUACK_RADIO_MAX_MSG_LEN - pkt->data.size);
+          memcpy(&(pkt->data.bytes[pkt->data.size]), rule.payload.bytes, bytesToAdd);
+          pkt->data.size += bytesToAdd;
         }
       }
 
@@ -234,6 +235,10 @@ public:
     }
 
 private:
+    uint8_t min(uint8_t a, uint8_t b) {
+      if (a < b) return a;
+      return b;
+    }
 
     /**
      * @brief Array of packet modification rules along with compiled patterns

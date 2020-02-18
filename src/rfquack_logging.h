@@ -72,8 +72,10 @@ SoftwareSerial LogPrinter(RFQUACK_LOG_SS_RX_PIN, RFQUACK_LOG_SS_TX_PIN, false,
 #define RFQUACK_LOG_ENABLED
 #ifdef RFQUACK_LOG_ENABLED
 #define RFQUACK_LOG_TRACE(...) {     Log.trace(__VA_ARGS__); }
+#define RFQUACK_LOG_ERROR(...) {     Log.error(__VA_ARGS__); }
 #else
 #define RFQUACK_LOG_TRACE(...) {}
+#define RFQUACK_LOG_ERROR(...) {}
 #endif
 
 void rfquack_logging_setup() {
@@ -93,7 +95,7 @@ void rfquack_logging_setup() {
  */
 void rfquack_log_buffer(const char * prompt, const uint8_t *buf, const uint32_t len) {
   printTimestamp(&LogPrinter);
-  LogPrinter.print(prompt);
+  LogPrinter.println(prompt);
 
   char octect[4];
 

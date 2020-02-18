@@ -28,7 +28,8 @@ public:
     }
 
     bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      if (sendToTransport && pkt.whichRadio == _whichRadio) {
+      // Send to transport all packets received from the radio controlled by this module.
+      if (sendToTransport && pkt.rxRadio == _whichRadio) {
         PB_ENCODE_AND_SEND(rfquack_Packet, pkt, RFQUACK_TOPIC_GET, this->name, "packet")
       }
 
@@ -40,7 +41,7 @@ public:
                             char *messagePayload, unsigned int messageLen) override {
 
       // Set modem configuration:
-      CMD_MATCHES_METHOD_CALL(rfquack_ModemConfig, "modem_config", "Apply configuration to modem.",
+      CMD_MATCHES_METHOD_CALL(rfquack_ModemConfig, "set_modem_config", "Apply configuration to modem.",
                               set_modem_config(pkt, reply))
 
       // Set packet len:
@@ -61,7 +62,10 @@ public:
 
       // Send packet over the air:
       CMD_MATCHES_METHOD_CALL(rfquack_Packet, "send", "Send a packet over the air",
-                              rfqRadio->transmit(&pkt, _whichRadio))
+                              {
+                                rfquack_log_packet(&pkt);
+                                reply.result = rfqRadio->transmit(&pkt, _whichRadio);
+                              })
 
       // RX Mode
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "rx", "Puts modem in RX mode",
@@ -75,7 +79,13 @@ public:
     }
 
     void set_modem_config(rfquack_ModemConfig pkt, rfquack_CmdReply &reply) {
-      reply.result = rfqRadio->setModemConfig(pkt, _whichRadio);
+      uint8_t changes = 0;
+      uint8_t failures = 0;
+      rfqRadio->setModemConfig(pkt, _whichRadio, changes, failures);
+
+      if (failures > 0) reply.result = ERR_UNKNOWN;
+      reply.has_message = true;
+      snprintf(reply.message, sizeof(reply.message), "%d changes applied and %d failed.", changes, failures);
     }
 
     void set_packet_len(rfquack_PacketLen pkt, rfquack_CmdReply &reply) {

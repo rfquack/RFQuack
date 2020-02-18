@@ -38,11 +38,11 @@ enum Mode {
 
 enum WhichRadio {
     // Which of the two Radios is selected.
-    RADIOA = 0;
-    RADIOB = 1;
-    RADIOC = 2;
-    RADIOD = 3;
-    RADIOE = 4;
+    RadioA = 0;
+    RadioB = 1;
+    RadioC = 2;
+    RadioD = 3;
+    RadioE = 4;
 }
 
 enum Modulation {
@@ -72,7 +72,6 @@ message ModemConfig {
     optional uint32 preambleLen = 3;
     optional bytes syncWords = 4;
     optional bool isPromiscuous = 5;
-    optional PacketLen packetLen = 6;
     optional Modulation modulation = 7;
     optional bool useCRC = 8;
     optional float bitRate = 9;
@@ -126,13 +125,13 @@ message CmdInfo {
     // Example:  q.driver.frequency = 433.2:    The argument is a FloatValue
     // Example:  q.roll_jam.start():            The argument is a VoidValue
     // Example:  q.roll_jam.repeat(5):          The argument is a UintValue
-    required string argumentType = 1;
+    required string argumentType = 1; // Example: rfquack_BoolValue
     enum CmdTypeEnum {
         ATTRIBUTE = 1; // Example: q.driver.frequency = 433.2
         METHOD = 2; // Example: q.roll_jam.start()
     }
     required CmdTypeEnum cmdType = 2;
-    required string description = 3;
+    required string description = 3; // English description.
 }
 
 // A packet-modification rule: here you can tell the tool how to modify a given
@@ -171,4 +170,5 @@ message PacketModification {
 // Packet filter based on regex pattern
 message PacketFilter {
     required string pattern = 1;
+    required bool negateRule = 2;
 }

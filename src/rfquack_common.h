@@ -29,6 +29,7 @@
 #include "rfquack_config.h"
 
 // Protobuf
+
 #include "pb.h"
 #include "pb_decode.h"
 #include "pb_encode.h"
@@ -66,11 +67,13 @@ extern uint32_t rfquack_transport_send(const char *topic, const uint8_t *data, u
  * @return True if matches. False otherwise.
  */
 bool rfquack_packet_matches(char *pattern, rfquack_Packet *pkt) {
-  char str[RFQUACK_RADIO_MAX_MSG_LEN + 1];
+  char str[RFQUACK_RADIO_MAX_MSG_LEN * 2 + 2];
 
   // copy octects in memory area and null terminate the string
-  memcpy(str, pkt->data.bytes, pkt->data.size);
-  str[pkt->data.size] = '\0';
+  for (uint16_t i = 0; i < pkt->data.size; i++) {
+    sprintf(&str[i * 2], "%.2x", pkt->data.bytes[i]);
+  }
+  str[pkt->data.size * 2 + 2] = '\0';
 
   RFQUACK_LOG_TRACE(F("Matching pattern '%s' (len: %d)"), pattern, strlen(pattern));
   int m = re_match(pattern, str);
