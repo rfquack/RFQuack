@@ -113,7 +113,7 @@ public:
     void begin() {
       FOREACH_RADIO({
                       radio->setWhichRadio(whichRadio);
-                      uint8_t result = radio->begin();
+                      int16_t result = radio->begin();
                       ASSERT_RESULT(result, "Unable to initialize radio")
                     })
     }
@@ -165,48 +165,48 @@ public:
     }
 
 
-    uint8_t
+    int16_t
 
     transmit(rfquack_Packet
              *pkt,
              rfquack_WhichRadio whichRadio
     ) {
-      uint8_t result = ERR_UNKNOWN;
+      int16_t result = ERR_UNKNOWN;
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
       ASSERT_RESULT(result, "Unable to transmit message")
     }
 
-/**
- * @brief Read register value.
- *
- * @param addr Address of the register
- *
- * @return Value from the register.
- */
-    uint8_t readRegister(uint8_t reg, rfquack_WhichRadio whichRadio) {
+    /**
+     * @brief Read register value.
+     *
+     * @param addr Address of the register
+     *
+     * @return Value from the register.
+     */
+    int16_t readRegister(uint8_t reg, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->readRegister(reg))
       return -1;
     }
 
-/**
- * @brief Write register value
- *
- * @param addr Address of the register
- *
- */
+    /**
+     * @brief Write register value
+     *
+     * @param addr Address of the register
+     *
+     */
     void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->writeRegister(reg, value))
     }
 
-/**
- * Sets transmitted packet length.
- * @param pkt settings to apply
- * @param whichRadio target radio
- * @return
- */
-    uint8_t setPacketLen(rfquack_PacketLen &pkt, rfquack_WhichRadio whichRadio) {
+    /**
+     * Sets transmitted packet length.
+     * @param pkt settings to apply
+     * @param whichRadio target radio
+     * @return
+     */
+    int16_t setPacketLen(rfquack_PacketLen &pkt, rfquack_WhichRadio whichRadio) {
       int len = (uint8_t) pkt.packetLen;
       if (pkt.isFixedPacketLen) {
         RFQUACK_LOG_TRACE("Setting radio to fixed len of %d bytes", len)
@@ -222,13 +222,13 @@ public:
       return ERR_UNKNOWN;
     }
 
-/**
- * Sets radio mode (TX, RX, IDLE, JAM)
- * @param mode settings to apply
- * @param whichRadio  target radio
- * @return
- */
-    uint8_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio) {
+    /**
+     * Sets radio mode (TX, RX, IDLE, JAM)
+     * @param mode settings to apply
+     * @param whichRadio  target radio
+     * @return
+     */
+    int16_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->setMode(mode))
       RFQUACK_LOG_ERROR(F("Unable to set mode"))
@@ -242,6 +242,8 @@ public:
       return rfquack_Mode_IDLE;
     }
 
+
+
 #define ASSERT_SET_MODEM_CONFIG(error) { \
   if (result == ERR_NONE){ \ 
       changes++; \
@@ -254,7 +256,7 @@ public:
     void
     setModemConfig(rfquack_ModemConfig &modemConfig, rfquack_WhichRadio whichRadio, uint8_t &changes,
                    uint8_t &failures) {
-      uint8_t result = ERR_UNKNOWN;
+      int16_t result = ERR_UNKNOWN;
       RFQUACK_LOG_TRACE(F("Changing modem configuration"))
 
       if (modemConfig.has_carrierFreq) {
