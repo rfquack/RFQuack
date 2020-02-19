@@ -143,6 +143,30 @@ public:
 protected:
     char *name; // Name of the module.
     bool enabled = false; // Whatever the module is enabled when loaded.
+
+    void setReplyMessage(rfquack_CmdReply &reply, const __FlashStringHelper *message) {
+      reply.has_message = true;
+      strncpy_P(reply.message, (PGM_P) message, sizeof(reply.message) - 1);
+      reply.message[sizeof(reply.message)] = '\0';
+      Log.trace(message);
+    }
+
+    void setReplyMessage(rfquack_CmdReply &reply, const char *message) {
+      reply.has_message = true;
+      strncpy(reply.message, message, sizeof(reply.message) - 1);
+      reply.message[sizeof(reply.message)] = '\0';
+      Log.trace(message);
+    }
+
+    void setReplyMessage(rfquack_CmdReply &reply, const __FlashStringHelper *message, int resultCode) {
+      reply.result = resultCode;
+      setReplyMessage(reply, message);
+    }
+
+    void setReplyMessage(rfquack_CmdReply &reply, char *message, int resultCode) {
+      reply.result = resultCode;
+      setReplyMessage(reply, message);
+    }
 };
 
 #endif //RFQUACK_PROJECT_RFQMODULE_H

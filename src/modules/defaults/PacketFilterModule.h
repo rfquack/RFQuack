@@ -57,8 +57,9 @@ public:
       RFQUACK_LOG_TRACE(F("Added pattern %s to filters."), pfs.filters[idx].pattern);
 
       // Reply for client
-      reply.has_message = true;
-      snprintf(reply.message, sizeof(reply.message), "Rule added, there are %d filtering rule(s).", pfs.size);
+      char message[50];
+      snprintf(message, sizeof(reply.message), "Rule added, there are %d filtering rule(s).", pfs.size);
+      setReplyMessage(reply, message);
     }
 
     void reset(rfquack_CmdReply &reply) {
@@ -66,8 +67,7 @@ public:
       pfs.size = 0;
 
       // Reply for client
-      reply.has_message = true;
-      strcpy(reply.message, "All rules were deleted");
+      setReplyMessage(reply, F("All rules were deleted"));
     }
 
     /**

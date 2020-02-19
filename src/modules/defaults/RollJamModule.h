@@ -89,10 +89,7 @@ public:
       }
 
       if (pktToCapture <= 0 || pktToReplay <= 0 || pktToReplay > pktToCapture) {
-        reply.has_message = true;
-        char *message = "Please set pkt_to_capture and pkt_to_repeat";
-        strcpy(reply.message, message);
-        Log.error(message);
+        setReplyMessage(reply, F("Please set pkt_to_capture and pkt_to_repeat"));
         return;
       }
 
@@ -105,12 +102,14 @@ public:
       // Put jamRadio in Jamming Mode.
       reply.result = rfqRadio->setMode(rfquack_Mode_JAM, jamRadio);
       if (reply.result != ERR_NONE) {
+        setReplyMessage(reply, F("Unable to start jam mode."), -1);
         return;
       }
 
       // Put RadioA in RX mode.
       reply.result = rfqRadio->setMode(rfquack_Mode_RX, listenRadio);
       if (reply.result != ERR_NONE) {
+        setReplyMessage(reply, F("Unable to start rx mode."), -1);
         return;
       }
 

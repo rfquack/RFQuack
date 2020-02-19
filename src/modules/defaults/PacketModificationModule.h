@@ -62,8 +62,9 @@ public:
       RFQUACK_LOG_TRACE(F("Added new packet modification"))
 
       // Reply to client
-      reply.has_message = true;
-      snprintf(reply.message, sizeof(reply.message), "Rule added, there are %d modification rule(s).", pms.size);
+      char message[50];
+      snprintf(message, sizeof(reply.message), "Rule added, there are %d modification rule(s).", pms.size);
+      setReplyMessage(reply, message);
     }
 
     void reset(rfquack_CmdReply &reply) {
@@ -71,9 +72,7 @@ public:
       pms.size = 0;
 
       // Reply to client
-      reply.has_message = true;
-      strcpy(reply.message, "All rules removed");
-      PB_ENCODE_AND_SEND(rfquack_CmdReply, reply, RFQUACK_TOPIC_GET, this->name, "reset")
+      setReplyMessage(reply, F("All modifications rules were deleted"));
     }
 
     void dump(rfquack_CmdReply &reply) {
@@ -261,8 +260,6 @@ private:
     } packet_modifications_t;
 
     packet_modifications_t pms;
-    uint8_t howManyRepeat = 1;
-    bool silentRepeat = false;
 };
 
 #endif //RFQUACK_PROJECT_PACKETMODIFICATIONMODULE_H
