@@ -243,7 +243,6 @@ public:
     }
 
 
-
 #define ASSERT_SET_MODEM_CONFIG(error) { \
   if (result == ERR_NONE){ \ 
       changes++; \
@@ -311,7 +310,28 @@ public:
       }
     }
 
-public:
+    int16_t setPromiscuousMode(bool enabled, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->setPromiscuousMode(enabled))
+      RFQUACK_LOG_ERROR(F("Unable to find radio"))
+      return ERR_UNKNOWN;
+    }
+
+    int16_t getRSSI(float &rssi, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->getRSSI(rssi))
+      RFQUACK_LOG_ERROR(F("Unable to find radio"))
+      return ERR_UNKNOWN;
+    }
+
+    int16_t isCarrierDetected(bool &cd, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio,
+                   return radio->isCarrierDetected(cd))
+      RFQUACK_LOG_ERROR(F("Unable to find radio"))
+      return ERR_UNKNOWN;
+    }
+
+private:
     RadioA *_driverRadioA = nullptr;
     RadioB *_driverRadioB = nullptr;
     RadioC *_driverRadioC = nullptr;

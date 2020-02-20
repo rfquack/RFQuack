@@ -14,9 +14,29 @@ public:
     using CC1101::setCrcFiltering;
     using CC1101::setBitRate;
     using CC1101::setRxBandwidth;
-    using CC1101::setFrequencyDeviation;
+    using CC1101::getRSSI;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module) {}
+
+    int16_t begin() override {
+      int16_t state = RadioLibWrapper::begin();
+
+      if (state != ERR_NONE) return state;
+
+      // Carrier Sense: Set MAX_DVGA_GAIN
+      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6);
+
+      // Carrier Sense: Set carrier sense threshold (MAGN_TARGET) to 38db.
+      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_38_DB, 2, 0);
+
+      // Remove whitening
+      state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
+
+      // Do not append status byte
+      state |= SPIsetRegValue(CC1101_REG_PKTCTRL1, CC1101_APPEND_STATUS_OFF, 2, 2);
+
+      return state;
+    }
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       if (size == 0) {
@@ -42,22 +62,10 @@ public:
       // Flush RX FIFO
       SPIsendCommand(CC1101_CMD_FLUSH_RX);
 
-      // Stay in RX mode after a packet is received.
-      uint8_t state = SPIsetRegValue(CC1101_REG_MCSM1, CC1101_RXOFF_RX, 3, 2);
-
       _mode = rfquack_Mode_RX;
 
-      // Carrier Sense: Set MAX_DVGA_GAIN
-      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6);
-
-      // Carrier Sense: Set carrier sense threshold (MAGN_TARGET) to 38db.
-      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_38_DB, 2, 0);
-
-      // Remove whitening
-      state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
-
-      // Do not append status byte
-      state |= SPIsetRegValue(CC1101_REG_PKTCTRL1, CC1101_APPEND_STATUS_OFF, 2, 2);
+      // Stay in RX mode after a packet is received.
+      uint8_t state = SPIsetRegValue(CC1101_REG_MCSM1, CC1101_RXOFF_RX, 3, 2);
 
       // set GDO0 mapping. Asserted when RX FIFO > THR.
       state |= SPIsetRegValue(CC1101_REG_IOCFG0, CC1101_GDOX_RX_FIFO_FULL_OR_PKT_END);
@@ -103,6 +111,10 @@ public:
       return CC1101::setFrequency(carrierFreq);
     }
 
+    int16_t setFrequencyDeviation(float freqDev) override {
+      return CC1101::setFrequencyDeviation(freqDev);
+    }
+
     int16_t setModulation(rfquack_Modulation modulation) override {
       if (modulation == rfquack_Modulation_OOK) {
         return CC1101::setOOK(true);
@@ -115,6 +127,12 @@ public:
 
     int16_t fixedPacketLengthMode(uint8_t len) override {
       return CC1101::fixedPacketLengthMode(len);
+    }
+
+    float getRSSI(float &rssi) override {
+      CC1101::_rawRSSI = SPIreadRegister(CC1101_REG_RSSI);
+      rssi = CC1101::getRSSI();
+      return ERR_NONE;
     }
 
     void removeInterrupts() override {

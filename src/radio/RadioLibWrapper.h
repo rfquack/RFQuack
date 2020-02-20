@@ -49,11 +49,14 @@ template<typename T>
 
 class RadioLibWrapper : protected IRQ, protected T {
 public:
-    using T::begin;
     using T::getPacketLength;
 
     RadioLibWrapper(Module *module) : T(module) {
       _rxQueue = new Queue(sizeof(rfquack_Packet), RFQUACK_RADIO_RX_QUEUE_LEN, FIFO, true);
+    }
+
+    virtual int16_t begin() {
+      return T::begin();
     }
 
     /**
@@ -95,7 +98,7 @@ public:
         setFlag(false);
         setInterruptAction(radioInterrupt);
       } else {
-        RFQUACK_LOG_TRACE(F("Already in RX mode. RadioLibWrapper"))
+        RFQUACK_LOG_TRACE(F("Already in RX mode."))
       }
 
       return ERR_NONE;
@@ -361,7 +364,7 @@ public:
 
     /**
      * Sets radio frequency.
-     * @param carrierFreq
+     * @param carrierFreq in MHz
      * @return
      */
     virtual int16_t setFrequency(float carrierFreq) {
@@ -370,8 +373,18 @@ public:
     }
 
     /**
+     * Sets frequency deviation
+     * @param frequency deviation in Mhz
+     * @return
+     */
+    virtual int16_t setFrequencyDeviation(float freqDev) {
+      Log.error(F("setFrequencyDeviation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
      * Sets Sets receiver bandwidth.
-     * @param rxBw
+     * @param rxBw in Mhz
      * @return
      */
     virtual int16_t setRxBandwidth(float rxBw) {
@@ -381,7 +394,7 @@ public:
 
     /**
      * Sets bit rate
-     * @param br  in kbps
+     * @param br in kbps
      * @return
      */
     virtual int16_t setBitRate(float br) {
@@ -448,6 +461,27 @@ public:
      */
     virtual int16_t setCrcFiltering(bool crcOn) {
       Log.error(F("setCrcFiltering was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Whatever carrier presence was detected during last RX
+     * @param bool were presence is stored
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual int16_t isCarrierDetected(bool &isDetected) {
+      Log.error(F("isCarrierDetected was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Gets RSSI (Recorded Signal Strength Indicator) of the last received packet.
+     * @param float were rssi will be stored
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual float getRSSI(float &rssi) {
+      Log.error(F("getRSSI was not implemented."));
+      // It's not super cool to do this:
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 

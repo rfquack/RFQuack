@@ -6,9 +6,6 @@
 
 class RFQnRF24 : public RadioLibWrapper<nRF24> {
 public:
-    using nRF24::setCrcFiltering;
-    using nRF24::setFrequencyDeviation;
-
     RFQnRF24(Module *module) : RadioLibWrapper(module) {}
 
     virtual int16_t transmitMode() override {
@@ -18,8 +15,7 @@ public:
         return state;
       }
 
-      // Set up transmitting pipe.
-      // This will automagically sets pipe 1 (?) for TX and pipe 0 for ACKs RX.
+      // Set up TX_ADDR to last used.
       RFQUACK_LOG_TRACE(F("Setting up TX pipe."))
       return nRF24::setTransmitPipe(_addr);
     }
@@ -48,7 +44,7 @@ public:
     }
 
     // NOTE: nRF24 does not have a "setSyncword()" method since it's called "address" and is set
-    // per pipe during TX/RX.
+    // per pipe.
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       // Note: this command will bring radio back to standby mode.
       _mode = rfquack_Mode_IDLE;
@@ -71,16 +67,26 @@ public:
       return nRF24::setOutputPower(txPower);
     }
 
-    // Wrap base method since it changes radio mode.
+    // Wrap base method since it changes radio mode and unit of measure (Mhz, Hz)
     int16_t setFrequency(float carrierFreq) override {
       _mode = rfquack_Mode_IDLE;
-      return nRF24::setFrequency(carrierFreq);
+      int16_t freq = (int16_t) carrierFreq;
+      RFQUACK_LOG_TRACE("Setting frequency to %d MHz", freq)
+      return nRF24::setFrequency(freq);
+    }
+
+    int16_t setFrequencyDeviation(float freqDev) override {
+      return RadioLibWrapper::setFrequencyDeviation(freqDev);
+    }
+
+    int16_t setCrcFiltering(bool crcOn) override {
+      return nRF24::setCrcFiltering(crcOn);
     }
 
     int16_t setPromiscuousMode(bool isEnabled) override {
       // Set syncWord as preamble's tail.
       // TODO: syncWord should be changed back when exiting
-      byte sync[2] = {0xAA, 0xAA};
+      byte sync[2] = {0x00, 0xAA};
       int16_t state = setSyncWord(sync, 2);
       if (state != ERR_NONE) {
         return state;
@@ -98,8 +104,12 @@ public:
         return state;
       }
 
-      // Enable receive mode
-      return RadioLibWrapper::receiveMode();
+      return ERR_NONE;
+    }
+
+    int16_t isCarrierDetected(bool &isDetected) override {
+      isDetected = nRF24::isCarrierDetected();
+      return ERR_NONE;
     }
 
     void removeInterrupts() override {
