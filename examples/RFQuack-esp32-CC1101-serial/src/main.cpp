@@ -24,7 +24,6 @@
 // frequency deviation:                 48.0 kHz
 // sync word:                           0xD391
 
-
 /* Radio configuration */
 #include <radio/drivers.h>
 
@@ -32,29 +31,19 @@
 typedef RFQCC1101 RadioA;
 RadioA radioA = new Module(2, 21, NC);
 
+// Uncomment to add a new radio, then change setup(){ rfquack_setup(radioA, radioB); }
 // #define USE_RADIOB
-typedef NoRadio RadioB;
-RadioB radioB;
+// typedef RFQCC1101 RadioB;
+// RadioB radioB = new Module(3, 22, NC);
 
-// #define USE_RADIOC
-typedef NoRadio RadioC;
-RadioC radioC;
-
-// #define USE_RADIOD
-typedef NoRadio RadioD;
-RadioD radioD;
-
-// #define USE_RADIOE
-typedef NoRadio RadioE;
-RadioE radioE;
 
 /*****************************************************************************
- * /RFQuack configuration - DO NOT EDIT BELOW THIS LINE
+ * /RFQuack configuration
  *****************************************************************************/
 #include <rfquack.h>
 
 void setup() {
-  rfquack_setup(radioA, radioB, radioC, radioD, radioE);
+  rfquack_setup(radioA);
 }
 
  void loop() {

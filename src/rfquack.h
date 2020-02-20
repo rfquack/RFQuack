@@ -60,7 +60,21 @@ RadioModule *radioEModule;
 
 extern ModulesDispatcher modulesDispatcher;
 
-void rfquack_setup(RadioA &_radioA, RadioB &_radioB, RadioC &_radioC, RadioD &_radioD, RadioE &_radioE) {
+void rfquack_setup(RadioA &_radioA
+#ifdef USE_RADIOB
+  , RadioB &_radioB
+#endif
+#ifdef USE_RADIOC
+  , RadioC &_radioC
+#endif
+#ifdef USE_RADIOD
+  , RadioD &_radioD
+#endif
+#ifdef USE_RADIOD
+  , RadioD &_radioE
+#endif
+) {
+
   rfquack_logging_setup();
 
   delay(100);

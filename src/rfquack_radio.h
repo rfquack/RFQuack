@@ -42,30 +42,35 @@
 #ifdef USE_RADIOA
 #define _EXECUTE_RADIOA(command) _EXECUTE_CMD(RadioA, command)
 #else
+typedef NoRadio RadioA;
 #define _EXECUTE_RADIOA(command) {}
 #endif
 
 #ifdef USE_RADIOB
 #define _EXECUTE_RADIOB(command) _EXECUTE_CMD(RadioB, command)
 #else
+typedef NoRadio RadioB;
 #define _EXECUTE_RADIOB(command) {}
 #endif
 
 #ifdef USE_RADIOC
 #define _EXECUTE_RADIOC(command) _EXECUTE_CMD(RadioC, command)
 #else
+typedef NoRadio RadioC;
 #define _EXECUTE_RADIOC(command) {}
 #endif
 
 #ifdef USE_RADIOD
 #define _EXECUTE_RADIOD(command) _EXECUTE_CMD(RadioD, command)
 #else
+typedef NoRadio RadioD;
 #define _EXECUTE_RADIOD(command) {}
 #endif
 
 #ifdef USE_RADIOE
 #define _EXECUTE_RADIOE(command) _EXECUTE_CMD(RadioE, command)
 #else
+typedef NoRadio RadioE;
 #define _EXECUTE_RADIOE(command) {}
 #endif
 

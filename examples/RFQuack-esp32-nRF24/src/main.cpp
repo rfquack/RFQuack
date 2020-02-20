@@ -36,29 +36,18 @@
 typedef RFQnRF24 RadioA;
 RadioA radioA = new Module(5, 4, 22); // CS, IRQ, CE
 
+// Uncomment to add a new radio, then change setup(){ rfquack_setup(radioA, radioB); }
 // #define USE_RADIOB
-typedef NoRadio RadioB;
-RadioB radioB;
-
-// #define USE_RADIOC
-typedef NoRadio RadioC;
-RadioC radioC;
-
-// #define USE_RADIOD
-typedef NoRadio RadioD;
-RadioD radioD;
-
-// #define USE_RADIOE
-typedef NoRadio RadioE;
-RadioE radioE;
+// typedef RFQnRF24 RadioB;
+// RadioB radioB = new Module(6, 7, NC);
 
 /*****************************************************************************
- * /RFQuack configuration - DO NOT EDIT BELOW THIS LINE
+ * /RFQuack configuration
  *****************************************************************************/
 #include <rfquack.h>
 
 void setup() {
-  rfquack_setup(radioA, radioB, radioC, radioD, radioE);
+  rfquack_setup(radioA);
 }
 
 void loop() {
