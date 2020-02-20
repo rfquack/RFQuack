@@ -47,7 +47,7 @@ RadioA radioA = new Module(5, 4, 22); // CS, IRQ, CE
 #include <rfquack.h>
 
 void setup() {
-  rfquack_setup(radioA);
+  rfquack_setup(&radioA);
 }
 
 void loop() {

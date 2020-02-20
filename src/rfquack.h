@@ -60,20 +60,8 @@ RadioModule *radioEModule;
 
 extern ModulesDispatcher modulesDispatcher;
 
-void rfquack_setup(RadioA &_radioA
-#ifdef USE_RADIOB
-  , RadioB &_radioB
-#endif
-#ifdef USE_RADIOC
-  , RadioC &_radioC
-#endif
-#ifdef USE_RADIOD
-  , RadioD &_radioD
-#endif
-#ifdef USE_RADIOD
-  , RadioD &_radioE
-#endif
-) {
+void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC = nullptr,
+                   RadioD *_radioD = nullptr, RadioD *_radioE = nullptr) {
 
   rfquack_logging_setup();
 
@@ -93,8 +81,8 @@ void rfquack_setup(RadioA &_radioA
 
   delay(100);
 
-  // Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
-  rfqRadio = new RFQRadio(&_radioA, &_radioB, &_radioC, &_radioD, &_radioE);
+// Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
+  rfqRadio = new RFQRadio(_radioA, _radioB, _radioC, _radioD, _radioE);
   rfqRadio->begin();
 
   delay(100);

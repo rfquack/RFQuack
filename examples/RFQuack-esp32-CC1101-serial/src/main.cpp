@@ -43,7 +43,7 @@ RadioA radioA = new Module(2, 21, NC);
 #include <rfquack.h>
 
 void setup() {
-  rfquack_setup(radioA);
+  rfquack_setup(&radioA);
 }
 
  void loop() {
