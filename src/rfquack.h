@@ -35,7 +35,7 @@
 #include "modules/defaults/PacketModificationModule.h"
 #include "modules/defaults/PacketFilterModule.h"
 #include "modules/defaults/RollJamModule.h"
-
+#include "modules/defaults/FrequencyScanner.h"
 /**
  * Global instances
  */
@@ -47,6 +47,7 @@ PacketModificationModule packetModificationModule;
 PacketFilterModule packetFilterModule;
 RollJamModule rollJamModule;
 PacketRepeaterModule packetRepeaterModule;
+FrequencyScannerModule frequencyScannerModule;
 RadioModule *radioAModule;
 RadioModule *radioBModule;
 RadioModule *radioCModule;
@@ -84,7 +85,8 @@ void rfquack_setup(RadioA &_radioA, RadioB &_radioB, RadioC &_radioC, RadioD &_r
 
   delay(100);
 
-  // Register default modules
+  // Register default modules (order matters performance [somehow])
+  modulesDispatcher.registerModule(&frequencyScannerModule);
   modulesDispatcher.registerModule(&packetFilterModule);
   modulesDispatcher.registerModule(&packetModificationModule);
   modulesDispatcher.registerModule(&packetRepeaterModule);
