@@ -34,7 +34,7 @@
 
 #define USE_RADIOA
 typedef RFQnRF24 RadioA;
-RadioA radioA = new Module(5, 4, 22);
+RadioA radioA = new Module(5, 4, 22); // CS, IRQ, CE
 
 // #define USE_RADIOB
 typedef NoRadio RadioB;
