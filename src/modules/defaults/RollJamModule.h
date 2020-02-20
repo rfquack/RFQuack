@@ -3,18 +3,19 @@
 
 #include "../RFQModule.h"
 #include "../../rfquack_common.h"
-#include "../../radio/RadioLibWrapper.h"
-#include "../../rfquack.pb.h"
-#include "../../rfquack_config.h"
+#include "../../rfquack_radio.h"
 
-class RollJamModule : public RFQModule {
+extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
+
+class RollJamModule : public RFQModule, public OnPacketReceived {
 public:
     RollJamModule() : RFQModule(RFQUACK_TOPIC_ROLL_JAM) {}
 
-    virtual void onInit() {
+    void onInit() override {
+      // Nothing to do :)
     }
 
-    virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) {
+    bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       if (buffer != NULL && bufferSize < bufferMaxSize) {
 
         // Store received packet
@@ -49,12 +50,8 @@ public:
       return true;
     }
 
-    bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      return true;
-    }
-
-    virtual void
-    executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload, unsigned int messageLen) {
+    void executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload,
+                            unsigned int messageLen) override {
       // Start Roll Jam attack:
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "start", "Start Roll Jam", start(reply))
 

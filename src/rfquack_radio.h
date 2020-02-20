@@ -30,6 +30,7 @@
 #include <cppQueue.h>
 #include "radio/drivers.h"
 #include "defaults/radio.h"
+#include "modules/ModulesDispatcher.h"
 
 #define _EXECUTE_CMD(radioType, command){ \
   { \
@@ -105,6 +106,7 @@ typedef NoRadio RadioE;
   } \
 }
 
+extern ModulesDispatcher modulesDispatcher;
 
 class RFQRadio {
 public:
@@ -171,12 +173,7 @@ public:
     }
 
 
-    int16_t
-
-    transmit(rfquack_Packet
-             *pkt,
-             rfquack_WhichRadio whichRadio
-    ) {
+    int16_t transmit(rfquack_Packet *pkt, rfquack_WhichRadio whichRadio) {
       int16_t result = ERR_UNKNOWN;
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
       ASSERT_RESULT(result, "Unable to transmit message")
@@ -251,7 +248,7 @@ public:
 
 
 #define ASSERT_SET_MODEM_CONFIG(error) { \
-  if (result == ERR_NONE){ \ 
+  if (result == ERR_NONE){ \
       changes++; \
     }else{ \
       failures++; \

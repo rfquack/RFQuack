@@ -1,7 +1,7 @@
 #ifndef RFQUACK_PROJECT_RFQMODULE_H
 #define RFQUACK_PROJECT_RFQMODULE_H
 
-#include "rfquack_common.h"
+#include "../rfquack_common.h"
 
 // Decodes a protobuf payload
 #define PB_DECODE(pkt, fields, payload, payload_length) { \
@@ -94,31 +94,49 @@ public:
     }
 
 public:
+    /**
+     * Called - once - when the module is instantiated.
+     * Useful to perform one-time setup operations.
+    */
     virtual void onInit() = 0;
 
-    /**
-     * Called as soon as the packet is received, before entering the RX Queue,
-     * Useful to perform filtering in order to trash packets before they are stored.
-     * Useful to perform time-sensitive operations as well as fastly reply to a packet.
-     * Note: changes to 'pkt' will persist across modules calls.
-     * @param pkt received packet
-     * @param whichRadio which radio received the packet (RADIOA or RADIOB)
-     * @return 'false' will instantly trash the packet, 'true' will pass it to next module.
-     */
-    virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) = 0;
-
-    /**
-     * Called as soon as a packet is popped from RX QUEUE.
-     * Useful to perform non-time-sensitive operations.
-     * Note: changes to 'pkt' will persist across modules calls.
-     * @param pkt
-     * @param whichRadio
-     * @return 'false' will instantly trash the packet, 'true' will pass it to next module.
-     */
-    virtual bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) = 0;
 
     /**
      * Called when user sends a command to configure this module.
+     * Use predefined macros to match an incoming command:
+     *
+     *      CMD_MATCHES_BOOL(cmdValue, description, targetVariable)
+     *      CMD_MATCHES_UINT(cmdValue, description, targetVariable)
+     *      CMD_MATCHES_FLOAT(cmdValue, description, targetVariable)
+     *      CMD_MATCHES_WHICHRADIO(cmdValue, description, targetVariable)
+     *          Params:
+     *              cmdValue: How the variable will be called on CLI.
+     *              description: Textual description that will be sent to CLI.
+     *              targetVariable: cpp binded variable.
+     *          Example:
+     *              CMD_MATCHES_BOOL("enabled", "Enable or disable this module.", _enabled)
+     *          CLI Usage:
+     *              q.moduleName.enabled = True  # Sets '_enabled' to true on CPP side.
+     *              q.moduleName.enabled         # Retrieves '_enabled' from CPP side.
+     *
+     *      CMD_MATCHES_METHOD_CALL(pbStruct, cmdValue, description, command)
+     *          Params:
+     *              pbStruct: Protobuf structure passed as argument to method call.
+     *              cmdValue: How the method will be called on CLI.
+     *              description: Textual description that will be sent to CLI.
+     *              command: Target cpp command that will be executed.
+     *          Example (1):
+     *              CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "start", "Start Roll Jam", start())
+     *          CLI Usage (1):
+     *              q.moduleName.start()  # start() will be called on the CPP side.
+     *
+     *          Example (2):
+     *              CMD_MATCHES_METHOD_CALL(rfquack_Register, "set_register", "Sets register on underlying modem.",
+     *                        set_register(pkt))
+     *          CLI Usage(2):
+     *              q.moduleName.set_register(address=2, value=3) # set_register(pkt) will be called on CPP side.
+     *
+     *
      * @param verb GET, SET or UNSET.
      * @param args Array of arguments.
      * @param argsLen  Length of arguments.
@@ -128,7 +146,7 @@ public:
     virtual void executeUserCommand(char *verb, char **args, uint8_t argsLen,
                                     char *messagePayload, unsigned int messageLen) {
 
-      /* Following commands are common to all modules: */
+      // Modules should override this method.
 
       // Enable / Disable module:
       CMD_MATCHES_BOOL("enabled", "Enable or disable this module.", enabled)

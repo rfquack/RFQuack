@@ -3,16 +3,11 @@
 
 #include "../RFQModule.h"
 #include "../../rfquack_common.h"
-#include "../../radio/RadioLibWrapper.h"
-#include "../../rfquack.pb.h"
-#include "../../rfquack_config.h"
 #include "../../rfquack_radio.h"
-
 
 extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
 
-
-class RadioModule : public RFQModule {
+class RadioModule : public RFQModule, public AfterPacketReceived {
 public:
     RadioModule(const char *moduleName, rfquack_WhichRadio whichRadio) : RFQModule(moduleName) {
       _whichRadio = whichRadio;
@@ -22,10 +17,6 @@ public:
       this->enabled = true;
     }
 
-    bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      // Packet will be passed to the following module.
-      return true;
-    }
 
     bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // Send to transport all packets received from the radio controlled by this module.
@@ -37,8 +28,8 @@ public:
       return true;
     }
 
-    void executeUserCommand(char *verb, char **args, uint8_t argsLen,
-                            char *messagePayload, unsigned int messageLen) override {
+    void executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload,
+                            unsigned int messageLen) override {
 
       // Set modem configuration:
       CMD_MATCHES_METHOD_CALL(rfquack_ModemConfig, "set_modem_config", "Apply configuration to modem.",

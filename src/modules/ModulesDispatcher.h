@@ -1,14 +1,18 @@
 #ifndef RFQUACK_PROJECT_MODULESDISPATCHER_H
 #define RFQUACK_PROJECT_MODULESDISPATCHER_H
 
+
 #include "../rfquack_common.h"
 #include "../rfquack_logging.h"
 #include "RFQModule.h"
+#include "modules/hooks/OnPacketReceived.h"
+#include "modules/hooks/AfterPacketReceived.h"
+#include "modules/hooks/OnLoop.h"
 
 class ModulesDispatcher {
 public:
     /**
-     * @brief Dispatches a command received from Transport.
+     * @brief Insomm
      */
     void executeUserCommand(char *moduleName, char *verb, char **args, uint8_t argsLen,
                             char *messagePayload, uint8_t messageLen) {
@@ -34,7 +38,7 @@ public:
 
     /**
      * Called from the radio driver as soon as a packet is received and before entering RX Queue.
-     * This is useful to trash packet before they are stored in RAM or to execute actions soon after
+     * This is useful to trash packet before they are stored in RX QUEUE or to execute actions soon after
      * a packet is decoded.
      * @param packet
      * @param whichRadio Radio which received the packet (RADIOA or RADIOB)
@@ -48,8 +52,12 @@ public:
         // Example: A 'filter module' returns false as soon as a packet is not passing the sieve,
         //          the packet will be instantly discharged.
         // Note: Changes to 'packet' will persist across modules.
-        if (module->isEnabled() && !module->onPacketReceived(packet, whichRadio)) {
-          return false; // Return false, 'module' stopped the chain.
+        if (module->isEnabled()) {
+          if (OnPacketReceived *mdl = dynamic_cast<OnPacketReceived *>(module)) {
+            if (!mdl->onPacketReceived(packet, whichRadio)) {
+              return false; // Return false, 'module' stopped the chain.
+            }
+          }
         }
       }
 
@@ -67,9 +75,12 @@ public:
       for (int i = 0; i < loadedModules; i++) {
         RFQModule *module = this->modules[i];
 
-        // Notify all modules until a module breaks the chain returning false.
-        if (module->isEnabled() && !module->afterPacketReceived(packet, whichRadio)) {
-          return false; // Return false, 'module' stopped the chain.
+        if (module->isEnabled()) {
+          if (AfterPacketReceived *mdl = dynamic_cast<AfterPacketReceived *>(module)) {
+            if (!mdl->afterPacketReceived(packet, whichRadio)) {
+              return false; // Return false, 'module' stopped the chain.
+            }
+          }
         }
       }
 
@@ -77,6 +88,21 @@ public:
       return true;
     }
 
+    /**
+     * Called on each main loop to allow any registered and enabled module to
+     * perform its business logic.
+     */
+    void onLoop() {
+      for (int i = 0; i < loadedModules; i++) {
+        RFQModule *module = this->modules[i];
+
+        if (module->isEnabled()) {
+          if (OnLoop *mdl = dynamic_cast<OnLoop *>(module)) {
+            mdl->onLoop();
+          }
+        }
+      }
+    }
 
     void registerModule(RFQModule *module) {
       if (loadedModules >= RFQUACK_MAX_MODULES) {
@@ -96,7 +122,6 @@ public:
     }
 
 private:
-    // Array of loaded modules.
     RFQModule *modules[RFQUACK_MAX_MODULES];
     int loadedModules = 0;
 };

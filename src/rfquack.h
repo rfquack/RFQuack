@@ -36,6 +36,7 @@
 #include "modules/defaults/PacketFilterModule.h"
 #include "modules/defaults/RollJamModule.h"
 #include "modules/defaults/FrequencyScanner.h"
+
 /**
  * Global instances
  */
@@ -87,14 +88,16 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
 
   delay(100);
 
-  // Register default modules (order matters performance [somehow])
+// Register default modules.
+// Modules will be called in the order they are registered;
+// As consequence it's important that you load them in a mindful order.
   modulesDispatcher.registerModule(&frequencyScannerModule);
   modulesDispatcher.registerModule(&packetFilterModule);
   modulesDispatcher.registerModule(&packetModificationModule);
   modulesDispatcher.registerModule(&packetRepeaterModule);
   modulesDispatcher.registerModule(&rollJamModule);
 
-  // Register driver modules.
+// Register driver modules.
 #ifdef USE_RADIOA
   radioAModule = new RadioModule("radioA", rfquack_WhichRadio_RadioA);
   modulesDispatcher.registerModule(radioAModule);
@@ -125,6 +128,8 @@ void rfquack_loop() {
   rfqRadio->rxLoop();
 
   rfquack_transport_loop();
+
+  modulesDispatcher.onLoop();
 }
 
 #endif

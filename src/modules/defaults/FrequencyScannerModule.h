@@ -1,30 +1,27 @@
-#ifndef RFQUACK_PROJECT_FREQUENCYSCANNER_H
-#define RFQUACK_PROJECT_FREQUENCYSCANNER_H
+#ifndef RFQUACK_PROJECT_FREQUENCYSCANNERMODULE_H
+#define RFQUACK_PROJECT_FREQUENCYSCANNERMODULE_H
 
 #include "../RFQModule.h"
 #include "../../rfquack_common.h"
-#include "../../radio/RadioLibWrapper.h"
-#include "../../rfquack.pb.h"
-#include "../../rfquack_config.h"
+#include "../../rfquack_radio.h"
 
-class FrequencyScannerModule : public RFQModule {
+extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
+
+class FrequencyScannerModule : public RFQModule, public OnPacketReceived {
 public:
     FrequencyScannerModule() : RFQModule("frequency_scanner") {}
 
-    virtual void onInit() {
+    void onInit() override {
+      // Nothing to do :)
     }
 
-    virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) {
+    bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // Discharge every packet while freq scanning.
-      return false;
+      return whichRadio != radioToUse;
     }
 
-    bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      return true;
-    }
-
-    virtual void
-    executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload, unsigned int messageLen) {
+    void executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload,
+                            unsigned int messageLen) override {
       // Start frequency scan
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "start", "Starts frequency scan", start(reply))
 
@@ -118,6 +115,7 @@ public:
 
             delayMicroseconds(1700);
 
+            // Use RSSI if available (it's more accurate). Else fallback to Carrier Detection.
             // Check if something was transmitting via carrier detection.
             if (hasCD && !hasRSSI) {
               bool isCarrierDetected;
@@ -135,12 +133,12 @@ public:
               results[hop].detections += rssi; // Who minds the fractional part.
             }
 
+            // Put radio back to idle.
             rfqRadio->setMode(rfquack_Mode_IDLE, radioToUse);
           }
           currentFreq += frequencyStep;
         }
-        // Sweep is over.
-      }
+      } // Sweep is over.
 
       // Disable module
       this->enabled = false;
@@ -149,7 +147,7 @@ public:
       bubbleSort(results, hops);
 
       // Build reply message
-      // At the end of the array we find the max number of carrier detections.
+      // At the end of the array there's the frequency with max detections/RSSI.
       uint8_t itemIndex = hops - 1;
       if (results[itemIndex].detections == 0) {
         setReplyMessage(reply, F("Nothing detected"));
@@ -162,13 +160,13 @@ public:
         char message[30];
         uint32_t frequency = (startFrequency + (float) (results[itemIndex].hop) * frequencyStep) * 1000;
 
-        if (hasCD && !hasRSSI){
+        if (hasCD && !hasRSSI) {
           // Detections is the number of times the carrier was detected on that frequency.
-          sprintf(message, "%d Hz carrier detections", frequency, results[itemIndex].hop);
+          sprintf(message, "%d Hz carrier detections", frequency);
           setReplyMessage(frequencyReply, message, results[itemIndex].detections);
-        }else{
+        } else {
           // Detections is a summation of RSSI, divide it to get an average RSSI.
-          sprintf(message, "%d Hz average RSSI", frequency, results[itemIndex].hop);
+          sprintf(message, "%d Hz average RSSI", frequency);
           setReplyMessage(frequencyReply, message, results[itemIndex].detections / rounds);
         }
 
@@ -219,4 +217,4 @@ private:
     rfquack_WhichRadio radioToUse = rfquack_WhichRadio_RadioA;
 };
 
-#endif //RFQUACK_PROJECT_FREQUENCYSCANNER_H
+#endif //RFQUACK_PROJECT_FREQUENCYSCANNERMODULE_H

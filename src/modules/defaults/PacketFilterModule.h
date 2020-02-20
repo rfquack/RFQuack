@@ -3,29 +3,25 @@
 
 #include "../RFQModule.h"
 #include "../../rfquack_common.h"
-#include "../../radio/RadioLibWrapper.h"
-#include "../../rfquack.pb.h"
-#include "../../rfquack_config.h"
+#include "../../rfquack_radio.h"
 
-class PacketFilterModule : public RFQModule {
+extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
+
+class PacketFilterModule : public RFQModule, public OnPacketReceived {
 public:
     PacketFilterModule() : RFQModule(RFQUACK_TOPIC_PACKET_FILTER) {}
 
-    virtual void onInit() {
+    void onInit() override {
+      // Nothing to do :)
     }
 
-    virtual bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) {
+    bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // Check the packet against loaded filters. Will go to next module only if matches all rules.
       return isAllowedByRules(&pkt);
     }
 
-    bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      // Packet will be passed to the following module.
-      return true;
-    }
-
-    virtual void
-    executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload, unsigned int messageLen) {
+    void executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload,
+                            unsigned int messageLen) override {
       // Handle base commands
       RFQModule::executeUserCommand(verb, args, argsLen, messagePayload, messageLen);
 

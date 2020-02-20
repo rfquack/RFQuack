@@ -3,20 +3,16 @@
 
 #include "../RFQModule.h"
 #include "../../rfquack_common.h"
-#include "../../radio/RadioLibWrapper.h"
-#include "../../rfquack.pb.h"
-#include "../../rfquack_config.h"
-#include "RadioModule.h"
+#include "../../rfquack_radio.h"
 
-class PacketRepeaterModule : public RFQModule {
+extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
+
+class PacketRepeaterModule : public RFQModule, public AfterPacketReceived {
 public:
     PacketRepeaterModule() : RFQModule("packet_repeater") {}
 
     void onInit() override {
-    }
-
-    bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      return true;
+      // Nothing to do :)
     }
 
     bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {

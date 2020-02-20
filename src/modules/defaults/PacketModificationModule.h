@@ -3,26 +3,22 @@
 
 #include "../RFQModule.h"
 #include "../../rfquack_common.h"
-#include "../../radio/RadioLibWrapper.h"
-#include "../../rfquack.pb.h"
-#include "../../rfquack_config.h"
+#include "../../rfquack_radio.h"
 
-class PacketModificationModule : public RFQModule {
+extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
+
+class PacketModificationModule : public RFQModule, public OnPacketReceived {
 public:
     PacketModificationModule() : RFQModule(RFQUACK_TOPIC_PACKET_MODIFICATION) {}
 
     void onInit() override {
+      // Nothing to do :)
     }
 
     bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       // apply all packet modifications
       apply_packet_modifications(&pkt);
 
-      return true;
-    }
-
-    bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
-      // Packet will be passed to the following module.
       return true;
     }
 
