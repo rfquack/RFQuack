@@ -133,7 +133,7 @@ public:
       SWITCH_RADIO(whichRadio, {
         return radio->getRfquackStats();
       });
-      RFQUACK_LOG_ERROR(F("Unable to fetch radio stats"))
+      unableToFindRadioError();
     }
 
 
@@ -172,11 +172,10 @@ public:
 
     }
 
-
     int16_t transmit(rfquack_Packet *pkt, rfquack_WhichRadio whichRadio) {
       int16_t result = ERR_UNKNOWN;
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
-      ASSERT_RESULT(result, "Unable to transmit message")
+      unableToFindRadioError();
       return ERR_UNKNOWN;
     }
 
@@ -188,8 +187,8 @@ public:
      * @return Value from the register.
      */
     int16_t readRegister(uint8_t reg, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio,
-                   return radio->readRegister(reg))
+      SWITCH_RADIO(whichRadio, return radio->readRegister(reg))
+      unableToFindRadioError();
       return -1;
     }
 
@@ -200,8 +199,8 @@ public:
      *
      */
     void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio,
-                   return radio->writeRegister(reg, value))
+      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value))
+      unableToFindRadioError();
     }
 
     /**
@@ -214,15 +213,13 @@ public:
       int len = (uint8_t) pkt.packetLen;
       if (pkt.isFixedPacketLen) {
         RFQUACK_LOG_TRACE("Setting radio to fixed len of %d bytes", len)
-        SWITCH_RADIO(whichRadio,
-                     return radio->fixedPacketLengthMode(len))
+        SWITCH_RADIO(whichRadio, return radio->fixedPacketLengthMode(len))
       } else {
         RFQUACK_LOG_TRACE("Setting radio to variable len ( max %d bytes)", len)
-        SWITCH_RADIO(whichRadio,
-                     return radio->variablePacketLengthMode(len))
+        SWITCH_RADIO(whichRadio, return radio->variablePacketLengthMode(len))
       }
 
-      RFQUACK_LOG_ERROR(F("Unable to set packet len"))
+      unableToFindRadioError();
       return ERR_UNKNOWN;
     }
 
@@ -235,104 +232,91 @@ public:
     int16_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->setMode(mode))
-      RFQUACK_LOG_ERROR(F("Unable to set mode"))
+      unableToFindRadioError();
       return ERR_UNKNOWN;
     }
 
     rfquack_Mode getMode(rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio,
-                   return radio->getMode())
-      RFQUACK_LOG_ERROR(F("Unable to get radio mode"))
+      SWITCH_RADIO(whichRadio, return radio->getMode())
+      unableToFindRadioError();
       return rfquack_Mode_IDLE;
     }
 
+    int16_t setFrequency(float carrierFreq, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setFrequency(carrierFreq))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-#define ASSERT_SET_MODEM_CONFIG(error) { \
-  if (result == ERR_NONE){ \
-      changes++; \
-    }else{ \
-      failures++; \
-      RFQUACK_LOG_ERROR(F(error)) \
-    } \
-}
+    int16_t setOutputPower(uint32_t power, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setOutputPower(power))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-    void
-    setModemConfig(rfquack_ModemConfig &modemConfig, rfquack_WhichRadio whichRadio, uint8_t &changes,
-                   uint8_t &failures) {
-      int16_t result = ERR_UNKNOWN;
-      RFQUACK_LOG_TRACE(F("Changing modem configuration"))
+    int16_t setPreambleLength(uint32_t size, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setPreambleLength(size))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-      if (modemConfig.has_carrierFreq) {
-        SWITCH_RADIO(whichRadio, result = radio->setFrequency(modemConfig.carrierFreq))
-        ASSERT_SET_MODEM_CONFIG("Unable to set frequency")
-      }
+    int16_t setSyncWord(uint8_t *bytes, uint8_t size, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setSyncWord(bytes, size))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-      if (modemConfig.has_txPower) {
-        SWITCH_RADIO(whichRadio, result = radio->setOutputPower(modemConfig.txPower))
-        ASSERT_SET_MODEM_CONFIG("Unable to set tx power")
-      }
+    int16_t setModulation(rfquack_Modulation modulation, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setModulation(modulation))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-      if (modemConfig.has_preambleLen) {
-        SWITCH_RADIO(whichRadio, result = radio->setPreambleLength(modemConfig.preambleLen))
-        ASSERT_SET_MODEM_CONFIG("Unable to set preamble len")
-      }
+    int16_t setCrcFiltering(bool useCRC, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setCrcFiltering(useCRC))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-      if (modemConfig.has_syncWords) {
-        SWITCH_RADIO(whichRadio,
-                     result = radio->setSyncWord(modemConfig.syncWords.bytes, modemConfig.syncWords.size))
-        ASSERT_SET_MODEM_CONFIG("Unable to set syncword")
-      }
+    int16_t setRxBandwidth(float rxBandwidth, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setRxBandwidth(rxBandwidth))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-      if (modemConfig.has_isPromiscuous) {
-        SWITCH_RADIO(whichRadio, result = radio->setPromiscuousMode(modemConfig.isPromiscuous))
-        ASSERT_SET_MODEM_CONFIG("Unable to set promiscuous mode")
-      }
+    int16_t setBitRate(float bitRate, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setBitRate(bitRate))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
-      if (modemConfig.has_modulation) {
-        SWITCH_RADIO(whichRadio, result = radio->setModulation(modemConfig.modulation))
-        ASSERT_SET_MODEM_CONFIG("Unable to set modulation")
-      }
-
-      if (modemConfig.has_useCRC) {
-        SWITCH_RADIO(whichRadio, result = radio->setCrcFiltering(modemConfig.useCRC))
-        ASSERT_SET_MODEM_CONFIG("Unable to set useCRC")
-      }
-
-      if (modemConfig.has_rxBandwidth) {
-        SWITCH_RADIO(whichRadio, result = radio->setRxBandwidth(modemConfig.rxBandwidth))
-        ASSERT_SET_MODEM_CONFIG("Unable to set rxBandwidth")
-      }
-
-      if (modemConfig.has_bitRate) {
-        SWITCH_RADIO(whichRadio, result = radio->setBitRate(modemConfig.bitRate))
-        ASSERT_SET_MODEM_CONFIG("Unable to set bitRate")
-      }
-
-      if (modemConfig.has_frequencyDeviation) {
-        SWITCH_RADIO(whichRadio, result = radio->setFrequencyDeviation(modemConfig.frequencyDeviation))
-        ASSERT_SET_MODEM_CONFIG("Unable to set frequencyDeviation")
-      }
+    int16_t setFrequencyDeviation(float frequencyDeviation, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setFrequencyDeviation(frequencyDeviation))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
     }
 
     int16_t setPromiscuousMode(bool enabled, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio,
-                   return radio->setPromiscuousMode(enabled))
-      RFQUACK_LOG_ERROR(F("Unable to find radio"))
+      SWITCH_RADIO(whichRadio, return radio->setPromiscuousMode(enabled))
+      unableToFindRadioError();
       return ERR_UNKNOWN;
     }
 
     int16_t getRSSI(float &rssi, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->getRSSI(rssi))
-      RFQUACK_LOG_ERROR(F("Unable to find radio"))
+      unableToFindRadioError();
       return ERR_UNKNOWN;
     }
 
     int16_t isCarrierDetected(bool &cd, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio,
-                   return radio->isCarrierDetected(cd))
-      RFQUACK_LOG_ERROR(F("Unable to find radio"))
+      SWITCH_RADIO(whichRadio, return radio->isCarrierDetected(cd))
+      unableToFindRadioError();
       return ERR_UNKNOWN;
+    }
+
+    void unableToFindRadioError() {
+      RFQUACK_LOG_ERROR(F("Unable to find radio"));
     }
 
 private:

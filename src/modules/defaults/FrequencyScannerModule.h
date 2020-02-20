@@ -199,15 +199,8 @@ private:
       }
     }
 
-
     bool setFrequency(float freq) {
-      rfquack_ModemConfig modemConfig = rfquack_ModemConfig_init_default;
-      modemConfig.has_carrierFreq = true;
-      modemConfig.carrierFreq = freq;
-      uint8_t changes = 0;
-      uint8_t failures = 0;
-      rfqRadio->setModemConfig(modemConfig, radioToUse, changes, failures);
-      return (changes == 1 && failures == 0);
+      return rfqRadio->setFrequency(freq, radioToUse) != ERR_NONE;
     }
 
     float frequencyStep = 1;

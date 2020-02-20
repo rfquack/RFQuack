@@ -69,10 +69,69 @@ public:
                               reply.result = rfqRadio->setMode(rfquack_Mode_IDLE, _whichRadio))
     }
 
+
+#define ASSERT_SET_MODEM_CONFIG(error) { \
+  if (result == ERR_NONE){ \
+      changes++; \
+    }else{ \
+      failures++; \
+      RFQUACK_LOG_ERROR(F(error)) \
+    } \
+}
+
     void set_modem_config(rfquack_ModemConfig pkt, rfquack_CmdReply &reply) {
       uint8_t changes = 0;
       uint8_t failures = 0;
-      rfqRadio->setModemConfig(pkt, _whichRadio, changes, failures);
+      int16_t result = ERR_UNKNOWN;
+
+      if (pkt.has_carrierFreq) {
+        result = rfqRadio->setFrequency(pkt.carrierFreq, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set frequency")
+      }
+
+      if (pkt.has_txPower) {
+        result = rfqRadio->setOutputPower(pkt.txPower, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set tx power")
+      }
+
+      if (pkt.has_preambleLen) {
+        result = rfqRadio->setPreambleLength(pkt.preambleLen, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set preamble len")
+      }
+      if (pkt.has_syncWords) {
+        result = rfqRadio->setSyncWord(pkt.syncWords.bytes, pkt.syncWords.size, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set syncword")
+      }
+
+      if (pkt.has_isPromiscuous) {
+        result = rfqRadio->setPromiscuousMode(pkt.isPromiscuous, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set promiscuous mode")
+      }
+
+      if (pkt.has_modulation) {
+        result = rfqRadio->setModulation(pkt.modulation, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set modulation")
+      }
+
+      if (pkt.has_useCRC) {
+        result = rfqRadio->setCrcFiltering(pkt.useCRC, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set useCRC")
+      }
+
+      if (pkt.has_rxBandwidth) {
+        result = rfqRadio->setRxBandwidth(pkt.rxBandwidth, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set rxBandwidth")
+      }
+
+      if (pkt.has_bitRate) {
+        result = rfqRadio->setBitRate(pkt.bitRate, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set bitRate")
+      }
+
+      if (pkt.has_frequencyDeviation) {
+        result = rfqRadio->setFrequencyDeviation(pkt.frequencyDeviation, _whichRadio);
+        ASSERT_SET_MODEM_CONFIG("Unable to set frequencyDeviation")
+      }
 
       if (failures > 0) reply.result = ERR_UNKNOWN;
       reply.has_message = true;
