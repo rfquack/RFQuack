@@ -193,6 +193,13 @@ public:
                   // so the compiler is happy and doesn't throw a warning
                   pkt->data.bytes[i] = ~rule.operand;
                   break;
+
+                case rfquack_PacketModification_Op_APPEND:
+                case rfquack_PacketModification_Op_INSERT:
+                case rfquack_PacketModification_Op_PREPEND:
+                  // Handled to make compiler happy.
+                  RFQUACK_LOG_ERROR(F("You are using APPEND/INSERT/PREPEND the wrong way."))
+                  break;
               }
             else {
               // packet[position] = ~packet[position]

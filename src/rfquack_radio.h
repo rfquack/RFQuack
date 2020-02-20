@@ -34,6 +34,7 @@
 #define _EXECUTE_CMD(radioType, command){ \
   { \
     rfquack_WhichRadio whichRadio = rfquack_WhichRadio_ ## radioType; \
+    (void) whichRadio; \
     radioType *radio = _driver ## radioType; \
     command; \
   } \
@@ -179,6 +180,7 @@ public:
       int16_t result = ERR_UNKNOWN;
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
       ASSERT_RESULT(result, "Unable to transmit message")
+      return ERR_UNKNOWN;
     }
 
     /**
