@@ -128,10 +128,6 @@ public:
       return ERR_NONE;
     }
 
-    rfquack_Stats &getRfquackStats() const {
-      rfquack_Stats stats;
-      return stats;
-    }
 
     Queue *getRxQueue() const {
       return _rxQueue;

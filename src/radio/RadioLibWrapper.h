@@ -23,6 +23,8 @@ extern ModulesDispatcher modulesDispatcher;
 typedef uint16_t rfquack_register_address_t;
 typedef uint8_t rfquack_register_value_t;
 
+extern QueueHandle_t queue; // Queue of incoming packets
+
 class IRQ {
 public:
     /**
@@ -51,9 +53,7 @@ class RadioLibWrapper : protected IRQ, protected T {
 public:
     using T::getPacketLength;
 
-    RadioLibWrapper(Module *module) : T(module) {
-      _rxQueue = new Queue(sizeof(rfquack_Packet), RFQUACK_RADIO_RX_QUEUE_LEN, FIFO, true);
-    }
+    RadioLibWrapper(Module *module) : T(module) {}
 
     virtual int16_t begin() {
       return T::begin();
@@ -97,10 +97,7 @@ public:
         // Register an interrupt routine to set flag when radio receives something.
         setFlag(false);
         setInterruptAction(radioInterrupt);
-      } else {
-        RFQUACK_LOG_TRACE(F("Already in RX mode."))
       }
-
       return ERR_NONE;
     }
 
@@ -297,7 +294,7 @@ public:
     /**
      * Main receive loop; reads any data from the RX FIFO and push it to the RX queue.
      */
-    void rxLoop() {
+    void rxLoop(Queue* rxQueue) {
       // Check if there's pending data on radio's RX FIFO.
       if (isIncomingDataAvailable()) {
         rfquack_Packet pkt = rfquack_Packet_init_zero;
@@ -306,17 +303,13 @@ public:
         uint8_t packetLen = getPacketLength(true);
         uint64_t startReceive = millis();
         int16_t result = readData((uint8_t *) pkt.data.bytes, packetLen);
-        RFQUACK_LOG_TRACE("Recieved packet, resultCode=%d", result)
+
+        if (result != ERR_NONE) {
+          Log.error(F("Error while reading data from driver, code=%d"), result);
+        }
 
         // Put radio back in receiveMode.
         receiveMode();
-
-        // Update stats
-        if (result == ERR_NONE) {
-          _rfquackStats.rx_packets++;
-        } else {
-          _rfquackStats.rx_failures++;
-        }
 
         // Fill missing data
         pkt.data.size = packetLen;
@@ -328,7 +321,7 @@ public:
         // onPacketReceived() hook
         if (modulesDispatcher.onPacketReceived(pkt, _whichRadio)) {
           // If packet passed filtering put it in rxQueue.
-          enqueuePacket(&pkt);
+          enqueuePacket(&pkt, rxQueue);
         }
       }
     }
@@ -426,7 +419,7 @@ public:
 
     /**
      * Puts radio in fixed packet length mode.
-     * @param len packet's size.
+     * @param len packet's size in bytes
      * @return
      */
     virtual int16_t fixedPacketLengthMode(uint8_t len) {
@@ -436,7 +429,7 @@ public:
 
     /**
      * Puts radio in fixed packet length mode.
-     * @param len maximum packet size.
+     * @param len maximum packet size  in bytes
      * @return
      */
     virtual int16_t variablePacketLengthMode(uint8_t len) {
@@ -461,6 +454,16 @@ public:
      */
     virtual int16_t setCrcFiltering(bool crcOn) {
       Log.error(F("setCrcFiltering was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Enables / Disables automatic packet acknowledge.
+     * @param autoAckOn
+     * @return
+     */
+    virtual int16_t setAutoAck(bool autoAckOn) {
+      Log.error(F("setAutoAck was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -496,18 +499,6 @@ public:
     }
 
     /**
-     * Retrieve RFQuack stats for this radio.
-     * @return
-     */
-    const rfquack_Stats &getRfquackStats() const {
-      return _rfquackStats;
-    }
-
-    Queue *getRxQueue() const {
-      return _rxQueue;
-    }
-
-    /**
      * Sets callback on interrupt.
      * @param func
      */
@@ -519,21 +510,19 @@ protected:
     rfquack_Mode _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX]
 private:
     rfquack_WhichRadio _whichRadio;
-    rfquack_Stats _rfquackStats;
-    Queue *_rxQueue;
 
-    void enqueuePacket(rfquack_Packet *packet) {
+    void enqueuePacket(rfquack_Packet *packet, Queue* rxQueue) {
       if (packet->data.size > sizeof(rfquack_Packet)) {
         Log.error(F("Packet payload is grater than container."));
         return;
       }
 
-      if (_rxQueue->isFull()) {
+      if (rxQueue->isFull()) {
         Log.error(F("rxQueue is full"));
         return;
       }
 
-      _rxQueue->push(packet);
+      rxQueue->push(packet);
       RFQUACK_LOG_TRACE(F("Packet put in rxQueue, size %d bytes"), packet->data.size);
     }
 };

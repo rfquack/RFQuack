@@ -126,29 +126,17 @@ public:
                     })
     }
 
-    /**
-     * @brief Update queue statistics.
-     */
-    rfquack_Stats getRadiosStats(rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio, {
-        return radio->getRfquackStats();
-      });
-      unableToFindRadioError();
-    }
-
 
     /**
-     * @brief Reads any data from each radio's RX FIFO and push it to the RX queue;
-     * If any packets are in RX queue, send them all via the transport.
-     * If in repeat mode, modify and retransmit.
+     * @brief Reads any data from radios to RX queue.
      *
      * We handle them one at a time, even if there are more than one in the queue.
      * This is because we rather have a full RX queue but zero packet lost, and
      * we want to give other functions in the loop their share of time.
      */
     void rxLoop() {
-      // Fetch packets from radios RX FIFOs. (first radioA, than radioB if any).
-      FOREACH_RADIO({ radio->rxLoop(); })
+      // Fetch packets from radios RX FIFOs.
+      FOREACH_RADIO({ radio->rxLoop(_rxQueue); })
 
       // Check if any radio still has incoming data available.
       bool aRadioNeedsCpuTime = false;
@@ -156,35 +144,38 @@ public:
                       if (radio->isIncomingDataAvailable()) aRadioNeedsCpuTime = true;
                     })
 
-      // Fetch packets from drivers only if we have spare CPU time or queues are getting full.
+      // Execute 'afterPacketReceived()' hook only if there's spare CPU time or queue is getting full.
       FOREACH_RADIO({
-                      if (!aRadioNeedsCpuTime || radio->getRxQueue()->getRemainingCount() < 20) {
+                      if (!aRadioNeedsCpuTime || _rxQueue->getCount() > 20) {
                         rfquack_Packet pkt;
 
-                        // Pick *ONE* packet from RX QUEUE (read method description)
-                        if (radio->getRxQueue()->pop(&pkt)) {
+                        // Pick *ONE* packet from RX QUEUE
+                        if (_rxQueue->pop(&pkt)) {
                           // Send packet to the chain of registered modules.
                           modulesDispatcher.afterPacketReceived(pkt, pkt.rxRadio);
                         }
                       }
                     }
       )
-
     }
 
+    /**
+     * Sends a packet over the air
+     * @param pkt pkt to be sent
+     * @param whichRadio choosen radio
+     * @return
+     */
     int16_t transmit(rfquack_Packet *pkt, rfquack_WhichRadio whichRadio) {
-      int16_t result = ERR_UNKNOWN;
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
       unableToFindRadioError();
       return ERR_UNKNOWN;
     }
 
     /**
-     * @brief Read register value.
-     *
-     * @param addr Address of the register
-     *
-     * @return Value from the register.
+     * Read register value
+     * @param reg
+     * @param whichRadio
+     * @return
      */
     int16_t readRegister(uint8_t reg, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->readRegister(reg))
@@ -203,22 +194,14 @@ public:
       unableToFindRadioError();
     }
 
-    /**
-     * Sets transmitted packet length.
-     * @param pkt settings to apply
-     * @param whichRadio target radio
-     * @return
-     */
-    int16_t setPacketLen(rfquack_PacketLen &pkt, rfquack_WhichRadio whichRadio) {
-      int len = (uint8_t) pkt.packetLen;
-      if (pkt.isFixedPacketLen) {
-        RFQUACK_LOG_TRACE("Setting radio to fixed len of %d bytes", len)
-        SWITCH_RADIO(whichRadio, return radio->fixedPacketLengthMode(len))
-      } else {
-        RFQUACK_LOG_TRACE("Setting radio to variable len ( max %d bytes)", len)
-        SWITCH_RADIO(whichRadio, return radio->variablePacketLengthMode(len))
-      }
+    int16_t fixedPacketLengthMode(uint8_t len, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->fixedPacketLengthMode(len));
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
 
+    int16_t variablePacketLengthMode(uint8_t len, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->variablePacketLengthMode(len));
       unableToFindRadioError();
       return ERR_UNKNOWN;
     }
@@ -230,8 +213,13 @@ public:
      * @return
      */
     int16_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio,
-                   return radio->setMode(mode))
+      SWITCH_RADIO(whichRadio, return radio->setMode(mode))
+      unableToFindRadioError();
+      return ERR_UNKNOWN;
+    }
+
+    int16_t setAutoAck(bool autoAckOn, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->setAutoAck(autoAckOn))
       unableToFindRadioError();
       return ERR_UNKNOWN;
     }
@@ -320,6 +308,7 @@ public:
     }
 
 private:
+    Queue *_rxQueue;
     RadioA *_driverRadioA = nullptr;
     RadioB *_driverRadioB = nullptr;
     RadioC *_driverRadioC = nullptr;

@@ -139,7 +139,14 @@ public:
     }
 
     void set_packet_len(rfquack_PacketLen pkt, rfquack_CmdReply &reply) {
-      reply.result = rfqRadio->setPacketLen(pkt, _whichRadio);
+      int len = (uint8_t) pkt.packetLen;
+      if (pkt.isFixedPacketLen) {
+        RFQUACK_LOG_TRACE("Setting radio to fixed len of %d bytes", len)
+        reply.result = rfqRadio->fixedPacketLengthMode(len, _whichRadio);
+      } else {
+        RFQUACK_LOG_TRACE("Setting radio to variable len ( max %d bytes )", len)
+        reply.result = rfqRadio->variablePacketLengthMode(len, _whichRadio);
+      }
     }
 
     void get_register(rfquack_UintValue pkt, rfquack_CmdReply &reply) {

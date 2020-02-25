@@ -16,6 +16,20 @@ public:
     }
 
     bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
+      if (autoShift) {
+        // Shift packet left if one of first two bytes is 0x55
+        if (pkt.data.size >= 2 && (pkt.data.bytes[0] == 0x55 || pkt.data.bytes[1] == 0x55)) {
+          RFQUACK_LOG_TRACE("Applying >> 1.")
+          for (int x = pkt.data.size - 1; x >= 0; x--) {
+            if (x != 0) {
+              pkt.data.bytes[x] = pkt.data.bytes[x] >> 1 | pkt.data.bytes[x - 1] << 7;
+            } else {
+              pkt.data.bytes[x] = pkt.data.bytes[x] >> 1;
+            }
+          }
+        }
+      }
+
       // apply all packet modifications
       apply_packet_modifications(&pkt);
 
@@ -38,6 +52,9 @@ public:
       // Dump all packet modification rules:
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "dump", "Dumps all packet modification rules",
                               dump(reply))
+
+      // If a packets starts with 55555 it may be because we lost first
+      CMD_MATCHES_BOOL("auto_shift", "Automatically left shifts ^5555 to get ^aaaa packets", autoShift)
     }
 
     void add(rfquack_PacketModification &pkt, rfquack_CmdReply &reply) {
@@ -194,7 +211,7 @@ public:
                 case rfquack_PacketModification_Op_INSERT:
                 case rfquack_PacketModification_Op_PREPEND:
                   // Handled to make compiler happy.
-                  RFQUACK_LOG_ERROR(F("You are using APPEND/INSERT/PREPEND the wrong way."))
+                RFQUACK_LOG_ERROR(F("You are using APPEND/INSERT/PREPEND the wrong way."))
                   break;
               }
             else {
@@ -263,6 +280,7 @@ private:
     } packet_modifications_t;
 
     packet_modifications_t pms;
+    bool autoShift = false;
 };
 
 #endif //RFQUACK_PROJECT_PACKETMODIFICATIONMODULE_H

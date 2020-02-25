@@ -53,12 +53,13 @@ public:
 
     void start(rfquack_CmdReply &reply) {
       // Check if start and stop frequencies are allowed.
-      if (!setFrequency(startFrequency)) {
-        setReplyMessage(reply, F("startFrequency is not valid"), ERR_INVALID_FREQUENCY);
+      if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != ERR_NONE) {
+        setReplyMessage(reply, F("startFrequency is not valid"), result);
         return;
       }
-      if (!setFrequency(endFrequency) || endFrequency <= startFrequency) {
-        setReplyMessage(reply, F("endFrequency is not valid"), ERR_INVALID_FREQUENCY);
+      if (int16_t result =
+        rfqRadio->setFrequency(endFrequency, radioToUse) != ERR_NONE || endFrequency <= startFrequency) {
+        setReplyMessage(reply, F("endFrequency is not valid"), result);
         return;
       }
 
@@ -105,8 +106,8 @@ public:
         for (int hop = 0; hop < hops; hop++) {
 
           // Try to set frequency
-          if (!setFrequency(currentFreq)) {
-            Log.error(F("Unable to setFrequency = %d Hz"), (int) (currentFreq * 1000));
+          if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != ERR_NONE) {
+            Log.error(F("Unable to setFrequency = %d Hz, result=%d"), (int) (currentFreq * 1000), result);
           } else {
             Log.trace(F("Set frequency = %d Hz"), (int) (currentFreq * 1000));
 
@@ -197,10 +198,6 @@ private:
           }
         }
       }
-    }
-
-    bool setFrequency(float freq) {
-      return rfqRadio->setFrequency(freq, radioToUse) != ERR_NONE;
     }
 
     float frequencyStep = 1;
