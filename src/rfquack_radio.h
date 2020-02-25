@@ -112,7 +112,9 @@ class RFQRadio {
 public:
     explicit RFQRadio(RadioA *_radioA, RadioB *_radioB, RadioC *_radioC, RadioD *_radioD, RadioE *_radioE) :
       _driverRadioA(_radioA), _driverRadioB(_radioB), _driverRadioC(_radioC), _driverRadioD(_radioD),
-      _driverRadioE(_radioE) {}
+      _driverRadioE(_radioE) {
+      _rxQueue = new Queue(sizeof(rfquack_Packet), RFQUACK_RADIO_RX_QUEUE_LEN, FIFO, true);
+    }
 
     /**
      * @brief Inits radio driver.

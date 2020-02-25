@@ -30,12 +30,14 @@
 
 // Modules:
 #include "modules/ModulesDispatcher.h"
-#include "modules/defaults/PacketRepeater.h"
+#include "modules/defaults/PacketRepeaterModule.h"
 #include "modules/defaults/RadioModule.h"
 #include "modules/defaults/PacketModificationModule.h"
 #include "modules/defaults/PacketFilterModule.h"
 #include "modules/defaults/RollJamModule.h"
-#include "modules/defaults/FrequencyScanner.h"
+#include "modules/defaults/FrequencyScannerModule.h"
+#include "modules/defaults/MouseJackModule.h"
+
 
 /**
  * Global instances
@@ -49,6 +51,8 @@ PacketFilterModule packetFilterModule;
 RollJamModule rollJamModule;
 PacketRepeaterModule packetRepeaterModule;
 FrequencyScannerModule frequencyScannerModule;
+MouseJackModule mouseJackModule;
+
 RadioModule *radioAModule;
 RadioModule *radioBModule;
 RadioModule *radioCModule;
@@ -60,6 +64,13 @@ RadioModule *radioEModule;
  *****************************************************************************/
 
 extern ModulesDispatcher modulesDispatcher;
+
+void rfquackTask(void *pvParameters) {
+  RFQUACK_LOG_TRACE(F("Starting main loop."))
+  for (;;) {
+    loop();
+  }
+}
 
 void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC = nullptr,
                    RadioD *_radioD = nullptr, RadioD *_radioE = nullptr) {
@@ -82,20 +93,22 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
 
   delay(100);
 
-// Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
+  // Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
   rfqRadio = new RFQRadio(_radioA, _radioB, _radioC, _radioD, _radioE);
   rfqRadio->begin();
 
   delay(100);
 
-// Register default modules.
-// Modules will be called in the order they are registered;
-// As consequence it's important that you load them in a mindful order.
+  // Register default modules.
+  // Modules will be called in the order they are registered;
+  // As consequence it's important that you load them in a mindful order.
   modulesDispatcher.registerModule(&frequencyScannerModule);
+  modulesDispatcher.registerModule(&mouseJackModule);
   modulesDispatcher.registerModule(&packetFilterModule);
   modulesDispatcher.registerModule(&packetModificationModule);
   modulesDispatcher.registerModule(&packetRepeaterModule);
   modulesDispatcher.registerModule(&rollJamModule);
+
 
 // Register driver modules.
 #ifdef USE_RADIOA
@@ -119,7 +132,12 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   modulesDispatcher.registerModule(radioEModule);
 #endif
 
-  delay(100);
+  // Delete "loopTask" and recreate it with increased stackDepth.
+  RFQUACK_LOG_TRACE(F("Setup is over."))
+  delay(10);
+  xTaskCreateUniversal(rfquackTask, "loopTaskRevamp", 10000, NULL, 1, NULL, CONFIG_ARDUINO_RUNNING_CORE);
+  vTaskDelete(NULL);
+  while (true); // Never reached.
 }
 
 void rfquack_loop() {

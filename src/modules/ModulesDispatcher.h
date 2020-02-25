@@ -9,18 +9,19 @@
 #include "modules/hooks/AfterPacketReceived.h"
 #include "modules/hooks/OnLoop.h"
 
+extern QueueHandle_t queue; // Queue of incoming packets
+
 class ModulesDispatcher {
 public:
     /**
-     * @brief Insomm
+     * Forwards any CLI issued command to the right module.
      */
     void executeUserCommand(char *moduleName, char *verb, char **args, uint8_t argsLen,
                             char *messagePayload, uint8_t messageLen) {
-      //Debug
       RFQUACK_LOG_TRACE(F("Got command for moduleName: %s, verb: %s, argsLen: %d, messageLen %d"),
                         moduleName, verb, argsLen, messageLen);
 
-      // INFO verb is used when client wants information about current RFQuack supported modules/cmds
+      // INFO verb is sent to ask information about current RFQuack supported modules and commands.
       bool isInfo = strncmp(verb, RFQUACK_TOPIC_INFO, strlen(RFQUACK_TOPIC_INFO)) == 0;
 
       // Redirect the received command to the right module(s).
@@ -32,8 +33,7 @@ public:
         }
       }
 
-      if (!isInfo)
-        Log.error(F("Module '%s' not found."), moduleName);
+      if (!isInfo) RFQUACK_LOG_ERROR(F("Module '%s' not found."), moduleName);
     }
 
     /**

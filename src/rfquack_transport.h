@@ -32,7 +32,7 @@ extern ModulesDispatcher modulesDispatcher;
  * This is called every time there's an inbound message from the other side.
  */
 void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_length) {
-  // Topic example: rfquack/in/{ <verb> : [set|get|unset] }/<module_name>/<args>/<args>/<args>/...
+  // Topic example: rfquack/in/{ <verb> : [set|get|info] }/<module_name>/<args>/<args>/<args>/...
 
   // Split topic into single tokens.
   char *moduleName = NULL;  // <module_name>

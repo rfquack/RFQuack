@@ -80,6 +80,11 @@
   _CMD_MATCHES_PRIMITIVE_PB(rfquack_FloatValue, cmdValue, targetVariable, description) \
 }
 
+// Use type (struct): rfquack_BytesValue_value_t to hold targetVariable.
+#define CMD_MATCHES_BYTES(cmdValue, description, targetVariable) { \
+  _CMD_MATCHES_PRIMITIVE_PB(rfquack_BytesValue, cmdValue, targetVariable, description) \
+}
+
 #define CMD_MATCHES_WHICHRADIO(cmdValue, description, targetVariable) { \
   _CMD_MATCHES_PRIMITIVE_PB(rfquack_WhichRadioValue, cmdValue, targetVariable, description) \
 }
@@ -105,19 +110,23 @@ public:
      * Called when user sends a command to configure this module.
      * Use predefined macros to match an incoming command:
      *
-     *      CMD_MATCHES_BOOL(cmdValue, description, targetVariable)
-     *      CMD_MATCHES_UINT(cmdValue, description, targetVariable)
-     *      CMD_MATCHES_FLOAT(cmdValue, description, targetVariable)
-     *      CMD_MATCHES_WHICHRADIO(cmdValue, description, targetVariable)
+     *      CMD_MATCHES_BOOL(cmdValue, description, target_bool_Variable)
+     *      CMD_MATCHES_UINT(cmdValue, description, target_uint8_t_Variable)
+     *      CMD_MATCHES_FLOAT(cmdValue, description, target_float_Variable)
+     *      CMD_MATCHES_BYTES(cmdValue, description, target_**_Variable) **
+     *      CMD_MATCHES_WHICHRADIO(cmdValue, description, target_rfquack_Whichradio_Variable)
      *          Params:
      *              cmdValue: How the variable will be called on CLI.
      *              description: Textual description that will be sent to CLI.
-     *              targetVariable: cpp binded variable.
+     *              target_XX_Variable: cpp binded variable.
      *          Example:
      *              CMD_MATCHES_BOOL("enabled", "Enable or disable this module.", _enabled)
      *          CLI Usage:
      *              q.moduleName.enabled = True  # Sets '_enabled' to true on CPP side.
      *              q.moduleName.enabled         # Retrieves '_enabled' from CPP side.
+     *
+     *      ** CMD_MATCHES_BYTES must be used with variables of type: rfquack_BytesValue_value_t,
+     *         this struct holds a 'size' element and a 'bytes' one.
      *
      *      CMD_MATCHES_METHOD_CALL(pbStruct, cmdValue, description, command)
      *          Params:

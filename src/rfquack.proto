@@ -51,15 +51,6 @@ enum Modulation {
     OOK = 1;
 }
 
-// Modem statistics
-message Stats {
-    required uint32 rx_packets = 1;
-    required uint32 tx_packets = 2;
-    required uint32 rx_failures = 3;
-    required uint32 tx_failures = 4;
-    required uint32 rx_queue = 5;
-}
-
 message PacketLen {
     required bool isFixedPacketLen = 9;
     required uint32 packetLen = 10;
@@ -106,6 +97,9 @@ message BoolValue {
 }
 message FloatValue {
     required float value = 1;
+}
+message BytesValue {
+    required bytes value = 1;
 }
 message WhichRadioValue {
     required WhichRadio value = 1;
