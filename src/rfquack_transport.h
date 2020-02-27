@@ -165,10 +165,8 @@ void rfquack_transport_loop() {
 
 void rfquack_transport_connect() { rfquack_mqtt_connect(); }
 
-void rfquack_transport_setup(RFQuackCommandDispatcher command_dispatcher) {
+void rfquack_transport_setup() {
   Client *rfquack_net = rfquack_network_client();
-
-  modulesDispatcher = command_dispatcher;
 
   rfquack_mqtt.begin(RFQUACK_MQTT_BROKER_HOST,
 #if defined(RFQUACK_MQTT_BROKER_PORT)
