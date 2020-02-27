@@ -30,8 +30,9 @@ EXAMPLES := $(wildcard examples/*)
 all: proto examples
 
 proto:
-	cd src/ ; \
-	protoc --plugin=protoc-gen-nanopb=../lib/nanopb/generator/protoc-gen-nanopb \
+	cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ;  make
+	cd "src" ; \
+	protoc --plugin=protoc-gen-nanopb=${HOME}/.platformio/lib/Nanopb/generator/protoc-gen-nanopb \
 		--nanopb_out=./ \
 		rfquack.proto \
 		--python_out=client/

@@ -52,11 +52,11 @@
         },
         {
             "name": "RadioLib",
-            "version": "~2.0.1"
+            "version": "https://github.com/Guglio95/RadioLib"
         },
-				{
-						"name": "Base64",
-						"version": "https://github.com/phretor/Base64"
-				}
+	{
+	    "name": "Base64",
+            "version": "https://github.com/phretor/Base64"
+	}
     ]
 }

@@ -60,16 +60,14 @@ special radio chip, you can just craft your shield and add support to the softwa
 RFQuack is quite experimental, expect glitches and imperfections. So far we're quite happy with it, and used it successfully to analyze some industrial radio protocols (read the [Trend Micro Research white paper](https://www.trendmicro.com/vinfo/us/security/news/vulnerabilities-and-exploits/attacks-against-industrial-machines-via-vulnerable-radio-remote-controllers-security-analysis-and-recommendations) or the [DIMVA 2019 paper](https://www.dimva2019.org) for details).
 
 ## Prepare Your Hardware
-* choose radio chip and the board you want to use among the supported ones: we tested it with the CC1120 and RFM69HCW on ESP8266-based boards (namely the Adafruit Feather HUZZAH and the WEMOS D1 Lite);
+* choose radio chip and the board you want to use among the supported ones: we tested it with the CC1101, nRF24 and ESP832-based boards (namely the Adafruit Feather);
 * assemble the board and the radio chip together: if you choose the Adafruit Feather system, all you have to do is stack the Feather HUZZAH and the Radio FeatherWing together, and do some minor soldering;
 * connect the board to the USB port.
 
 | **Main board** | **Radio daughter board** | **Network connectivity** | **Cellular connectivity** |
 |----------------|-------------------------------------|----------------------|-----------------------|
-| Feather HUZZAH | Radio FeatherWing RFM69HW 433 MHz | ESPWiFi | Not tested |
-| Feather HUZZAH32 | Radio FeatherWing RFM69HW 433, 868, 915 MHz | ESPWiFi | Not tested |
-| WEMOS D1 Lite | RFM69HCW 433 MHz | ESPWiFi | Not tested |
-| WEMOS D1 Lite | CC1120 | ESPWiFi | Not tested |
+| Feather HUZZAH32 | Feather nRF24 | ESPWiFi | Not tested |
+| Feather HUZZAH32 | Feather CC1101 | ESPWiFi | Not tested |
 | Feather FONA | Radio FeatherWing RFM69HW 433 MHz | None | Tested with early versions of RFQuack |
 
 You could play around with other combinations, of course. And if you feel generous, you can fork this repository, add support for untested hardware, and send us a pull request (including schematics for new daughter-boards)! 👏
@@ -77,28 +75,12 @@ You could play around with other combinations, of course. And if you feel genero
 <img src="docs/imgs/base.jpg" width="30%" /><img src="docs/imgs/mcu-huzzah32.jpg" width="30%" /><img src="docs/imgs/mcu-huzzah32-cc1101-433.jpg" width="30%" /><img src="docs/imgs/mcu-huzza32-433-868.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-cc1101-433.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-rf24-cc1101.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-cc1120-cc1101.jpg" width="30%" /><img src="docs/imgs/battery.jpg" width="30%" />
 
 ## Prepare Your Software
-RFQuack comes in the form of a firmware *library*, which means that you need to write your own "main" to define a minimum set of parameters. Don't worry, there's not much to write in there, and we provide a [few working examples](https://github.com/trendmicro/RFQuack/blob/master/examples/).
-
-* Make sure you have [PlatformIO Core](https://docs.platformio.org/en/latest/core.html) installed, because we use that as a build system;
-* checkout this repository: `git clone https://github.com/trendmicro/RFQuack`
-* enter the main directory: `cd RFQuack`
-* install the dependencies listed in `library.json` via `pio install -g <library name>` (if you want to install them globally)
-* to talk to your RFQuack dongle, you have two options:
-  * **MQTT Transport (and hardware serial console):** install or have access to an MQTT broker (Mosquitto is just perfect for this):
-    * PROs:
-      * you don't need cables (hint: your RFQuack hardware can be battery powered)
-      * if you want to connect the RFQuack hardware to your computer, you get a free (hardware) serial console for monitoring on the USB port
-    * CONs:
-      * you need network connectivity (WiFi or cellular)
-      * there's latency
-  * **Hardware Serial Transport (and software serial console):** connect the dongle via USB
-    * PROs:
-      * there's little latency
-      * you don't need to rely on network stability
-    * CONs:
-      * if you want full monitoring and debugging capabilities, you'll need to hookup a UART cable to the RFQuack hardware (by default, a software serial device is used, and will write on pins 16, 12 (RX, TX); this can be changed by defining `RFQUACK_LOG_SS_RX_PIN` and `RFQUACK_LOG_SS_TX_PIN` before `#include <rfquack.h>`)
-      * your range is limited by the length of your USB cable (you don't say! 😮)
-* configure the firmware: best if you use one of the proposed examples
+The quickest way to get started is by mean of our Docker image. It will automatically build and upload the code to any supported board.
+* Make sur you have [Docker](https://docs.docker.com/get-started/) installed.
+* Run the docker container. The following command will upload RFQuack to the connected board, bootstrapping a CC1101 radio.
+   `docker run --device=/dev/ttyUSB0:/board -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack`
+   Please, change the CS and IRQ pins according to your wiring. ([More about RFQuack's container](#docker-container))
+* Done :smile:
 
 ## Build and Test
 * if you're using the MQTT transport, fire up the MQTT broker (hint: use `mosquitto -v` so you'll see debug messages)
@@ -237,6 +219,37 @@ At this point you're good to go from here!
 
 ![RFQuack Console](docs/imgs/console1.png)
 ![RFQuack Console](docs/imgs/console2.png)
+
+## Docker container 
+RFQuack's docker container automatically builds the firmware for you, more information about it's variables:
+
+### Transport configuration
+RFQuack can be reached via WiFi or Serial:
+
+| Variable                | Description                                                           | Required |
+|-------------------------|-----------------------------------------------------------------------|----------|
+| `RFQUACK_UNIQ_ID`       | Unique identifier for this node, Defaults to `RFQUACK`                | No       |
+| `SERIAL_BAUD_RATE`      | Defaults to `115200`                                                  | No       |
+| `USE_MQTT`              | Disables Serial transport and enables the MQTT one.                   | No       |
+| `WIFI_SSID`             | WiFI SSID.                                                            | Yes, if MQTT |
+| `WIFI_PASS`             | WiFI Password.                                                        | Yes, if MQTT |
+| `MQTT_BROKER`           | MQTT Broker host                                                      | Yes, if MQTT |
+
+### Radio configuration
+RFQuack supports up to *5 radios*; you must configure - at least - RadioA:
+ 
+| Variable      | Description                                                           | Required |
+|---------------|-----------------------------------------------------------------------|----------|
+| `RADIOX`      | Chosen modem for RadioX: (options: `CC1101`, `nRF24` _case sensitive_)| No (yes if `RADIOA`)     |
+| `RADIOX_CS`   | SPI `Chip Select` pin for RadioX                                      | No      |
+| `RADIOX_IRQ`  | Interrupt pin for RadioX. It's labeled `IRQ` on `nRF24` modules, or `GDO0` on `CC1101` ones | No      |
+| `RADIOX_CE`   | `Chip Enable` pin for RadioX (needed only for `nRF24` radios)         | No      |
+
+
+
+*Cheat sheet:*
+* ESP32, Serial connection, CC1101: `docker run --device=/dev/ttyUSB0:/board -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack`
+* ESP32, Serial connection, nRF24:  `docker run --device=/dev/ttyUSB0:/board -e RADIOA=nRF24  -e RADIOA_CS=5 -e RADIOA_IRQ=4 -e RADIOA_CE=2 --rm -it rfquack/rfquack`
 
 # Architecture
 
