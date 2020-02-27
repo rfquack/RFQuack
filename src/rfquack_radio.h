@@ -147,18 +147,16 @@ public:
                     })
 
       // Execute 'afterPacketReceived()' hook only if there's spare CPU time or queue is getting full.
-      FOREACH_RADIO({
-                      if (!aRadioNeedsCpuTime || _rxQueue->getCount() > 20) {
-                        rfquack_Packet pkt;
+      if (!aRadioNeedsCpuTime || _rxQueue->getCount() > 20) {
+        rfquack_Packet pkt;
 
-                        // Pick *ONE* packet from RX QUEUE
-                        if (_rxQueue->pop(&pkt)) {
-                          // Send packet to the chain of registered modules.
-                          modulesDispatcher.afterPacketReceived(pkt, pkt.rxRadio);
-                        }
-                      }
-                    }
-      )
+        // Pick *ONE* packet from RX QUEUE
+        if (_rxQueue->pop(&pkt)) {
+          // Send packet to the chain of registered modules.
+          modulesDispatcher.afterPacketReceived(pkt, pkt.rxRadio);
+        }
+      }
+
     }
 
     /**
