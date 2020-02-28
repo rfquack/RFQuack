@@ -120,12 +120,14 @@ public:
      * @brief Inits radio driver.
      * @param whichRadio
      */
-    void begin() {
+    int16_t begin() {
+      int16_t result = ERR_NONE;
       FOREACH_RADIO({
                       radio->setWhichRadio(whichRadio);
-                      int16_t result = radio->begin();
+                      result |= radio->begin();
                       ASSERT_RESULT(result, "Unable to initialize radio")
                     })
+      return result;
     }
 
 

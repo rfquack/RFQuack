@@ -175,7 +175,6 @@ public:
                         addr, value)
 
       reply.result = ERR_NONE;
-      PB_ENCODE_AND_SEND(rfquack_CmdReply, reply, RFQUACK_TOPIC_GET, this->name, "set_register")
     }
 
 
