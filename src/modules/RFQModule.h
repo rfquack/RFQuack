@@ -40,7 +40,7 @@
   if (strcmp(verb, RFQUACK_TOPIC_INFO) == 0){ \
     rfquack_CmdInfo pkt = rfquack_CmdInfo_init_default; \
     strcpy_P(pkt.argumentType, (PGM_P) F(#pbStruct));\
-    strcpy_P(pkt.description, (PGM_P) F(#cmdDescription)); \
+    strcpy_P(pkt.description, (PGM_P) F(cmdDescription)); \
     pkt.cmdType = _cmdType; \
     RFQUACK_LOG_TRACE(F("Sending " #cmdValue " info to client")); \
     PB_ENCODE_AND_SEND(rfquack_CmdInfo, pkt, RFQUACK_TOPIC_INFO, this->name, cmdValue)  \

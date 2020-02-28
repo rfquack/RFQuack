@@ -45,10 +45,14 @@ public:
                              "Radio to use (default: RadioA)",
                              radioToUse)
 
-      // Radio to use.
+      // Rounds.
       CMD_MATCHES_UINT("rounds",
                        "How many times sweep on frequency range (default: 3)",
                        rounds)
+
+      CMD_MATCHES_UINT("wait_time",
+                       "uS before jump to next frequency. Ex: 1700 (CC1101), 40 (nRF24). (default: 40)",
+                       waitTime)
     }
 
     void start(rfquack_CmdReply &reply) {
@@ -84,7 +88,7 @@ public:
         return;
       }
 
-      // CC1101 best config for freq scanning is max br (255 kbps), GSK (FSK2 is ok too) and 102 kHz filter bw
+      // CC1101's best config for freq scanning is max br (255 kbps), GSK (FSK2 is ok too), 102 kHz filter bw
       // q.radioA.set_modem_config(bitRate=255, modulation="FSK2", rxBandwidth=102)
       // TODO: Find a way to apply them here only if radio is CC1101
 
@@ -94,7 +98,7 @@ public:
       uint16_t hops = (endFrequency - startFrequency) / frequencyStep;
       RFQUACK_LOG_TRACE(F("We'll change frequency %d times"), hops)
 
-      // malloc an array to store results
+      // array to store results
       Item *results{new Item[hops]{}};
       memset(results, 0, sizeof(Item) * hops);
 
@@ -114,7 +118,7 @@ public:
             // Put radio in RX mode.
             rfqRadio->setMode(rfquack_Mode_RX, radioToUse);
 
-            delayMicroseconds(1700);
+            delayMicroseconds(waitTime);
 
             // Use RSSI if available (it's more accurate). Else fallback to Carrier Detection.
             // Check if something was transmitting via carrier detection.
@@ -204,6 +208,7 @@ private:
     float startFrequency = 2400;
     float endFrequency = 2525;
     uint8_t rounds = 5;
+    uint8_t waitTime = 40;
     rfquack_WhichRadio radioToUse = rfquack_WhichRadio_RadioA;
 };
 
