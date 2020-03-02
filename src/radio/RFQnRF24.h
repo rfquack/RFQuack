@@ -31,13 +31,18 @@ public:
     }
 
     virtual int16_t receiveMode() override {
-      // Set up receiving pipe.
-      int16_t state = nRF24::setReceivePipe(0, _addr);
-      if (state != ERR_NONE)
-        return state;
+      if (_mode != rfquack_Mode_RX) {
+        // Set up receiving pipe.
+        // Note: this command will bring radio back to standby mode.
+        int16_t state = nRF24::setReceivePipe(0, _addr);
+        if (state != ERR_NONE)
+          return state;
 
-      // Call to base method.
-      return RadioLibWrapper::receiveMode();
+        // Call to base method.
+        return RadioLibWrapper::receiveMode();
+      }else{
+        return ERR_NONE;
+      }
     }
 
     int16_t readData(uint8_t *data, size_t len) override {
@@ -48,9 +53,10 @@ public:
       SPIreadRxPayload(data, length);
 
       // add terminating null
-      // data[length] = 0;
+       data[length] = 0;
 
       // clear status bits
+      setFlag(false);
       _mod->SPIsetRegValue(NRF24_REG_STATUS, NRF24_RX_DR | NRF24_TX_DS | NRF24_MAX_RT, 6, 4);
 
       return (ERR_NONE);
@@ -104,14 +110,14 @@ public:
       // Disables CRC and auto ACK.
       int16_t state = setCrcFiltering(!isEnabled);
 
-      // Set syncword to { 0xAA, 0x00 }
+      // Set address to 0x00AA. (mind the endianness)
       byte syncW[5] = {0xAA, 0x00};
       state |= setSyncWord(syncW, 2);
 
       // Set fixed packet len
       state |= fixedPacketLengthMode(32);
 
-      return ERR_NONE;
+      return state;
     }
 
     int16_t fixedPacketLengthMode(uint8_t len) override {
