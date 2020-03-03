@@ -513,7 +513,7 @@ Remember that RFQuack can be reached via WiFi or Serial,
 
 | Variable                | Description                                                           | Required |
 |-------------------------|-----------------------------------------------------------------------|----------|
-| `BOARD`                 | Supported target identifier, (`ESP32`, `HUZZAH32` *default*           | No       |
+| `BOARD`                 | Supported target identifier, (`ESP32`, `HUZZAH32` *default*)          | No       |
 | `RFQUACK_UNIQ_ID`       | Unique identifier for this node, Defaults to `RFQUACK`                | No       |
 | `SERIAL_BAUD_RATE`      | Defaults to `115200`                                                  | No       |
 | `USE_MQTT`              | Disables Serial transport and enables the MQTT one.                   | No       |
