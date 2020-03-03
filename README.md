@@ -31,7 +31,7 @@ We assume you know what you're doing 🤓
 * [Architecture](#architecture)
 * [Modules](#modules)
   * [Radio Module](#radio-module)
-    * [Radio Module](#modem-configuration)
+    * [Modem configuration](#modem-configuration)
     * [Transmit and Receive](#transmit-and-receive)
     * [Register Access](#register-access)
   * [Packet Filtering Module](#packet-filtering-module)
@@ -85,8 +85,8 @@ The quickest way to get started is by mean of our Docker image. It will automati
 
 | **Command**    | **Description**           |
 |----------------|---------------------------|
-|`docker run --device=/dev/ttyUSB0:/board -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack` | Uploads RFQuack to an `ESP32` (`/dev/ttyUSB0`), connected to a `CC1101` (`Chip Select` on PIN2, `GDO0` on PIN5) |
-|`docker run --device=/dev/ttyUSB0:/board -e RADIOA=nRF24  -e RADIOA_CS=5 -e RADIOA_IRQ=4 -e RADIOA_CE=2 --rm -it rfquack/rfquack` | Uploads RFQuack to an `ESP32` (`/dev/ttyUSB0`), connected to a `nRF24` (`Chip Select` on PIN5, `IRQ` on PIN4, `Chip Enable` on PIN2) |
+|`docker run --device=/dev/ttyUSB0:/board -e BOARD=HUZZAH32 -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack` | Uploads RFQuack to an `Adafruit HUZZAH32` (`/dev/ttyUSB0`), connected to a `CC1101` (`Chip Select` on PIN2, `GDO0` on PIN5) |
+|`docker run --device=/dev/ttyUSB0:/board -e BOARD=HUZZAH32 -e RADIOA=nRF24  -e RADIOA_CS=5 -e RADIOA_IRQ=4 -e RADIOA_CE=2 --rm -it rfquack/rfquack` | Uploads RFQuack to an `Adafruit HUZZAH32` (`/dev/ttyUSB0`), connected to a `nRF24` (`Chip Select` on PIN5, `IRQ` on PIN4, `Chip Enable` on PIN2) |
 
    Please, change the CS, IRQ and CE pins according to your wiring. ([More about container's variables](#docker-container))
 * Done :smile: RFQuack is installed on your hardware and reachable via *serial*. It's time to [test it!](#test-it)
@@ -508,24 +508,25 @@ aided by a spectrogram), and then nudge around until matched.
 ## Docker container
 RFQuack's docker container automatically builds the firmware for you, more information about it's variables:
 
-### Transport configuration
-RFQuack can be reached via WiFi or Serial:
+### General configuration
+Remember that RFQuack can be reached via WiFi or Serial,
 
 | Variable                | Description                                                           | Required |
 |-------------------------|-----------------------------------------------------------------------|----------|
+| `BOARD`                 | Supported target identifier, (`ESP32`, `HUZZAH32` *default*           | No       |
 | `RFQUACK_UNIQ_ID`       | Unique identifier for this node, Defaults to `RFQUACK`                | No       |
 | `SERIAL_BAUD_RATE`      | Defaults to `115200`                                                  | No       |
 | `USE_MQTT`              | Disables Serial transport and enables the MQTT one.                   | No       |
-| `WIFI_SSID`             | WiFI SSID.                                                            | Yes, if MQTT |
-| `WIFI_PASS`             | WiFI Password.                                                        | Yes, if MQTT |
-| `MQTT_BROKER`           | MQTT Broker host                                                      | Yes, if MQTT |
+| `WIFI_SSID`             | WiFI SSID.                                                            | Yes, if `USE_MQTT` |
+| `WIFI_PASS`             | WiFI Password.                                                        | Yes, if `USE_MQTT` |
+| `MQTT_BROKER`           | MQTT Broker host                                                      | Yes, if `USE_MQTT` |
 
 ### Radio configuration
-RFQuack supports up to *5 radios*; you must configure - at least - RadioA:
+RFQuack supports up to *5 radios*; **you must configure - at least - RadioA**:
 
 | Variable      | Description                                                           | Required |
 |---------------|-----------------------------------------------------------------------|----------|
-| `RADIOX`      | Chosen modem for RadioX: (options: `CC1101`, `nRF24` _case sensitive_)| No (yes if `RADIOA`)     |
+| `RADIOX`      | Chosen modem for RadioX: (options: `CC1101`, `nRF24` _case sensitive_)| Yes, if `RADIOA`     |
 | `RADIOX_CS`   | SPI `Chip Select` pin for RadioX                                      | No      |
 | `RADIOX_IRQ`  | Interrupt pin for RadioX. It's labeled `IRQ` on `nRF24` modules, or `GDO0` on `CC1101` ones | No      |
 | `RADIOX_CE`   | `Chip Enable` pin for RadioX (needed only for `nRF24` radios)         | No      |

@@ -40,5 +40,5 @@ COPY docker/project .
 
 COPY docker/my-entrypoint.sh /my-entrypoint.sh
 
-ENTRYPOINT ["/my-entrypoint.sh"]
-CMD ["platformio", "run", "-t", "upload"]
+ENTRYPOINT ["/bin/sh"]
+CMD ["/my-entrypoint.sh"]
