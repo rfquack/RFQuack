@@ -14,7 +14,6 @@ public:
     using CC1101::setCrcFiltering;
     using CC1101::setBitRate;
     using CC1101::setRxBandwidth;
-    using CC1101::getRSSI;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module) {}
 
@@ -127,6 +126,38 @@ public:
 
     int16_t fixedPacketLengthMode(uint8_t len) override {
       return CC1101::fixedPacketLengthMode(len);
+    }
+
+    int16_t jamMode() override {
+      // If the TX FIFO is empty, the modulator will continue to send preamble bytes until the first
+      // byte is written to the TX FIFO.
+
+      // Set a sync word (no sync words means no preamble generation)
+      byte syncW[] = {0xFF, 0xFF};
+      uint8_t result = this->setSyncWord(syncW, 2);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Put radio in TX Mode
+      result = this->transmitMode();
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Put radio in fixed len mode
+      result = this->fixedPacketLengthMode(1);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Transmit an empty packet.
+      rfquack_Packet packet = rfquack_Packet_init_zero;
+      packet.data.bytes[0] = 0xFF;
+      packet.data.size = 0;
+      this->transmit(&packet);
+
+      return ERR_NONE;
     }
 
     float getRSSI(float &rssi) override {

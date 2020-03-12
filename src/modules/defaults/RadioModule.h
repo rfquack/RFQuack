@@ -64,6 +64,9 @@ public:
       // TX Mode
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "tx", "Puts modem in TX mode",
                               reply.result = rfqRadio->setMode(rfquack_Mode_TX, _whichRadio))
+      // JAM Mode
+      CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "jam", "Starts jamming",
+                              reply.result = rfqRadio->setMode(rfquack_Mode_JAM, _whichRadio))
       // Idle Mode
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "idle", "Puts modem in IDLE mode",
                               reply.result = rfqRadio->setMode(rfquack_Mode_IDLE, _whichRadio))

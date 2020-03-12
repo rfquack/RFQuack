@@ -60,7 +60,7 @@ public:
     }
 
     /**
-     * Set if this instance is either RADIOA or RADIOB
+     * Set if this instance is either RADIOA / RADIOB / RADIOC / ...
      * @param whichRadio
      */
     void setWhichRadio(rfquack_WhichRadio whichRadio) {
@@ -123,26 +123,8 @@ public:
      * Puts the radio in JAM mode (starts jamming)
      * @return
      */
-    virtual uint8_t jamMode() {
-      // Put radio in TX Mode
-      uint8_t result = this->transmitMode();
-      if (result != ERR_NONE) {
-        return result;
-      }
-
-      // Put radio in fixed len mode
-      result = this->fixedPacketLengthMode(5);
-      if (result != ERR_NONE) {
-        return result;
-      }
-
-      // Transmit an empty packet.
-      rfquack_Packet packet = rfquack_Packet_init_zero;
-      packet.data.bytes[0] = 0xFF;
-      packet.data.size = 0;
-      this->transmit(&packet);
-
-      return ERR_NONE;
+    virtual int16_t jamMode() {
+      return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
@@ -294,7 +276,7 @@ public:
     /**
      * Main receive loop; reads any data from the RX FIFO and push it to the RX queue.
      */
-    void rxLoop(Queue* rxQueue) {
+    void rxLoop(Queue *rxQueue) {
       // Check if there's pending data on radio's RX FIFO.
       if (isIncomingDataAvailable()) {
         rfquack_Packet pkt = rfquack_Packet_init_zero;
@@ -511,7 +493,7 @@ protected:
 private:
     rfquack_WhichRadio _whichRadio;
 
-    void enqueuePacket(rfquack_Packet *packet, Queue* rxQueue) {
+    void enqueuePacket(rfquack_Packet *packet, Queue *rxQueue) {
       if (packet->data.size > sizeof(rfquack_Packet)) {
         Log.error(F("Packet payload is grater than container."));
         return;

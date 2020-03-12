@@ -208,7 +208,7 @@ private:
     float startFrequency = 2400;
     float endFrequency = 2525;
     uint8_t rounds = 5;
-    uint8_t waitTime = 40;
+    uint16_t waitTime = 40;
     rfquack_WhichRadio radioToUse = rfquack_WhichRadio_RadioA;
 };
 

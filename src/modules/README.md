@@ -71,7 +71,7 @@ public:
       // Get this bool from cli using: q.AwesomeModuleSlug.bool1
       CMD_MATCHES_BOOL("bool1",
                         "Set this bool from cli ",
-                        startFrequency)
+                        boolExample)
     
       // Same applies to CMD_MATCHES_FLOAT, CMD_MATCHES_INT, CMD_MATCHES_UINT, CMD_MATCHES_WHICHRADIO
 
