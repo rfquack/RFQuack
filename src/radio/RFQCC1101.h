@@ -12,7 +12,6 @@ public:
     using CC1101::setPromiscuousMode;
     using CC1101::variablePacketLengthMode;
     using CC1101::setCrcFiltering;
-    using CC1101::setBitRate;
     using CC1101::setRxBandwidth;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module) {}
@@ -139,6 +138,19 @@ public:
         return result;
       }
 
+      // Enable FSK mode with 0 frequency deviation
+      result = this->setModulation(rfquack_Modulation_FSK2);
+      result |= this->setFrequencyDeviation(0);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Set bitrate to 1
+      result = this->setBitRate(1);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
       // Put radio in TX Mode
       result = this->transmitMode();
       if (result != ERR_NONE) {
@@ -164,6 +176,10 @@ public:
       CC1101::_rawRSSI = SPIreadRegister(CC1101_REG_RSSI);
       rssi = CC1101::getRSSI();
       return ERR_NONE;
+    }
+
+    int16_t setBitRate(float br) override {
+      return CC1101::setBitRate(br);
     }
 
     void removeInterrupts() override {
