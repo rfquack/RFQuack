@@ -37,7 +37,7 @@
 #include "modules/defaults/RollJamModule.h"
 #include "modules/defaults/FrequencyScannerModule.h"
 #include "modules/defaults/MouseJackModule.h"
-
+#include "modules/defaults/HelloWorldModule.h"
 
 /**
  * Global instances
@@ -52,6 +52,7 @@ RollJamModule rollJamModule;
 PacketRepeaterModule packetRepeaterModule;
 FrequencyScannerModule frequencyScannerModule;
 MouseJackModule mouseJackModule;
+HelloWorldModule helloWorldModule;
 
 RadioModule *radioAModule;
 RadioModule *radioBModule;
@@ -112,6 +113,7 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   modulesDispatcher.registerModule(&packetModificationModule);
   modulesDispatcher.registerModule(&packetRepeaterModule);
   modulesDispatcher.registerModule(&rollJamModule);
+  modulesDispatcher.registerModule(&helloWorldModule);
 
 
 // Register driver modules.
