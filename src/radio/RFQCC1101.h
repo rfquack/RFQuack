@@ -21,11 +21,15 @@ public:
 
       if (state != ERR_NONE) return state;
 
-      // Carrier Sense: Set MAX_DVGA_GAIN
+      // Set MAX_DVGA_GAIN: Disable the highest step amplification,
+      // This will prevent noise to be amplified and trigger the CS.
       state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6);
 
-      // Carrier Sense: Set carrier sense threshold (MAGN_TARGET) to 38db.
-      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_38_DB, 2, 0);
+      // Same as above could be achieved by reducing the LNA again. Both seem to work well, just pick one.
+      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3);
+
+      // MAGN_TARGET: Set the target for the amplifier loop.
+      //state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0);
 
       // Remove whitening
       state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
@@ -79,6 +83,10 @@ public:
       _mode = rfquack_Mode_RX;
 
       return ERR_NONE;
+    }
+
+    void scal() {
+      SPIsendCommand(CC1101_CMD_CAL);
     }
 
     bool isIncomingDataAvailable() override {
