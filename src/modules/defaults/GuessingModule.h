@@ -25,8 +25,11 @@ public:
 
     void executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload,
                             unsigned int messageLen) override {
-      // Start frequency scan
+      // Start the module.
       CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "start", "Starts the guessing module", start(reply))
+
+      // Stops the module.
+      CMD_MATCHES_METHOD_CALL(rfquack_VoidValue, "stop", "Stops the guessing module", stop(reply))
 
       // Start frequency.
       CMD_MATCHES_FLOAT("start_freq",
@@ -85,6 +88,18 @@ public:
       this->enabled = true;
 
       setReplyMessage(reply, F("Started."));
+    }
+
+    void stop(rfquack_CmdReply &reply) {
+      // Disable the module.
+      this->enabled = false;
+
+      // Restore registers
+      if (previousRegisters != nullptr) {
+        restoreRegisters();
+      }
+
+      setReplyMessage(reply, F("Stopped."));
     }
 
     float almostBinarySearch(float binStartFreq, float binEndFreq, uint8_t bwStep) {
