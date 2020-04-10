@@ -18,6 +18,7 @@ public:
 
     bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       RFQUACK_LOG_TRACE(F("onPacketReceived() fired!"))
+      return true;
     }
 
     void executeUserCommand(char *verb, char **args, uint8_t argsLen, char *messagePayload,

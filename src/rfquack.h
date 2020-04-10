@@ -116,7 +116,7 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   modulesDispatcher.registerModule(&packetModificationModule);
   modulesDispatcher.registerModule(&packetRepeaterModule);
   modulesDispatcher.registerModule(&rollJamModule);
-  modulesDispatcher.registerModule(&helloWorldModule);
+//  modulesDispatcher.registerModule(&helloWorldModule);
 
 
 // Register driver modules.
