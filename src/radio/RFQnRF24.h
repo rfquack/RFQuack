@@ -6,7 +6,7 @@
 
 class RFQnRF24 : public RadioLibWrapper<nRF24> {
 public:
-    RFQnRF24(Module *module) : RadioLibWrapper(module) {}
+    RFQnRF24(Module *module) : RadioLibWrapper(module, "nRF24") {}
 
     virtual int16_t transmitMode() override {
       // Set up TX_ADDR to last used.

@@ -14,7 +14,7 @@ public:
     using CC1101::setCrcFiltering;
     using CC1101::setRxBandwidth;
 
-    RFQCC1101(Module *module) : RadioLibWrapper(module) {}
+    RFQCC1101(Module *module) : RadioLibWrapper(module, "CC1101") {}
 
     int16_t begin() override {
       int16_t state = RadioLibWrapper::begin();

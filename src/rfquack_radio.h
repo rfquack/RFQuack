@@ -232,6 +232,25 @@ public:
       return rfquack_Mode_IDLE;
     }
 
+    char *getChipName(rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->getChipName())
+      unableToFindRadioError();
+      return nullptr;
+    }
+
+    /**
+     * Returns a pointer to the native driver.
+     * It's up to you cast it to the right class;
+     * This is useful to all driver methods.
+     * @param whichRadio
+     * @return void ptr to RFQCC1101, RFQnRF24, ecc.. depending on whichRadio
+     */
+    void *getNativeDriver(rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return (void *) radio)
+      unableToFindRadioError();
+      return nullptr;
+    }
+
     int16_t setFrequency(float carrierFreq, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setFrequency(carrierFreq))
       unableToFindRadioError();

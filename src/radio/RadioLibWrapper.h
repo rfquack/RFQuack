@@ -53,7 +53,10 @@ class RadioLibWrapper : protected IRQ, protected T {
 public:
     using T::getPacketLength;
 
-    RadioLibWrapper(Module *module) : T(module) {}
+    RadioLibWrapper(Module *module, const char *chipName) : T(module) {
+      this->chipName = new char[strlen(chipName) + 1];
+      strcpy(this->chipName, chipName);
+    }
 
     virtual int16_t begin() {
       return T::begin();
@@ -488,9 +491,14 @@ public:
 
     virtual void removeInterrupts() = 0;
 
+    char *getChipName() const {
+      return chipName;
+    }
+
 protected:
     rfquack_Mode _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX]
 private:
+    char *chipName;
     rfquack_WhichRadio _whichRadio;
 
     void enqueuePacket(rfquack_Packet *packet, Queue *rxQueue) {
