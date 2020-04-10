@@ -37,6 +37,7 @@
 #include "modules/defaults/RollJamModule.h"
 #include "modules/defaults/FrequencyScannerModule.h"
 #include "modules/defaults/MouseJackModule.h"
+#include "modules/defaults/GuessingModule.h"
 #include "modules/defaults/HelloWorldModule.h"
 
 /**
@@ -53,6 +54,7 @@ PacketRepeaterModule packetRepeaterModule;
 FrequencyScannerModule frequencyScannerModule;
 MouseJackModule mouseJackModule;
 HelloWorldModule helloWorldModule;
+GuessingModule guessingModule;
 
 RadioModule *radioAModule;
 RadioModule *radioBModule;
@@ -107,6 +109,7 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   // Register default modules.
   // Modules will be called in the order they are registered;
   // As consequence it's important that you load them in a mindful order.
+  modulesDispatcher.registerModule(&guessingModule);
   modulesDispatcher.registerModule(&frequencyScannerModule);
   modulesDispatcher.registerModule(&mouseJackModule);
   modulesDispatcher.registerModule(&packetFilterModule);

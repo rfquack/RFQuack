@@ -14,18 +14,22 @@ public:
     using CC1101::setCrcFiltering;
     using CC1101::setRxBandwidth;
 
-    RFQCC1101(Module *module) : RadioLibWrapper(module) {}
+    RFQCC1101(Module *module) : RadioLibWrapper(module, "CC1101") {}
 
     int16_t begin() override {
       int16_t state = RadioLibWrapper::begin();
 
       if (state != ERR_NONE) return state;
 
-      // Carrier Sense: Set MAX_DVGA_GAIN
+      // Set MAX_DVGA_GAIN: Disable the highest step amplification,
+      // This will prevent noise to be amplified and trigger the CS.
       state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6);
 
-      // Carrier Sense: Set carrier sense threshold (MAGN_TARGET) to 38db.
-      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_38_DB, 2, 0);
+      // Same as above could be achieved by reducing the LNA again. Both seem to work well, just pick one.
+      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3);
+
+      // MAGN_TARGET: Set the target for the amplifier loop.
+      //state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0);
 
       // Remove whitening
       state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
@@ -81,6 +85,10 @@ public:
       return ERR_NONE;
     }
 
+    void scal() {
+      SPIsendCommand(CC1101_CMD_CAL);
+    }
+
     bool isIncomingDataAvailable() override {
       // Makes sense only if in RX mode.
       if (_mode != rfquack_Mode_RX) {
@@ -107,6 +115,11 @@ public:
       // This command, as side effect, sets mode to Standby
       _mode = rfquack_Mode_IDLE;
       return CC1101::setFrequency(carrierFreq);
+    }
+
+    int16_t getFrequency(float &carrierFreq) override {
+      carrierFreq = CC1101::_freq;
+      return ERR_NONE;
     }
 
     int16_t setFrequencyDeviation(float freqDev) override {
@@ -178,8 +191,24 @@ public:
       return ERR_NONE;
     }
 
+    int16_t isCarrierDetected(bool &isDetected) override {
+      uint8_t pktStatus = SPIreadRegister(CC1101_REG_PKTSTATUS);
+      isDetected = pktStatus & 0x40;
+      return ERR_NONE;
+    }
+
     int16_t setBitRate(float br) override {
       return CC1101::setBitRate(br);
+    }
+
+    int16_t getBitRate(float &br) override {
+      br = CC1101::_br;
+      return ERR_NONE;
+    }
+
+    void
+    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
+      SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb, 0);
     }
 
     void removeInterrupts() override {
@@ -189,30 +218,6 @@ public:
     void setInterruptAction(void (*func)(void *)) override {
       attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
-
-    // Just for debug purposes:
-    void printRegisters() {
-      Serial.println("DUMP: ");
-      // From 0x00 to 0x28
-      for (uint8_t i = 0; i < 0x2E; i++) {
-        Serial.print(i, HEX);
-        Serial.print(": ");
-        Serial.println(SPIreadRegister(i), HEX);
-      }
-
-      uint8_t data[2];
-      SPIreadRegisterBurst(CC1101_REG_PATABLE, 2, data);
-
-      Serial.print("PA0");
-      Serial.print(": ");
-      Serial.println(data[0], HEX);
-
-
-      Serial.print("PA1");
-      Serial.print(": ");
-      Serial.println(data[1], HEX);
-    }
-
 };
 
 #endif //RFQUACK_PROJECT_RFQCC1101_H

@@ -36,6 +36,7 @@ We assume you know what you're doing 🤓
     * [Register Access](#register-access)
   * [Packet Filtering Module](#packet-filtering-module)
   * [Packet Modification Module](#packet-modification-module)
+  * [Automatic Frequency and Bitrate guessing](#automatic-frequency-and-bitrate-guessing)
   * [Other Modules](#other-modules)
 * [Publications](#publications)
 * [License (GPLv2)](#license)
@@ -483,6 +484,31 @@ In [78]: q.packet_modification.add(
    )
 In [79]: q.packet_modification.enabled = True # enable packet manipulation
 ```
+
+## Automatic Frequency and Bitrate Guessing
+It may happen that you don't know the frequency and/or the bitrate used by a transmitted; 
+Luckily, RFQuack has a module called `guessing` which automatically tries to sort them out.
+The module comes already configured for scanning from `432MHz` up to `437MHz`, you can easily tweak its parameters using the CLI and use it on any supported frequency.
+
+**Example:** Nothing easier: just start the module and it'll automagically determine the carrierFreq and/or bitRate of a transmission.
+
+```python
+RFQuack(/dev/ttyRFQ)> q.guessing.start()
+
+result = 0
+message = Started.
+
+[... press any button on the keyfob ...]
+
+data =  b'\x06\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa\xaa[...]'
+rxRadio = 0
+millis = 130090
+bitRate = 3.3333332538604736
+carrierFreq = 434.4758605957031
+hex data = 06aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa666a95a96aaaa5[...]
+```
+
+**Note:** Currently it only supports OOK modulation.
 
 
 ## Other Modules

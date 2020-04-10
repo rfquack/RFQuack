@@ -192,7 +192,12 @@ public:
      *
      */
     void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value))
+      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value, 7, 0))
+      unableToFindRadioError();
+    }
+
+    void writeRegister(uint8_t reg, uint8_t value, uint8_t msb, uint8_t lsb, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value, msb, lsb))
       unableToFindRadioError();
     }
 
@@ -230,6 +235,25 @@ public:
       SWITCH_RADIO(whichRadio, return radio->getMode())
       unableToFindRadioError();
       return rfquack_Mode_IDLE;
+    }
+
+    char *getChipName(rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->getChipName())
+      unableToFindRadioError();
+      return nullptr;
+    }
+
+    /**
+     * Returns a pointer to the native driver.
+     * It's up to you cast it to the right class;
+     * This is useful to all driver methods.
+     * @param whichRadio
+     * @return void ptr to RFQCC1101, RFQnRF24, ecc.. depending on whichRadio
+     */
+    void *getNativeDriver(rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return (void *) radio)
+      unableToFindRadioError();
+      return nullptr;
     }
 
     int16_t setFrequency(float carrierFreq, rfquack_WhichRadio whichRadio) {

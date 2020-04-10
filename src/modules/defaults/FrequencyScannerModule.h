@@ -50,8 +50,8 @@ public:
                        "How many times sweep on frequency range (default: 3)",
                        rounds)
 
-      CMD_MATCHES_UINT("wait_time",
-                       "uS before jump to next frequency. Ex: 1700 (CC1101), 40 (nRF24). (default: 40)",
+      CMD_MATCHES_UINT("override_wait_time",
+                       "uS to wait before jumping to next frequency. Overrides the preset values. (default: 0)",
                        waitTime)
     }
 
@@ -88,9 +88,32 @@ public:
         return;
       }
 
-      // CC1101's best config for freq scanning is max br (255 kbps), GSK (FSK2 is ok too), 102 kHz filter bw
-      // q.radioA.set_modem_config(bitRate=255, modulation="FSK2", rxBandwidth=102)
-      // TODO: Find a way to apply them here only if radio is CC1101
+      rfqRadio->setPromiscuousMode(false, radioToUse);
+
+      // Apply best kwnown configurations.
+      uint16_t preset_waitTime = 0;
+      const char *chipName = rfqRadio->getChipName(radioToUse);
+      if (strncmp(chipName, "CC1101", sizeof(*chipName)) == 0) {
+        RFQUACK_LOG_TRACE(F("Radio is a CC1101"))
+
+        // CC1101's best config for freq scanning is max br (255 kbps), GSK (FSK2 is ok too), 102 kHz filter bw
+        // q.radioA.set_modem_config(bitRate=255, modulation="FSK2", rxBandwidth=102)
+        int16_t status = rfqRadio->setBitRate(600, radioToUse);
+        status |= rfqRadio->setModulation(rfquack_Modulation_FSK2, radioToUse);
+        status |= rfqRadio->setRxBandwidth(102, radioToUse);
+        rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, 0x43 | 0x0C, radioToUse);
+        rfqRadio->writeRegister(CC1101_REG_AGCCTRL0, 0xB0, radioToUse);
+        preset_waitTime = 1700;
+
+        if (status != ERR_NONE) {
+          RFQUACK_LOG_ERROR(F("Unable to apply configuration to CC1101"));
+        }
+      } else if (strncmp(chipName, "nRF24", sizeof(*chipName)) == 0) {
+        RFQUACK_LOG_TRACE(F("Radio is a nRF24"))
+        preset_waitTime = 40;
+      } else {
+        RFQUACK_LOG_TRACE(F("Selected radio is unknown, still going ahead..."))
+      }
 
       // Enable module in order to catch and discharge every packet received promiscuously
       this->enabled = true;
@@ -113,30 +136,19 @@ public:
           if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != ERR_NONE) {
             Log.error(F("Unable to setFrequency = %d Hz, result=%d"), (int) (currentFreq * 1000), result);
           } else {
-            Log.trace(F("Set frequency = %d Hz"), (int) (currentFreq * 1000));
 
             // Put radio in RX mode.
             rfqRadio->setMode(rfquack_Mode_RX, radioToUse);
 
-            delayMicroseconds(waitTime);
+            delayMicroseconds(waitTime != 0 ? waitTime : preset_waitTime);
 
-            // Use RSSI if available (it's more accurate). Else fallback to Carrier Detection.
-            // Check if something was transmitting via carrier detection.
-            if (hasCD && !hasRSSI) {
-              bool isCarrierDetected;
-              rfqRadio->isCarrierDetected(isCarrierDetected, radioToUse);
 
-              if (isCarrierDetected) {
-                results[hop].hop = hop; // Should set it only first time,
-                results[hop].detections++;
-              }
-            } else {
-              // Check if something was transmitting via RSSI
-              float rssi;
-              rfqRadio->getRSSI(rssi, radioToUse);
-              results[hop].hop = hop; // Should set it only first time,
-              results[hop].detections += rssi; // Who minds the fractional part.
-            }
+            // Check if something was transmitting via RSSI
+            float rssi;
+            rfqRadio->getRSSI(rssi, radioToUse);
+            RFQUACK_LOG_TRACE("%d RSSI = %d", (int) (currentFreq * 1000), (int) rssi)
+            results[hop].hop = hop; // Should set it only first time,
+            results[hop].detections += rssi; // Who minds the fractional part.
 
             // Put radio back to idle.
             rfqRadio->setMode(rfquack_Mode_IDLE, radioToUse);
@@ -208,7 +220,7 @@ private:
     float startFrequency = 2400;
     float endFrequency = 2525;
     uint8_t rounds = 5;
-    uint16_t waitTime = 40;
+    uint16_t waitTime = 0;
     rfquack_WhichRadio radioToUse = rfquack_WhichRadio_RadioA;
 };
 
