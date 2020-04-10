@@ -40,7 +40,7 @@ public:
 
         // Call to base method.
         return RadioLibWrapper::receiveMode();
-      }else{
+      } else {
         return ERR_NONE;
       }
     }
@@ -53,7 +53,7 @@ public:
       SPIreadRxPayload(data, length);
 
       // add terminating null
-       data[length] = 0;
+      data[length] = 0;
 
       // clear status bits
       setFlag(false);
@@ -155,6 +155,11 @@ public:
 
     int16_t setAutoAck(bool autoAckOn) override {
       return nRF24::setAutoAck(autoAckOn);
+    }
+
+    void
+    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
+      _mod->SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb);
     }
 
     void removeInterrupts() override {
