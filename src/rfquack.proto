@@ -76,7 +76,8 @@ message Packet {
     optional WhichRadio rxRadio = 2;
     optional uint64 millis = 3;
     optional uint32 repeat = 4;
-    optional uint64 delayMs = 5;
+    optional float bitRate = 5;
+    optional float carrierFreq = 6;
 }
 
 // Get or set a given register to the value

@@ -229,9 +229,6 @@ public:
         if (result == ERR_NONE) {
           correct++;
         }
-
-        if (pkt->has_delayMs)
-          delay(pkt->delayMs);
       }
 
       RFQUACK_LOG_TRACE(F("%d packets transmitted"), correct)
@@ -302,6 +299,9 @@ public:
         pkt.has_millis = true;
         pkt.rxRadio = this->_whichRadio;
         pkt.has_rxRadio = true;
+        pkt.has_bitRate = (getBitRate(pkt.bitRate)) == ERR_NONE; // Set the bitrate
+        pkt.has_carrierFreq = (getFrequency(pkt.carrierFreq)) == ERR_NONE; // Set the carrierFreq
+
 
         // onPacketReceived() hook
         if (modulesDispatcher.onPacketReceived(pkt, _whichRadio)) {
@@ -322,13 +322,13 @@ public:
 
     /**
      * Writes to a radio's internal register.
-     * @param reg register to write.
-     * @param value register's value.
+     * @param reg reg to write
+     * @param value value to write
+     * @param msb
+     * @param lsb
      */
-    virtual void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value) {
-      T::_mod->SPIwriteRegister((uint8_t) reg, (uint8_t) value);
-    }
-
+    virtual void
+    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb = 7, uint8_t lsb = 0) = 0;
 
     /**
      * Sets transmitted / received preamble length.
@@ -347,6 +347,16 @@ public:
      */
     virtual int16_t setFrequency(float carrierFreq) {
       Log.error(F("setFrequency was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Gets the radio frequency
+     * @param carrierFreq variable where the carrierFrequency gets stored, in MHz.
+     * @return
+     */
+    virtual int16_t getFrequency(float &carrierFreq) {
+      Log.error(F("getFrequency was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -380,6 +390,16 @@ public:
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
+
+    /**
+     * Retrieves the bit rate
+     * @param br variable where bitrate gets stored.
+     * @return
+     */
+    virtual int16_t getBitRate(float &br) {
+      Log.error(F("setBitRate was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
 
     /**
      * Sets radio output power.

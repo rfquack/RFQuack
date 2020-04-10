@@ -192,7 +192,12 @@ public:
      *
      */
     void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio) {
-      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value))
+      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value, 7, 0))
+      unableToFindRadioError();
+    }
+
+    void writeRegister(uint8_t reg, uint8_t value, uint8_t msb, uint8_t lsb, rfquack_WhichRadio whichRadio) {
+      SWITCH_RADIO(whichRadio, return radio->writeRegister(reg, value, msb, lsb))
       unableToFindRadioError();
     }
 
