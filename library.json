@@ -52,7 +52,7 @@
         },
         {
             "name": "RadioLib",
-            "version": "https://github.com/Guglio95/RadioLib"
+            "version": "https://github.com/rfquack/RadioLib"
         },
 	{
 	    "name": "Base64",
