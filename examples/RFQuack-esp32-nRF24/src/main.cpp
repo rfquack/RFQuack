@@ -4,6 +4,7 @@
 
 /* ID definition */
 #define RFQUACK_UNIQ_ID "ESP32_nRF24"
+#define RFQUACK_TOPIC_PREFIX "MAKE_THIS_UNIQUE"
 
 /* Network configuration */
 #define RFQUACK_NETWORK_ESP32
