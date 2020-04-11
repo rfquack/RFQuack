@@ -49,9 +49,10 @@ void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_leng
     switch (tokenOrdinal) {
       case 0:
         // Short circuit if topic prefix is not correct.
-        if (strncmp(topic, RFQUACK_TOPIC_PREFIX, strlen(RFQUACK_TOPIC_PREFIX)) != 0) {
+        if (strncmp(topic, RFQUACK_TOPIC_PREFIX, strlen(RFQUACK_TOPIC_PREFIX)) != 0 &&
+            strncmp(topic, RFQUACK_TOPIC_BROADCAST_PREFIX, strlen(RFQUACK_TOPIC_BROADCAST_PREFIX)) != 0) {
 #ifdef RFQUACK_DEV
-          Log.warning("Ignoring message with invalid prefix: %s", token);
+          Log.warning(F("Ignoring message with invalid prefix: %s"), token);
 #endif
           return;
         }
@@ -60,7 +61,7 @@ void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_leng
         // Short circuit if direction is not correct (must be IN)
         if (strncmp(token, RFQUACK_TOPIC_IN, strlen(RFQUACK_TOPIC_IN)) != 0) {
 #ifdef RFQUACK_DEV
-          Log.warning("Message has wrong direction: %s", token);
+          Log.warning(F("Message has wrong direction: %s"), token);
 #endif
           return;
         }
@@ -148,6 +149,14 @@ static void rfquack_mqtt_connect() {
   }
 
   Log.trace("Subscribed to topic: %s", RFQUACK_IN_TOPIC_WILDCARD);
+
+  while (!rfquack_mqtt.subscribe(RFQUACK_IN_BROADCAST_TOPIC_WILDCARD)) {
+    Log.error("Failure subscribing to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
+
+    delay(RFQUACK_MQTT_RETRY_DELAY);
+  }
+
+  Log.trace("Subscribed to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
 }
 
 /*
@@ -182,7 +191,7 @@ uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
                             uint32_t len) {
   Log.trace("Transport is sending %d bytes on topic %s", len, topic);
 
-  if (rfquack_mqtt.publish(topic, (char *)data, len))
+  if (rfquack_mqtt.publish(topic, (char *) data, len))
     return len;
 
   return 0;
