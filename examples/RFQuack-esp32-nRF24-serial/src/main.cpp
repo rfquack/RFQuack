@@ -4,6 +4,7 @@
 
 /* ID definition */
 #define RFQUACK_UNIQ_ID "EPS32_nRF24"
+#define RFQUACK_TOPIC_PREFIX "MAKE_THIS_UNIQUE"
 
 /* Transport configuration */
 #define RFQUACK_TRANSPORT_SERIAL
