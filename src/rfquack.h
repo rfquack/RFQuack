@@ -39,6 +39,7 @@
 #include "modules/defaults/MouseJackModule.h"
 #include "modules/defaults/GuessingModule.h"
 #include "modules/defaults/HelloWorldModule.h"
+#include "modules/defaults/PingModule.h"
 
 /**
  * Global instances
@@ -55,6 +56,7 @@ FrequencyScannerModule frequencyScannerModule;
 MouseJackModule mouseJackModule;
 HelloWorldModule helloWorldModule;
 GuessingModule guessingModule;
+PingModule pingModule;
 
 RadioModule *radioAModule;
 RadioModule *radioBModule;
@@ -116,6 +118,7 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   modulesDispatcher.registerModule(&packetModificationModule);
   modulesDispatcher.registerModule(&packetRepeaterModule);
   modulesDispatcher.registerModule(&rollJamModule);
+  modulesDispatcher.registerModule(&pingModule);
 //  modulesDispatcher.registerModule(&helloWorldModule);
 
 
