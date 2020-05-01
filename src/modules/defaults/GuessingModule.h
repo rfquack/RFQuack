@@ -123,6 +123,10 @@ public:
         bw203();
         filterBw = 0.203;
       } else if (bwStep == 3) {
+        GUESSING_MODULE_LOG("Pick 102 bw")
+        bw102();
+        filterBw = 0.102;
+      } else if (bwStep == 4) {
         GUESSING_MODULE_LOG("Pick 58 bw")
         bw58();
         filterBw = 0.058;
@@ -131,14 +135,14 @@ public:
       }
       freqSpacing = filterBw / 4 * 3;
 
-      // Take three samples, then average them.
-      int numOfChunks = (int) ((binEndFreq - binStartFreq) / freqSpacing); // Number of chunks in which band is divided.
+      int numOfChunks =
+        ((int) ((binEndFreq - binStartFreq) / freqSpacing)) + 1;  // Number of chunks in which band is divided.
       int numOfSamples = 1;
 
       float maxRssi = -100;
       float maxRssiFreq = -1;
       for (int j = 0; j < numOfSamples; j++) {
-        for (int i = 0; i <= numOfChunks; i++) { // Note <=
+        for (int i = 0; i < numOfChunks; i++) {
 
           float freq = binStartFreq + (i + 0.5f) * freqSpacing;
           // Synth on freq
@@ -191,10 +195,17 @@ public:
         bootstrapScanning();
       }
 
+      unsigned long start = micros();
       float frequency = almostBinarySearch(startFrequency, endFrequency, 0);
+      unsigned long freqRecoveryDuration = micros() - start;
       if (frequency != -1) {
         setFrequency(frequency);
+
+        unsigned long startEstimateBitrate = micros();
         float estimatedBitrate = estimateBitrate();
+        unsigned long estimateBitrateDuration = micros() - startEstimateBitrate;
+
+        RFQUACK_LOG_TRACE("freqRecovery in %i uS, estimateBitrateDuration in %i uS", freqRecoveryDuration, estimateBitrateDuration)
         RFQUACK_LOG_TRACE("Got frequency %d kHz, Bitrate is %i bps",
                           (int) (frequency * 1000),
                           (int) (estimatedBitrate * 1000)
@@ -420,6 +431,7 @@ private:
     uint8_t *FSCALA3 = nullptr;
     uint16_t fscalSize = 0;
 
+    // These values are dumped from SMART RF
     void bw812() {
       rfqRadio->setRxBandwidth(812, scanRadio);
       // 33 for <100Khz, 42Khz otherwise.
@@ -434,6 +446,13 @@ private:
       rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_42_DB, 2, 0, scanRadio);
       rfqRadio->writeRegister(CC1101_REG_TEST2, 0x88, scanRadio);  //// FOR BW 406
       rfqRadio->writeRegister(CC1101_REG_TEST1, 0x31, scanRadio); //// FOR BW 406
+    }
+
+    void bw102() {
+      rfqRadio->setRxBandwidth(102, scanRadio);
+      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
+      rfqRadio->writeRegister(CC1101_REG_TEST2, 0x81, scanRadio);  //// FOR BW 102
+      rfqRadio->writeRegister(CC1101_REG_TEST1, 0x35, scanRadio); //// FOR BW 102
     }
 
     void bw203() {
