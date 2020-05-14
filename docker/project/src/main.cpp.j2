@@ -63,7 +63,6 @@ typedef RFQ{{ RADIOD }} RadioD;
 RadioD radioB = new Module({{ RADIOD_CS|default('NC') }}, {{ RADIOD_IRQ|default('NC') }}, {{ RADIOD_CE|default('NC') }}); // CS, IRQ, CE
 {% endif %}
 
-
 // Optionally add RadioE.
 {% if RADIOE is defined %}
 #define USE_RADIOE

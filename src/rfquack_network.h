@@ -24,7 +24,9 @@
 
 #include "rfquack_common.h"
 #include "rfquack_logging.h"
+#if defined(RFQUACK_MQTT_BROKER_SSL)
 #include "rfquack_certificates.h"
+#endif
 
 /*****************************************************************************
  * Function signatures
