@@ -532,20 +532,24 @@ the registers so as to get as close as possible to your target frequency (e.g.,
 aided by a spectrogram), and then nudge around until matched.
 
 ## Docker container
-RFQuack's docker container automatically builds the firmware for you, more information about it's variables:
+RFQuack's docker container automatically builds the firmware for you, more information about its variables:
 
 ### General configuration
 Remember that RFQuack can be reached via WiFi or Serial,
 
-| Variable                | Description                                                           | Required |
-|-------------------------|-----------------------------------------------------------------------|----------|
-| `BOARD`                 | Supported target identifier, (`ESP32`, `HUZZAH32` *default*)          | No       |
-| `RFQUACK_UNIQ_ID`       | Unique identifier for this node, Defaults to `RFQUACK`                | No       |
-| `SERIAL_BAUD_RATE`      | Defaults to `115200`                                                  | No       |
-| `USE_MQTT`              | Disables Serial transport and enables the MQTT one.                   | No       |
-| `WIFI_SSID`             | WiFI SSID.                                                            | Yes, if `USE_MQTT` |
-| `WIFI_PASS`             | WiFI Password.                                                        | Yes, if `USE_MQTT` |
-| `MQTT_BROKER`           | MQTT Broker host                                                      | Yes, if `USE_MQTT` |
+| Variable           | Description                                                                | Required |
+|--------------------|----------------------------------------------------------------------------|----------|
+| `BOARD`            | Supported target identifier (`ESP32`, `HUZZAH32` *default*)                | No       |
+| `RFQUACK_UNIQ_ID`  | Unique identifier for this node (defaults to `RFQUACK`)                    | No       |
+| `SERIAL_BAUD_RATE` | Defaults to `115200`                                                       | No       |
+| `USE_MQTT`         | Disables Serial transport and enables the MQTT one                         | No       |
+| `WIFI_SSID`        | WiFi SSID                                                                  | Yes, if `USE_MQTT` |
+| `WIFI_PASS`        | WiFi Password                                                              | Yes, if `USE_MQTT` |
+| `MQTT_HOST`        | MQTT Broker host                                                           | Yes, if `USE_MQTT` |
+| `MQTT_PORT`        | MQTT Broker port (defaults to `1883`)                                      | No       |
+| `MQTT_USER`        | MQTT Broker username                                                       | No       |
+| `MQTT_PASS`        | MQTT Broker password                                                       | No       |
+| `MQTT_SSL`         | Enables MQTT over SSL (put your certificates into `rfquack_certificates.h`)  | No       |
 
 ### Radio configuration
 RFQuack supports up to *5 radios*; **you must configure - at least - RadioA**:

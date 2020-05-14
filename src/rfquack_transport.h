@@ -176,7 +176,7 @@ void rfquack_transport_connect() { rfquack_mqtt_connect(); }
 
 void rfquack_transport_setup() {
   Client *rfquack_net = rfquack_network_client();
-
+  
   rfquack_mqtt.begin(RFQUACK_MQTT_BROKER_HOST,
 #if defined(RFQUACK_MQTT_BROKER_PORT)
                      RFQUACK_MQTT_BROKER_PORT,

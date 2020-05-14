@@ -14,11 +14,17 @@
 #define RFQUACK_NETWORK_SSID "{{ WIFI_SSID }}"
 #define RFQUACK_NETWORK_PASS "{{ WIFI_PASS }}"
 #define RFQUACK_TRANSPORT_MQTT
-#define RFQUACK_MQTT_BROKER_HOST "{{ MQTT_BROKER }}"
+#define RFQUACK_MQTT_BROKER_HOST "{{ MQTT_HOST }}"
+#define RFQUACK_MQTT_BROKER_PORT {{ MQTT_PORT|default('1883') }}
+  {% if MQTT_USER is defined and MQTT_PASS is defined %}
+#define RFQUACK_MQTT_BROKER_USER "{{ MQTT_USER }}"
+#define RFQUACK_MQTT_BROKER_PASS "{{ MQTT_PASS }}"
+  {% elif MQTT_SSL is defined %}
+#define RFQUACK_MQTT_BROKER_SSL
+  {% endif %}
 {% else %}
 #define RFQUACK_TRANSPORT_SERIAL
 {% endif %}
-
 
 /* Enable Radio debug messages */
 #define RFQUACK_LOG_ENABLED
@@ -56,7 +62,6 @@ RadioC radioB = new Module({{ RADIOC_CS|default('NC') }}, {{ RADIOC_IRQ|default(
 typedef RFQ{{ RADIOD }} RadioD;
 RadioD radioB = new Module({{ RADIOD_CS|default('NC') }}, {{ RADIOD_IRQ|default('NC') }}, {{ RADIOD_CE|default('NC') }}); // CS, IRQ, CE
 {% endif %}
-
 
 // Optionally add RadioE.
 {% if RADIOE is defined %}
