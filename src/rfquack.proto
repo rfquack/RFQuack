@@ -20,80 +20,114 @@ syntax = "proto2";
 package rfquack;
 
 enum Mode {
-  // RX means that whatever packet (matching the preamble and sync word (if
-  // any)) will be sent to the clients that are subscribed to the `rx_packet`
-  // topic.
-  RX = 1;
+    // RX means that whatever packet (matching the preamble and sync word (if
+    // any)) will be sent to the clients that are subscribed to the `rx_packet`
+    // topic.
+    RX = 0;
 
-  // TX means that whatever packet a client sends via the `tx_packet` topic
-  // will be transmitted.
-  TX = 2;
+    // TX means that whatever packet a client sends via the `tx_packet` topic
+    // will be transmitted.
+    TX = 1;
 
-  // Repeat mode means that whatever packet matching the preamble and sync
-  // word (if any) is received, it will be manipulated according to the
-  // manipulation rules (if any) configured via the `packet_mod` topic; the
-  // resulting modified packet will be re-transmitted immediately.
-  REPEAT = 3;
+    // Put the radio in idle mode (if the driver permits this)
+    IDLE = 2;
 
-  // Put the radio in idle mode (if the driver permits this)
-  IDLE = 4;
+    // Put the radio in jamming mode (hope you know what you are doing)
+    JAM = 3;
 }
 
-message Stats {
-  required uint32 rx_packets = 1;
-  required uint32 tx_packets = 2;
-  required uint32 rx_failures = 3;
-  required uint32 tx_failures = 4;
-  required uint32 tx_queue = 5;
-  required uint32 rx_queue = 6;
+enum WhichRadio {
+    // Which of the two Radios is selected.
+    RadioA = 0;
+    RadioB = 1;
+    RadioC = 2;
+    RadioD = 3;
+    RadioE = 4;
+}
+
+enum Modulation {
+    // Which modulation to use (if supported)
+    FSK2 = 0;
+    OOK = 1;
+}
+
+message PacketLen {
+    required bool isFixedPacketLen = 9;
+    required uint32 packetLen = 10;
 }
 
 // Modem configuration
 message ModemConfig {
-  optional float carrierFreq = 1;
-  optional uint32 txPower = 2;
-  optional bool isHighPowerModule = 3;
-  optional uint32 preambleLen = 4;
-  optional bytes syncWords = 5;
-
-  // Canned modem configuration based on the RadioHead radio driver.
-  //
-  // For example, if RFQuack is using the RF69 radio chip, the index choice must
-  // fall within this enum type:
-  // https://www.airspayce.com/mikem/arduino/RadioHead/classRH__RF69.html#a8b7db5c6e4eb542f46fec351b2084bbe
-  optional uint32 modemConfigChoiceIndex = 6;
-}
-
-// Status of the tool with various statistics
-message Status {
-  optional Stats stats = 1;
-  optional Mode mode = 2;
-  optional ModemConfig modemConfig = 3;
-  required uint32 tx_repeat_default = 4 [default = 0];
+    optional float carrierFreq = 1;
+    optional int32 txPower = 2;
+    optional uint32 preambleLen = 3;
+    optional bytes syncWords = 4;
+    optional bool isPromiscuous = 5;
+    optional Modulation modulation = 7;
+    optional bool useCRC = 8;
+    optional float bitRate = 9;
+    optional float rxBandwidth = 10;
+    optional float frequencyDeviation = 11;
 }
 
 // This is either a RX or TX packet
 message Packet {
-  required bytes data = 1;
-  optional uint64 millis = 2;
-  optional uint32 repeat = 3;
-  optional uint64 delayMs = 4;
-}
-
-// Send multiple packets in sequence, with optional delay
-message Packets {
-  repeated Packet packet = 1;
-  optional uint64 delayMs = 2;
+    required bytes data = 1;
+    optional WhichRadio rxRadio = 2;
+    optional uint64 millis = 3;
+    optional uint32 repeat = 4;
+    optional float bitRate = 5;
+    optional float carrierFreq = 6;
 }
 
 // Get or set a given register to the value
 message Register {
-  required uint32 address = 1;
-  optional uint32 value = 2;
+    required uint32 address = 1;
+    optional uint32 value = 2;
 }
 
-// Get or set an array of registers
-message Registers { repeated Registers registers = 1; }
+// Base types
+message UintValue {
+    required uint32 value = 1;
+}
+message IntValue {
+    required int32 value = 1;
+}
+message BoolValue {
+    required bool value = 1;
+}
+message FloatValue {
+    required float value = 1;
+}
+message BytesValue {
+    required bytes value = 1;
+}
+message WhichRadioValue {
+    required WhichRadio value = 1;
+}
+message VoidValue {
+}
+
+// Reply to a command sent to a module.
+message CmdReply {
+    required int32 result = 1;
+    optional string message = 2;
+}
+
+// Information about a module command.
+message CmdInfo {
+    // Every command accepts an argument:
+    // Example:  q.driver.frequency = 433.2:    The argument is a FloatValue
+    // Example:  q.roll_jam.start():            The argument is a VoidValue
+    // Example:  q.roll_jam.repeat(5):          The argument is a UintValue
+    required string argumentType = 1; // Example: rfquack_BoolValue
+    enum CmdTypeEnum {
+        ATTRIBUTE = 1; // Example: q.driver.frequency = 433.2
+        METHOD = 2; // Example: q.roll_jam.start()
+    }
+    required CmdTypeEnum cmdType = 2;
+    required string description = 3; // English description.
+}
 
 // A packet-modification rule: here you can tell the tool how to modify a given
 // byte of the packet, and re-transmit it when in attakc mode. For example you
@@ -103,33 +137,33 @@ message Registers { repeated Registers registers = 1; }
 // Note that a packet manipulation can be used as a simple filter. Just set
 // a pattern and nothing else.
 message PacketModification {
-  optional uint32 position =
-      1; // position in the packet <- this takes priority over the content
-  optional uint32 content = 2; // position = all indexOf(content)
+    optional uint32 position = 1; // position in the packet <- this takes priority over the content
+    optional uint32 content = 2; // position = all indexOf(content)
 
-  enum Op {
-    AND = 1;    // packet[position] = packet[position] & operand
-    OR = 2;     // packet[position] = packet[position] | operand
-    XOR = 3;    // packet[position] = packet[position] ^ operand
-    NOT = 4;    // packet[position] = ~packet[position]
-    SLEFT = 5;  // packet[position] = packet[position] << operand
-    SRIGHT = 6; // packet[position] = packet[position] >> operand
-  }
+    enum Op {
+        AND = 1; // packet[position] = packet[position] & operand
+        OR = 2; // packet[position] = packet[position] | operand
+        XOR = 3; // packet[position] = packet[position] ^ operand
+        NOT = 4; // packet[position] = ~packet[position]
+        SLEFT = 5; // packet[position] = packet[position] << operand
+        SRIGHT = 6; // packet[position] = packet[position] >> operand
+        PREPEND = 7; // packet = payload + packet
+        APPEND = 8; // packet = packet + payload
+        INSERT = 9; // packet = packet[0 : position] + payload + packet[position : packet.size]
+    }
 
-  optional Op operation = 3;
-  optional uint32 operand = 4;
+    optional Op operation = 3;
+    optional uint32 operand = 4;
 
-  // Apply modifications only to packets matching a given pattern
-  optional string pattern = 5;
+    // Apply modifications only to packets matching a given pattern
+    optional string pattern = 5;
+
+    // Bytes to append / prepend while choosen OP is PREPEND / APPEND
+    optional bytes payload = 6;
 }
 
 // Packet filter based on regex pattern
 message PacketFilter {
-  required string pattern = 1;
-}
-
-// Packet format (fixed or variable) and its length
-message PacketFormat {
-  required bool fixed = 1;
-  required uint32 len = 2;
+    required string pattern = 1;
+    required bool negateRule = 2;
 }

@@ -30,7 +30,7 @@
  * Protobuf message serialization settings
  *****************************************************************************/
 
-#define RFQUACK_MAX_PB_MSG_SIZE_DEFAULT 256
+#define RFQUACK_MAX_PB_MSG_SIZE_DEFAULT 512
 
 /*****************************************************************************
  * MQTT Configuration
@@ -48,7 +48,7 @@
 
 #define RFQUACK_MQTT_SOCKET_TIMEOUT_DEFAULT 20000L // msec
 
-#define RFQUACK_MQTT_KEEPALIVE_DEFAULT 5 // sec
+#define RFQUACK_MQTT_KEEPALIVE_DEFAULT 60 // sec
 
 #define RFQUACK_MQTT_RETRY_DELAY_DEFAULT 1000
 
@@ -62,13 +62,15 @@
 
 #define RFQUACK_TOPIC_PREFIX_DEFAULT "rfquack"
 
+#define RFQUACK_TOPIC_BROADCAST_PREFIX_DEFAULT "any"
+
 #define RFQUACK_TOPIC_IN_DEFAULT "in"
 
 #define RFQUACK_TOPIC_SET_DEFAULT "set"
 
-#define RFQUACK_TOPIC_UNSET_DEFAULT "unset"
-
 #define RFQUACK_TOPIC_GET_DEFAULT "get"
+
+#define RFQUACK_TOPIC_INFO_DEFAULT "info"
 
 #define RFQUACK_TOPIC_OUT_DEFAULT "out"
 
@@ -88,13 +90,23 @@
 
 #define RFQUACK_TOPIC_PACKET_FILTER_DEFAULT "packet_filter"
 
+#define RFQUACK_TOPIC_ROLL_JAM_DEFAULT "roll_jam"
+
 #define RFQUACK_TOPIC_PACKET_FORMAT_DEFAULT "packet_format"
 
 #define RFQUACK_TOPIC_RADIO_RESET_DEFAULT "radio_reset"
 
 #define RFQUACK_TOPIC_PROMISCUOUS_DEFAULT "promiscuous"
 
-#define RFQUACK_MAX_TOPIC_LEN_DEFAULT 64
+#define RFQUACK_MAX_VERB_LEN_DEFAULT 7
+
+#define RFQUACK_MAX_TOPIC_LEN_DEFAULT 128
+
+#define RFQUACK_MAX_TOKEN_LEN_DEFAULT 20
+
+#define RFQUACK_TOPIC_MAX_TOPIC_ARGS_DEFAULT 5
+
+#define RFQUACK_TOPIC_RULES_DEFAULT "rules"
 
 /*****************************************************************************
  * Serial Configuration

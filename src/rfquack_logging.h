@@ -66,11 +66,21 @@ SoftwareSerial LogPrinter(RFQUACK_LOG_SS_RX_PIN, RFQUACK_LOG_SS_TX_PIN, false,
 #elif !defined(RFQUACK_TRANSPORT_SERIAL)
 #define LogPrinter Serial // Main hardware serial is free for logging
 #elif defined(RFQUACK_TRANSPORT_SERIAL)
-#define LogPrinter Serial1 // Secondary hardware serial is used for logging
+#define LogPrinter Serial // Secondary hardware serial is used for logging
+#endif
+
+#define RFQUACK_LOG_ENABLED
+#ifdef RFQUACK_LOG_ENABLED
+#define RFQUACK_LOG_TRACE(...) {     Log.trace(__VA_ARGS__); }
+#define RFQUACK_LOG_ERROR(...) {     Log.error(__VA_ARGS__); }
+#else
+#define RFQUACK_LOG_TRACE(...) {}
+#define RFQUACK_LOG_ERROR(...) {}
 #endif
 
 void rfquack_logging_setup() {
-  LogPrinter.begin(RFQUACK_LOG_PRINTER_BAUD_RATE);
+  LogPrinter.begin(RFQUACK_LOG_PRINTER_BAUD_RATE, SERIAL_8N1); //, 32,33);
+
 
   while (!LogPrinter)
     ;
@@ -85,7 +95,7 @@ void rfquack_logging_setup() {
  */
 void rfquack_log_buffer(const char * prompt, const uint8_t *buf, const uint32_t len) {
   printTimestamp(&LogPrinter);
-  LogPrinter.print(prompt);
+  LogPrinter.println(prompt);
 
   char octect[4];
 

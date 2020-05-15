@@ -23,8 +23,12 @@
 
 #include "config/general.h"
 #include "config/logging.h"
-#include "config/radio.h"
 #include "config/transport.h"
 #include "config/network.h"
+
+#ifndef RFQUACK_RADIO_MAX_MSG_LEN
+#define RFQUACK_RADIO_MAX_MSG_LEN 255
+#endif
+
 
 #endif

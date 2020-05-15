@@ -51,7 +51,7 @@ src/client/configs/*
 
 # OS
 .DS_Store
-lib/nanopb
+=======
+!**/*credentials*.example
 lib
 TODO
-.vscode/*

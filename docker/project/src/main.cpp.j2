@@ -1,0 +1,86 @@
+/*****************************************************************************
+ * RFQuack configuration
+ *****************************************************************************/
+
+/* ID definition */
+#define RFQUACK_UNIQ_ID "{{ RFQUACK_UNIQ_ID|default('RFQUACK') }}"
+#define RFQUACK_TOPIC_PREFIX "{{ UUID }}"
+
+/* Transport configuration */
+#define RFQUACK_SERIAL_BAUD_RATE {{ SERIAL_BAUD_RATE|default('115200') }}
+
+{% if USE_MQTT is defined %}
+#define RFQUACK_NETWORK_ESP32
+#define RFQUACK_NETWORK_SSID "{{ WIFI_SSID }}"
+#define RFQUACK_NETWORK_PASS "{{ WIFI_PASS }}"
+#define RFQUACK_TRANSPORT_MQTT
+#define RFQUACK_MQTT_BROKER_HOST "{{ MQTT_HOST }}"
+#define RFQUACK_MQTT_BROKER_PORT {{ MQTT_PORT|default('1883') }}
+  {% if MQTT_USER is defined and MQTT_PASS is defined %}
+#define RFQUACK_MQTT_BROKER_USER "{{ MQTT_USER }}"
+#define RFQUACK_MQTT_BROKER_PASS "{{ MQTT_PASS }}"
+  {% elif MQTT_SSL is defined %}
+#define RFQUACK_MQTT_BROKER_SSL
+  {% endif %}
+{% else %}
+#define RFQUACK_TRANSPORT_SERIAL
+{% endif %}
+
+/* Enable Radio debug messages */
+#define RFQUACK_LOG_ENABLED
+#define RFQUACK_DEV
+#define RADIOLIB_DEBUG
+
+/* Disable Software Serial logging */
+#define RFQUACK_LOG_SS_DISABLED
+
+/* Radio configuration */
+#include <radio/drivers.h>
+
+// At least RadioA must be defined.
+#define USE_RADIOA
+typedef RFQ{{ RADIOA }} RadioA;
+RadioA radioA = new Module({{ RADIOA_CS }}, {{ RADIOA_IRQ|default('NC') }}, {{ RADIOA_CE|default('NC') }}); // CS, IRQ, CE
+
+// Optionally add RadioB.
+{% if RADIOB is defined %}
+#define USE_RADIOB
+typedef RFQ{{ RADIOB }} RadioB;
+RadioB radioB = new Module({{ RADIOB_CS|default('NC') }}, {{ RADIOB_IRQ|default('NC') }}, {{ RADIOB_CE|default('NC') }}); // CS, IRQ, CE
+{% endif %}
+
+// Optionally add RadioC.
+{% if RADIOC is defined %}
+#define USE_RADIOC
+typedef RFQ{{ RADIOC }} RadioC;
+RadioC radioB = new Module({{ RADIOC_CS|default('NC') }}, {{ RADIOC_IRQ|default('NC') }}, {{ RADIOC_CE|default('NC') }}); // CS, IRQ, CE
+{% endif %}
+
+// Optionally add RadioD.
+{% if RADIOD is defined %}
+#define USE_RADIOD
+typedef RFQ{{ RADIOD }} RadioD;
+RadioD radioB = new Module({{ RADIOD_CS|default('NC') }}, {{ RADIOD_IRQ|default('NC') }}, {{ RADIOD_CE|default('NC') }}); // CS, IRQ, CE
+{% endif %}
+
+// Optionally add RadioE.
+{% if RADIOE is defined %}
+#define USE_RADIOE
+typedef RFQ{{ RADIOE }} RadioE;
+RadioE radioB = new Module({{ RADIOE_CS|default('NC') }}, {{ RADIOE_IRQ|default('NC') }}, {{ RADIOE_CE|default('NC') }}); // CS, IRQ, CE
+{% endif %}
+
+/*****************************************************************************
+ * /RFQuack configuration - DO NOT EDIT BELOW THIS LINE
+ *****************************************************************************/
+#include <rfquack.h>
+
+void setup() {
+  rfquack_setup(&radioA
+   {{ ', &radioB' if RADIOB is defined }}  {{ ', &radioC' if RADIOC is defined }}
+   {{ ', &radioD' if RADIOD is defined }}  {{ ', &radioE' if RADIOE is defined }}  );
+}
+
+void loop() {
+  rfquack_loop();
+}

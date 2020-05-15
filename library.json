@@ -2,7 +2,7 @@
     "name": "RFQuack",
     "version": "0.0.1",
     "description": "RFQuack is a versatile RF-analysis tool that allows you to sniff, analyze, and transmit data over the air. Similarly to RFCat, RFQuack has a Python-based scriptable shell that allows you to set parameters, receive, transmit, and so on.",
-    "keywords": "RF, Radio, GSM, RFM69, CC1120",
+    "keywords": "RF, Radio, GSM, nRF24, CC1101",
     "authors":
     [
         {
@@ -40,7 +40,7 @@
         },
         {
             "name": "MQTT",
-            "version": "2.3.3"
+            "version": "2.4.7"
         },
         {
             "name": "Queue",
@@ -51,12 +51,12 @@
             "version": "~1.0.3"
         },
         {
-            "name": "RadioHAL",
-            "version": "~0.0.1"
+            "name": "RadioLib",
+            "version": "https://github.com/rfquack/RadioLib"
         },
-				{
-						"name": "Base64",
-						"version": "https://github.com/phretor/Base64"
-				}
+	{
+	    "name": "Base64",
+            "version": "https://github.com/phretor/Base64"
+	}
     ]
 }

@@ -1,0 +1,223 @@
+#ifndef RFQUACK_PROJECT_RFQCC1101_H
+#define RFQUACK_PROJECT_RFQCC1101_H
+
+
+#include "RadioLibWrapper.h"
+#include "rfquack_logging.h"
+
+class RFQCC1101 : public RadioLibWrapper<CC1101> {
+public:
+    using CC1101::setPreambleLength;
+    using CC1101::setOutputPower;
+    using CC1101::setPromiscuousMode;
+    using CC1101::variablePacketLengthMode;
+    using CC1101::setCrcFiltering;
+    using CC1101::setRxBandwidth;
+
+    RFQCC1101(Module *module) : RadioLibWrapper(module, "CC1101") {}
+
+    int16_t begin() override {
+      int16_t state = RadioLibWrapper::begin();
+
+      if (state != ERR_NONE) return state;
+
+      // Set MAX_DVGA_GAIN: Disable the highest step amplification,
+      // This will prevent noise to be amplified and trigger the CS.
+      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6);
+
+      // Same as above could be achieved by reducing the LNA again. Both seem to work well, just pick one.
+      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3);
+
+      // MAGN_TARGET: Set the target for the amplifier loop.
+      //state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0);
+
+      // Remove whitening
+      state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
+
+      // Do not append status byte
+      state |= SPIsetRegValue(CC1101_REG_PKTCTRL1, CC1101_APPEND_STATUS_OFF, 2, 2);
+
+      return state;
+    }
+
+    int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
+      if (size == 0) {
+        // Warning: as side effect this also disables preamble generation / detection.
+        // CC1101 Datasheet states: "It is not possible to only insert preamble or
+        // only insert a sync word"
+        RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
+        return CC1101::disableSyncWordFiltering(true);
+      }
+
+      // Call to base method.
+      return CC1101::setSyncWord(bytes, size, 0, true);
+    }
+
+    int16_t receiveMode() override {
+      if (_mode == rfquack_Mode_RX) {
+        return ERR_NONE;
+      }
+
+      // Set mode to standby (needed to flush fifo)
+      standby();
+
+      // Flush RX FIFO
+      SPIsendCommand(CC1101_CMD_FLUSH_RX);
+
+      _mode = rfquack_Mode_RX;
+
+      // Stay in RX mode after a packet is received.
+      uint8_t state = SPIsetRegValue(CC1101_REG_MCSM1, CC1101_RXOFF_RX, 3, 2);
+
+      // set GDO0 mapping. Asserted when RX FIFO > THR.
+      state |= SPIsetRegValue(CC1101_REG_IOCFG0, CC1101_GDOX_RX_FIFO_FULL_OR_PKT_END);
+
+      // Set THR to 4 bytes
+      state |= SPIsetRegValue(CC1101_REG_FIFOTHR, CC1101_FIFO_THR_TX_61_RX_4, 3, 0);
+
+      if (state != ERR_NONE)
+        return state;
+
+      // Issue receive mode.
+      SPIsendCommand(CC1101_CMD_RX);
+      _mode = rfquack_Mode_RX;
+
+      return ERR_NONE;
+    }
+
+    void scal() {
+      SPIsendCommand(CC1101_CMD_CAL);
+    }
+
+    bool isIncomingDataAvailable() override {
+      // Makes sense only if in RX mode.
+      if (_mode != rfquack_Mode_RX) {
+        return false;
+      }
+
+      // GDO0 is asserted if:
+      // "RX FIFO is filled at or above the RX FIFO threshold or the end of packet is reached"
+      return digitalRead(_mod->getIrq());
+    }
+
+
+    int16_t readData(uint8_t *data, size_t len) override {
+      // Exit if not in RX mode.
+      if (_mode != rfquack_Mode_RX) {
+        RFQUACK_LOG_TRACE(F("Trying to readData without being in RX mode."))
+        return ERR_WRONG_MODE;
+      }
+
+      return CC1101::readData(data, len);
+    }
+
+    int16_t setFrequency(float carrierFreq) override {
+      // This command, as side effect, sets mode to Standby
+      _mode = rfquack_Mode_IDLE;
+      return CC1101::setFrequency(carrierFreq);
+    }
+
+    int16_t getFrequency(float &carrierFreq) override {
+      carrierFreq = CC1101::_freq;
+      return ERR_NONE;
+    }
+
+    int16_t setFrequencyDeviation(float freqDev) override {
+      return CC1101::setFrequencyDeviation(freqDev);
+    }
+
+    int16_t setModulation(rfquack_Modulation modulation) override {
+      if (modulation == rfquack_Modulation_OOK) {
+        return CC1101::setOOK(true);
+      }
+      if (modulation == rfquack_Modulation_FSK2) {
+        return CC1101::setOOK(false);
+      }
+      return ERR_UNSUPPORTED_ENCODING;
+    }
+
+    int16_t fixedPacketLengthMode(uint8_t len) override {
+      return CC1101::fixedPacketLengthMode(len);
+    }
+
+    int16_t jamMode() override {
+      // If the TX FIFO is empty, the modulator will continue to send preamble bytes until the first
+      // byte is written to the TX FIFO.
+
+      // Set a sync word (no sync words means no preamble generation)
+      byte syncW[] = {0xFF, 0xFF};
+      uint8_t result = this->setSyncWord(syncW, 2);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Enable FSK mode with 0 frequency deviation
+      result = this->setModulation(rfquack_Modulation_FSK2);
+      result |= this->setFrequencyDeviation(0);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Set bitrate to 1
+      result = this->setBitRate(1);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Put radio in TX Mode
+      result = this->transmitMode();
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Put radio in fixed len mode
+      result = this->fixedPacketLengthMode(1);
+      if (result != ERR_NONE) {
+        return result;
+      }
+
+      // Transmit an empty packet.
+      rfquack_Packet packet = rfquack_Packet_init_zero;
+      packet.data.bytes[0] = 0xFF;
+      packet.data.size = 0;
+      this->transmit(&packet);
+
+      return ERR_NONE;
+    }
+
+    float getRSSI(float &rssi) override {
+      CC1101::_rawRSSI = SPIreadRegister(CC1101_REG_RSSI);
+      rssi = CC1101::getRSSI();
+      return ERR_NONE;
+    }
+
+    int16_t isCarrierDetected(bool &isDetected) override {
+      uint8_t pktStatus = SPIreadRegister(CC1101_REG_PKTSTATUS);
+      isDetected = pktStatus & 0x40;
+      return ERR_NONE;
+    }
+
+    int16_t setBitRate(float br) override {
+      return CC1101::setBitRate(br);
+    }
+
+    int16_t getBitRate(float &br) override {
+      br = CC1101::_br;
+      return ERR_NONE;
+    }
+
+    void
+    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
+      SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb, 0);
+    }
+
+    void removeInterrupts() override {
+      detachInterrupt(digitalPinToInterrupt(_mod->getIrq()));
+    }
+
+    void setInterruptAction(void (*func)(void *)) override {
+      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
+    }
+};
+
+#endif //RFQUACK_PROJECT_RFQCC1101_H

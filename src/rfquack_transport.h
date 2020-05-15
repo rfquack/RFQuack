@@ -23,31 +23,77 @@
 #define rfquack_transport_h
 
 #include "rfquack_common.h"
-#include "rfquack_logging.h"
 #include "rfquack_network.h"
+#include "modules/ModulesDispatcher.h"
 
-RFQuackCommandDispatcher rfquack_command_dispatcher;
+extern ModulesDispatcher modulesDispatcher;
 
 /*
  * This is called every time there's an inbound message from the other side.
  */
-void rfquack_transport_recv(char *topic, uint8_t *payload,
-                            uint32_t payload_length) {
-  if (strncmp(topic, RFQUACK_TOPIC_PREFIX, strlen(RFQUACK_TOPIC_PREFIX)) != 0) {
+void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_length) {
+  // Topic example: rfquack/in/{ <verb> : [set|get|info] }/<module_name>/<args>/<args>/<args>/...
+
+  // Split topic into single tokens.
+  char *moduleName = NULL;  // <module_name>
+  char *verb = NULL;        // <verb>
+  char *args[RFQUACK_TOPIC_MAX_TOPIC_ARGS] = {NULL}; // Array of 0 or more pointers to args.
+  uint8_t argsLen = 0; // Len of 'args' array.
+
+  // Start tokenizing.
+  char *token = strtok(topic, RFQUACK_TOPIC_SEP);
+  uint8_t tokenOrdinal = 0;
+  while (token != NULL) {
+
+    // Save pointers to each token and perform basic sanity checks.
+    switch (tokenOrdinal) {
+      case 0:
+        // Short circuit if topic prefix is not correct.
+        if (strncmp(topic, RFQUACK_TOPIC_PREFIX, strlen(RFQUACK_TOPIC_PREFIX)) != 0 &&
+            strncmp(topic, RFQUACK_TOPIC_BROADCAST_PREFIX, strlen(RFQUACK_TOPIC_BROADCAST_PREFIX)) != 0) {
 #ifdef RFQUACK_DEV
-    Log.warning("Ignoring message with invalid topic: %s", topic);
+          Log.warning(F("Ignoring message with invalid prefix: %s"), token);
+#endif
+          return;
+        }
+        break;
+      case 1:
+        // Short circuit if direction is not correct (must be IN)
+        if (strncmp(token, RFQUACK_TOPIC_IN, strlen(RFQUACK_TOPIC_IN)) != 0) {
+#ifdef RFQUACK_DEV
+          Log.warning(F("Message has wrong direction: %s"), token);
+#endif
+          return;
+        }
+      case 2:
+        verb = token;
+        break;
+      case 3:
+        moduleName = token;
+        break;
+    }
+
+    // Store args (if any)
+    if (tokenOrdinal >= 4) {
+      args[argsLen] = token;
+      argsLen++;
+    }
+
+    // Go on tokenizing.
+    token = strtok(nullptr, RFQUACK_TOPIC_SEP);
+    tokenOrdinal++;
+  }
+
+  // Exit if the topic is not valid
+  if (tokenOrdinal < 3) {
+#ifdef RFQUACK_DEV
+    Log.warning(F("Topic must have at least 3 tokens"));
 #endif
     return;
   }
 
-  if (strncmp(topic, RFQUACK_IN_TOPIC, strlen(RFQUACK_IN_TOPIC)) != 0) {
-#ifdef RFQUACK_DEV
-    Log.warning("Skipping message: %s", topic);
-#endif
-    return;
-  }
-
-  rfquack_command_dispatcher(topic, (char *)payload, payload_length);
+  // Dispatch received command to modules.
+  modulesDispatcher.executeUserCommand(moduleName, verb, args, argsLen, (char *) payload, payload_length);
 }
 
 #if defined(RFQUACK_TRANSPORT_MQTT)
@@ -103,6 +149,14 @@ static void rfquack_mqtt_connect() {
   }
 
   Log.trace("Subscribed to topic: %s", RFQUACK_IN_TOPIC_WILDCARD);
+
+  while (!rfquack_mqtt.subscribe(RFQUACK_IN_BROADCAST_TOPIC_WILDCARD)) {
+    Log.error("Failure subscribing to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
+
+    delay(RFQUACK_MQTT_RETRY_DELAY);
+  }
+
+  Log.trace("Subscribed to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
 }
 
 /*
@@ -120,11 +174,9 @@ void rfquack_transport_loop() {
 
 void rfquack_transport_connect() { rfquack_mqtt_connect(); }
 
-void rfquack_transport_setup(RFQuackCommandDispatcher command_dispatcher) {
+void rfquack_transport_setup() {
   Client *rfquack_net = rfquack_network_client();
-
-  rfquack_command_dispatcher = command_dispatcher;
-
+  
   rfquack_mqtt.begin(RFQUACK_MQTT_BROKER_HOST,
 #if defined(RFQUACK_MQTT_BROKER_PORT)
                      RFQUACK_MQTT_BROKER_PORT,
@@ -139,8 +191,8 @@ uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
                             uint32_t len) {
   Log.trace("Transport is sending %d bytes on topic %s", len, topic);
 
-  if (rfquack_mqtt.publish(topic, (char *)data, len))
-		return len;
+  if (rfquack_mqtt.publish(topic, (char *) data, len))
+    return len;
 
   return 0;
 }
@@ -164,17 +216,13 @@ bool rfquack_serial_data_ready = false;
 void rfquack_transport_connect() {
   Serial.begin(RFQUACK_SERIAL_BAUD_RATE);
 
-  while (!Serial)
-    ;
+  while (!Serial);
 
   Log.trace("Serial transport connected");
 }
 
-void rfquack_transport_setup(RFQuackCommandDispatcher command_dispatcher) {
+void rfquack_transport_setup() {
   Log.trace("Setting up serial transport");
-
-  rfquack_command_dispatcher = command_dispatcher;
-
   rfquack_transport_connect();
 }
 
@@ -191,24 +239,24 @@ void rfquack_transport_setup(RFQuackCommandDispatcher command_dispatcher) {
  * @return Number of bytes actually written over serial
  */
 uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
-                            uint32_t len) {
+                                uint32_t len) {
 
   uint32_t written = 0;
 
   Log.trace("Transport is sending %d bytes on topic %s", len, topic);
 
-  written += Serial.write((uint8_t)RFQUACK_SERIAL_PREFIX_OUT_CHAR);
-  written += Serial.write((uint8_t*)topic, strlen(topic));
-  written += Serial.write((uint8_t)RFQUACK_SERIAL_TOPIC_DATA_SEPARATOR_CHAR);
+  written += Serial.write((uint8_t) RFQUACK_SERIAL_PREFIX_OUT_CHAR);
+  written += Serial.write((uint8_t *) topic, strlen(topic));
+  written += Serial.write((uint8_t) RFQUACK_SERIAL_TOPIC_DATA_SEPARATOR_CHAR);
 
   // encode payload in Base64
   char enc_data[RFQUACK_SERIAL_B64_MAX_PACKET_SIZE];
   uint32_t enc_len = Base64.encodedLength(len);
-  Base64.encode(enc_data, (char*)data, len);
+  Base64.encode(enc_data, (char *) data, len);
 
   // send payload
-  written += Serial.write((uint8_t*)enc_data, enc_len);
-  written += Serial.write((uint8_t)RFQUACK_SERIAL_SUFFIX_OUT_CHAR);
+  written += Serial.write((uint8_t *) enc_data, enc_len);
+  written += Serial.write((uint8_t) RFQUACK_SERIAL_SUFFIX_OUT_CHAR);
 
   return written >= len;
 }
@@ -255,8 +303,8 @@ void rfquack_transport_loop() {
     // decode the payload
     char payload[RFQUACK_SERIAL_MAX_PACKET_SIZE];
     uint32_t payload_length =
-        Base64.decodedLength((char*)rfquack_payload_buf, rfquack_payload_buf_len);
-    Base64.decode(payload, (char*)rfquack_payload_buf, rfquack_payload_buf_len);
+      Base64.decodedLength((char *) rfquack_payload_buf, rfquack_payload_buf_len);
+    Base64.decode(payload, (char *) rfquack_payload_buf, rfquack_payload_buf_len);
 
     // free the buffers and unlock receive function
     rfquack_topic_buf_len = 0;
@@ -264,7 +312,7 @@ void rfquack_transport_loop() {
     rfquack_serial_receiving = 0; // unlock
 
     // send data to the transport callback
-    rfquack_transport_recv(topic, (uint8_t*)payload, payload_length);
+    rfquack_transport_recv(topic, (uint8_t *) payload, payload_length);
 
     // make recv buffer available
     rfquack_serial_data_ready = false;

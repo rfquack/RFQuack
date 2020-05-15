@@ -24,6 +24,9 @@
 
 #include "rfquack_common.h"
 #include "rfquack_logging.h"
+#if defined(RFQUACK_MQTT_BROKER_SSL)
+#include "rfquack_certificates.h"
+#endif
 
 /*****************************************************************************
  * Function signatures
@@ -85,7 +88,12 @@ void rfquack_network_setup() {
 #include <WiFi.h>
 #endif
 
+#if defined(RFQUACK_MQTT_BROKER_SSL)
+#include <WiFiClientSecure.h>
+WiFiClientSecure rfquack_net;
+#else
 WiFiClient rfquack_net;
+#endif
 
 /*****************************************************************************
  * Variables
@@ -115,6 +123,12 @@ void rfquack_network_connect() {
 void rfquack_network_setup() {
   WiFi.mode(WIFI_STA);
   WiFi.begin(RFQUACK_NETWORK_SSID, RFQUACK_NETWORK_PASS);
+  
+  #if defined(RFQUACK_MQTT_BROKER_SSL)
+  rfquack_net.setCACert(SSL_CERT_CA);
+  rfquack_net.setCertificate(SSL_CERT_CRT);
+  rfquack_net.setPrivateKey(SSL_CERT_PRIVATE);
+  #endif
 }
 
 void rfquack_network_loop() {
@@ -123,10 +137,13 @@ void rfquack_network_loop() {
 }
 
 #elif defined(RFQUACK_IS_STANDALONE)
+
 void rfquack_network_setup() {
   Log.trace("Standalone mode network setup: done!");
 }
+
 void rfquack_network_loop() {}
+
 #else
 #error "Network configuration unexpected"
 #endif
