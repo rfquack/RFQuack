@@ -3,9 +3,7 @@ FROM python:3.8-slim
 LABEL maintainer "RFQuack"
 ENV PROTOBUF_URL="https://github.com/protocolbuffers/protobuf/releases/download/v3.11.3/protoc-3.11.3-linux-x86_64.zip"
 ENV NANOPB_URL="https://github.com/nanopb/nanopb/archive/nanopb-0.3.9.2.zip"
-ENV RADIOLIB_URL="https://github.com/Guglio95/RadioLib.git"
-
-# platformio lib -g install file:///./
+ENV RADIOLIB_URL="https://github.com/rfquack/RadioLib.git"
 
 # Install stuff
 RUN apt-get update \
