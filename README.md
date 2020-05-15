@@ -23,7 +23,7 @@ We assume you know what you're doing 🤓
   - [Packet Modification Module](#packet-modification-module)
   - [Automatic Frequency Tuning and Bitrate Estimation](#automatic-frequency-tuning-and-bitrate-estimation)
   - [Other Modules](#other-modules)
-  - [Frequency Synthesizer Calibration](#frequency-synthesizer-calibration)
+- [Frequency Synthesizer Calibration](#frequency-synthesizer-calibration)
 - [Docker Container Configuration](#docker-container-configuration)
   - [General configuration](#general-configuration)
   - [Radio configuration](#radio-configuration)
@@ -187,9 +187,6 @@ message =
 ```
 
 At this point you're good to go from here!
-
-![RFQuack Console](docs/imgs/console1.png)
-![RFQuack Console](docs/imgs/console2.png)
 
 # Architecture
 
@@ -482,7 +479,7 @@ Looking at the full picture, here's the full journey of a packet within RFQuack.
 
 ![RFQuack Full Architecture](docs/imgs/RFQuack%20Full%20Architecture.png)
 
-## Frequency Synthesizer Calibration
+# Frequency Synthesizer Calibration
 Recall that radio chips may have internal calibration routines (manual or
 automatic) for the frequency synthesizer, which outcome may vary slightly.
 Temperature is another factor that may slightly influence the actual carrier
