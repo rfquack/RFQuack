@@ -19,6 +19,11 @@ public:
     }
 
     bool onPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
+      // Trash packet if module should only estimate frequency.
+      if (onlyFrequency) {
+        return false;
+      }
+
       lastRxActivity = millis();
       return true;
     }
@@ -45,6 +50,16 @@ public:
       CMD_MATCHES_FLOAT("rssi_threshold",
                         "Minimum accepted RSSI in dB (default: -60)",
                         rssiThreshold)
+
+      // Sampling bitrate.
+      CMD_MATCHES_FLOAT("sampling_bitrate",
+                        "Bitrate used for oversampling (default: 100)",
+                        samplingBitrate)
+
+      // Only estimate frequency
+      CMD_MATCHES_BOOL("only_frequency",
+                       "Only estimate frequency (default: false)",
+                       onlyFrequency)
 
       // Radio to use.
       CMD_MATCHES_WHICHRADIO("which_radio",
@@ -135,19 +150,20 @@ public:
       }
       freqSpacing = filterBw / 4 * 3;
 
-      int numOfChunks =
-        ((int) ((binEndFreq - binStartFreq) / freqSpacing)) + 1;  // Number of chunks in which band is divided.
-      int numOfSamples = 1;
+      uint8_t numOfChunks =
+        ((uint8_t) ((binEndFreq - binStartFreq) / freqSpacing)) + 1;  // Number of chunks in which band is divided.
+      uint8_t numOfSamples = 1;
 
       float maxRssi = -100;
       float maxRssiFreq = -1;
-      for (int j = 0; j < numOfSamples; j++) {
-        for (int i = 0; i < numOfChunks; i++) {
+      for (uint8_t j = 0; j < numOfSamples; j++) {
+        for (uint8_t i = 0; i < numOfChunks; i++) {
 
           float freq = binStartFreq + (i + 0.5f) * freqSpacing;
           // Synth on freq
           setFrequency(freq);
           rfqRadio->setMode(rfquack_Mode_RX, scanRadio);
+
 
           // Wait to settle RSSI
           delayMicroseconds(600);
@@ -184,8 +200,8 @@ public:
     }
 
     void onLoop() override {
-      // Skip if a packet was received in last 10ms... there's no need to change freq :)
-      if (millis() - lastRxActivity < 10) {
+      // Skip if a packet was received in last 100ms... there's no need to change freq :)
+      if (millis() - lastRxActivity < 100) {
         return;
       }
 
@@ -199,13 +215,21 @@ public:
       float frequency = almostBinarySearch(startFrequency, endFrequency, 0);
       unsigned long freqRecoveryDuration = micros() - start;
       if (frequency != -1) {
-        setFrequency(frequency);
 
+        // Send the estimated frequency and start a new frequency recovery loop.
+        if (onlyFrequency) {
+          sendEstimatedFrequency(frequency);
+          lastRxActivity = millis(); // Do not spam.
+          return;
+        }
+
+        setFrequency(frequency);
         unsigned long startEstimateBitrate = micros();
         float estimatedBitrate = estimateBitrate();
         unsigned long estimateBitrateDuration = micros() - startEstimateBitrate;
 
-        RFQUACK_LOG_TRACE("freqRecovery in %i uS, estimateBitrateDuration in %i uS", freqRecoveryDuration, estimateBitrateDuration)
+        RFQUACK_LOG_TRACE("freqRecovery in %i uS, estimateBitrateDuration in %i uS", freqRecoveryDuration,
+                          estimateBitrateDuration)
         RFQUACK_LOG_TRACE("Got frequency %d kHz, Bitrate is %i bps",
                           (int) (frequency * 1000),
                           (int) (estimatedBitrate * 1000)
@@ -215,6 +239,12 @@ public:
 
 
 private:
+    void sendEstimatedFrequency(float freq) {
+      rfquack_CmdReply cmdReply = rfquack_CmdReply_init_default;
+      setReplyMessage(cmdReply, F("Found frequency"), (uint32_t) (freq * 1000));
+      PB_ENCODE_AND_SEND(rfquack_CmdReply, cmdReply, RFQUACK_TOPIC_SET, this->name, "frequency")
+    }
+
     // Sets the registers needed to perform accurate freq scanning.
     void bootstrapScanning() {
       RFQUACK_LOG_TRACE(F("bootstrapScanning()"))
@@ -250,11 +280,8 @@ private:
       int32_t consecutiveNumberOf1 = 0;
       bool wasLastBitA1 = false;
 
-      int32_t counterOfConsecutive1[50] = {0}; // array[numberOf1s] = number_of_occurrencies.
-
-      for (int i = 0; i < 50; i++) {
-        counterOfConsecutive1[i] = 57;
-      }
+#define COUNTER_SIZE 50
+      int32_t counterOfConsecutive1[COUNTER_SIZE] = {0}; // array[numberOf1s] = number_of_occurrencies.
 
       for (uint8_t iByte = 0; iByte < len; iByte++) {
         for (int bit = 0; bit < 8; bit++) {
@@ -272,7 +299,7 @@ private:
             if (wasLastBitA1) {
               wasLastBitA1 = false;
 
-              if (consecutiveNumberOf1 > 0 && consecutiveNumberOf1 < 50) {
+              if (consecutiveNumberOf1 > 0 && consecutiveNumberOf1 < COUNTER_SIZE) {
                 // Increase the number of times we've seen this consecutiveNumberOf1.
                 counterOfConsecutive1[consecutiveNumberOf1]++;
               }
@@ -286,15 +313,26 @@ private:
       int32_t mostOccurrentNumberOf1 = 1;
       int32_t maxOccurrence = 1;
 
-      for (uint8_t i = 0; i < 50; i++) {
+      for (uint8_t i = 0; i < COUNTER_SIZE; i++) {
         if (counterOfConsecutive1[i] > maxOccurrence) {
           maxOccurrence = counterOfConsecutive1[i];
           mostOccurrentNumberOf1 = i;
         }
       }
 
-      GUESSING_MODULE_LOG("mostOccurrentNumberOf1 %d which happened %d times", mostOccurrentNumberOf1, maxOccurrence);
-      return samplingBitrate / (float) mostOccurrentNumberOf1;
+      if (mostOccurrentNumberOf1 > 1) {
+        return samplingBitrate /
+               (((float) (
+                 (mostOccurrentNumberOf1 - 1) * counterOfConsecutive1[mostOccurrentNumberOf1 - 1] +
+                 (mostOccurrentNumberOf1 + 0) * counterOfConsecutive1[mostOccurrentNumberOf1 + 0] +
+                 (mostOccurrentNumberOf1 + 1) * counterOfConsecutive1[mostOccurrentNumberOf1 + 1]
+               )) /
+                ((float) (counterOfConsecutive1[mostOccurrentNumberOf1 - 1] +
+                          counterOfConsecutive1[mostOccurrentNumberOf1 + 0] +
+                          counterOfConsecutive1[mostOccurrentNumberOf1 + 1])));
+      } else {
+        return samplingBitrate / (float) mostOccurrentNumberOf1;
+      }
     }
 
     float estimateBitrate() {
@@ -318,7 +356,7 @@ private:
       lastRxActivity = millis();
 
       // Wait 10mS for a packet to estimate the bitrate.
-      byte receivedData[32 + 1];
+      byte receivedData[64 + 1];
       float estimatedBitrate = -1;
       while (millis() - lastRxActivity < 10) {
         if (((RFQCC1101 *) (rfqRadio->getNativeDriver(scanRadio)))->isIncomingDataAvailable()) { // FIX FIX
@@ -476,6 +514,7 @@ private:
     float endFrequency = 437;
     float rssiThreshold = -60;
     float samplingBitrate = 30;
+    bool onlyFrequency = false;
     rfquack_WhichRadio scanRadio = rfquack_WhichRadio_RadioA;
 };
 
