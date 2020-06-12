@@ -4,7 +4,7 @@
 
 /* ID definition */
 #define RFQUACK_UNIQ_ID "{{ RFQUACK_UNIQ_ID|default('RFQUACK') }}"
-#define RFQUACK_TOPIC_PREFIX "{{ UUID }}"
+#define RFQUACK_TOPIC_PREFIX RFQUACK_UNIQ_ID
 
 /* Transport configuration */
 #define RFQUACK_SERIAL_BAUD_RATE {{ SERIAL_BAUD_RATE|default('115200') }}

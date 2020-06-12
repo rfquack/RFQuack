@@ -3,7 +3,7 @@
  *****************************************************************************/
 
 /* ID definition */
-#define RFQUACK_UNIQ_ID "EPS32_CC1101"
+#define RFQUACK_UNIQ_ID "ESP32_CC1101"
 #define RFQUACK_TOPIC_PREFIX "MAKE_THIS_UNIQUE"
 
 /* Transport configuration */
