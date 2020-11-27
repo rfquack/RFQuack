@@ -430,7 +430,7 @@ public:
      * @param size syncWord size
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t setSyncWord(uint8_t *bytes, uint8_t size) {
+    virtual int16_t setSyncWord(uint8_t *bytes, pb_size_t size) {
       Log.error(F("setSyncWord was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
@@ -441,7 +441,7 @@ public:
      * @param size variable where syncWord size will be stored
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t getSyncWord(uint8_t *bytes, uint8_t &size) {
+    virtual int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) {
       Log.error(F("getSyncWord was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }

@@ -40,7 +40,7 @@ RadioA radioA = new Module(5, 4, 22); // CS, IRQ, CE
 // Uncomment to add a new radio, then change setup(){ rfquack_setup(radioA, radioB); }
 // #define USE_RADIOB
 // typedef RFQnRF24 RadioB;
-// RadioB radioB = new Module(6, 7, NC);
+// RadioB radioB = new Module(6, 7, RADIOLIB_NC);
 
 /*****************************************************************************
  * /RFQuack configuration
