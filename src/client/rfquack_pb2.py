@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='rfquack',
   syntax='proto2',
   serialized_options=None,
-  serialized_pb=b'\n\rrfquack.proto\x12\x07rfquack\"8\n\tPacketLen\x12\x18\n\x10isFixedPacketLen\x18\t \x02(\x08\x12\x11\n\tpacketLen\x18\n \x02(\r\"\xed\x01\n\x0bModemConfig\x12\x13\n\x0b\x63\x61rrierFreq\x18\x01 \x01(\x02\x12\x0f\n\x07txPower\x18\x02 \x01(\x05\x12\x13\n\x0bpreambleLen\x18\x03 \x01(\r\x12\x11\n\tsyncWords\x18\x04 \x01(\x0c\x12\x15\n\risPromiscuous\x18\x05 \x01(\x08\x12\'\n\nmodulation\x18\x07 \x01(\x0e\x32\x13.rfquack.Modulation\x12\x0e\n\x06useCRC\x18\x08 \x01(\x08\x12\x0f\n\x07\x62itRate\x18\t \x01(\x02\x12\x13\n\x0brxBandwidth\x18\n \x01(\x02\x12\x1a\n\x12\x66requencyDeviation\x18\x0b \x01(\x02\"\x82\x01\n\x06Packet\x12\x0c\n\x04\x64\x61ta\x18\x01 \x02(\x0c\x12$\n\x07rxRadio\x18\x02 \x01(\x0e\x32\x13.rfquack.WhichRadio\x12\x0e\n\x06millis\x18\x03 \x01(\x04\x12\x0e\n\x06repeat\x18\x04 \x01(\r\x12\x0f\n\x07\x62itRate\x18\x05 \x01(\x02\x12\x13\n\x0b\x63\x61rrierFreq\x18\x06 \x01(\x02\"*\n\x08Register\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\r\x12\r\n\x05value\x18\x02 \x01(\r\"\x1a\n\tUintValue\x12\r\n\x05value\x18\x01 \x02(\r\"\x19\n\x08IntValue\x12\r\n\x05value\x18\x01 \x02(\x05\"\x1a\n\tBoolValue\x12\r\n\x05value\x18\x01 \x02(\x08\"\x1b\n\nFloatValue\x12\r\n\x05value\x18\x01 \x02(\x02\"\x1b\n\nBytesValue\x12\r\n\x05value\x18\x01 \x02(\x0c\"5\n\x0fWhichRadioValue\x12\"\n\x05value\x18\x01 \x02(\x0e\x32\x13.rfquack.WhichRadio\"\x0b\n\tVoidValue\"+\n\x08\x43mdReply\x12\x0e\n\x06result\x18\x01 \x02(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\"\x8d\x01\n\x07\x43mdInfo\x12\x14\n\x0c\x61rgumentType\x18\x01 \x02(\t\x12-\n\x07\x63mdType\x18\x02 \x02(\x0e\x32\x1c.rfquack.CmdInfo.CmdTypeEnum\x12\x13\n\x0b\x64\x65scription\x18\x03 \x02(\t\"(\n\x0b\x43mdTypeEnum\x12\r\n\tATTRIBUTE\x10\x01\x12\n\n\x06METHOD\x10\x02\"\x82\x02\n\x12PacketModification\x12\x10\n\x08position\x18\x01 \x01(\r\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\r\x12\x31\n\toperation\x18\x03 \x01(\x0e\x32\x1e.rfquack.PacketModification.Op\x12\x0f\n\x07operand\x18\x04 \x01(\r\x12\x0f\n\x07pattern\x18\x05 \x01(\t\x12\x0f\n\x07payload\x18\x06 \x01(\x0c\"c\n\x02Op\x12\x07\n\x03\x41ND\x10\x01\x12\x06\n\x02OR\x10\x02\x12\x07\n\x03XOR\x10\x03\x12\x07\n\x03NOT\x10\x04\x12\t\n\x05SLEFT\x10\x05\x12\n\n\x06SRIGHT\x10\x06\x12\x0b\n\x07PREPEND\x10\x07\x12\n\n\x06\x41PPEND\x10\x08\x12\n\n\x06INSERT\x10\t\"3\n\x0cPacketFilter\x12\x0f\n\x07pattern\x18\x01 \x02(\t\x12\x12\n\nnegateRule\x18\x02 \x02(\x08*)\n\x04Mode\x12\x06\n\x02RX\x10\x00\x12\x06\n\x02TX\x10\x01\x12\x08\n\x04IDLE\x10\x02\x12\x07\n\x03JAM\x10\x03*H\n\nWhichRadio\x12\n\n\x06RadioA\x10\x00\x12\n\n\x06RadioB\x10\x01\x12\n\n\x06RadioC\x10\x02\x12\n\n\x06RadioD\x10\x03\x12\n\n\x06RadioE\x10\x04*\x1f\n\nModulation\x12\x08\n\x04\x46SK2\x10\x00\x12\x07\n\x03OOK\x10\x01'
+  serialized_pb=b'\n\rrfquack.proto\x12\x07rfquack\"8\n\tPacketLen\x12\x18\n\x10isFixedPacketLen\x18\t \x02(\x08\x12\x11\n\tpacketLen\x18\n \x02(\r\"\xed\x01\n\x0bModemConfig\x12\x13\n\x0b\x63\x61rrierFreq\x18\x01 \x01(\x02\x12\x0f\n\x07txPower\x18\x02 \x01(\x05\x12\x13\n\x0bpreambleLen\x18\x03 \x01(\r\x12\x11\n\tsyncWords\x18\x04 \x01(\x0c\x12\x15\n\risPromiscuous\x18\x05 \x01(\x08\x12\'\n\nmodulation\x18\x07 \x01(\x0e\x32\x13.rfquack.Modulation\x12\x0e\n\x06useCRC\x18\x08 \x01(\x08\x12\x0f\n\x07\x62itRate\x18\t \x01(\x02\x12\x13\n\x0brxBandwidth\x18\n \x01(\x02\x12\x1a\n\x12\x66requencyDeviation\x18\x0b \x01(\x02\"\xe2\x01\n\x06Packet\x12\x0c\n\x04\x64\x61ta\x18\x01 \x02(\x0c\x12$\n\x07rxRadio\x18\x02 \x01(\x0e\x32\x13.rfquack.WhichRadio\x12\x0e\n\x06millis\x18\x03 \x01(\x04\x12\x0e\n\x06repeat\x18\x04 \x01(\r\x12\x0f\n\x07\x62itRate\x18\x05 \x01(\x02\x12\x13\n\x0b\x63\x61rrierFreq\x18\x06 \x01(\x02\x12\x11\n\tsyncWords\x18\x07 \x01(\x0c\x12\x12\n\nmodulation\x18\x08 \x01(\t\x12\x1a\n\x12\x66requencyDeviation\x18\t \x01(\x02\x12\x0c\n\x04RSSI\x18\n \x01(\x02\x12\r\n\x05model\x18\x0b \x01(\t\"*\n\x08Register\x12\x0f\n\x07\x61\x64\x64ress\x18\x01 \x02(\r\x12\r\n\x05value\x18\x02 \x01(\r\"\x1a\n\tUintValue\x12\r\n\x05value\x18\x01 \x02(\r\"\x19\n\x08IntValue\x12\r\n\x05value\x18\x01 \x02(\x05\"\x1a\n\tBoolValue\x12\r\n\x05value\x18\x01 \x02(\x08\"\x1b\n\nFloatValue\x12\r\n\x05value\x18\x01 \x02(\x02\"\x1b\n\nBytesValue\x12\r\n\x05value\x18\x01 \x02(\x0c\"5\n\x0fWhichRadioValue\x12\"\n\x05value\x18\x01 \x02(\x0e\x32\x13.rfquack.WhichRadio\"\x0b\n\tVoidValue\"+\n\x08\x43mdReply\x12\x0e\n\x06result\x18\x01 \x02(\x05\x12\x0f\n\x07message\x18\x02 \x01(\t\"\x8d\x01\n\x07\x43mdInfo\x12\x14\n\x0c\x61rgumentType\x18\x01 \x02(\t\x12-\n\x07\x63mdType\x18\x02 \x02(\x0e\x32\x1c.rfquack.CmdInfo.CmdTypeEnum\x12\x13\n\x0b\x64\x65scription\x18\x03 \x02(\t\"(\n\x0b\x43mdTypeEnum\x12\r\n\tATTRIBUTE\x10\x01\x12\n\n\x06METHOD\x10\x02\"\x82\x02\n\x12PacketModification\x12\x10\n\x08position\x18\x01 \x01(\r\x12\x0f\n\x07\x63ontent\x18\x02 \x01(\r\x12\x31\n\toperation\x18\x03 \x01(\x0e\x32\x1e.rfquack.PacketModification.Op\x12\x0f\n\x07operand\x18\x04 \x01(\r\x12\x0f\n\x07pattern\x18\x05 \x01(\t\x12\x0f\n\x07payload\x18\x06 \x01(\x0c\"c\n\x02Op\x12\x07\n\x03\x41ND\x10\x01\x12\x06\n\x02OR\x10\x02\x12\x07\n\x03XOR\x10\x03\x12\x07\n\x03NOT\x10\x04\x12\t\n\x05SLEFT\x10\x05\x12\n\n\x06SRIGHT\x10\x06\x12\x0b\n\x07PREPEND\x10\x07\x12\n\n\x06\x41PPEND\x10\x08\x12\n\n\x06INSERT\x10\t\"3\n\x0cPacketFilter\x12\x0f\n\x07pattern\x18\x01 \x02(\t\x12\x12\n\nnegateRule\x18\x02 \x02(\x08*)\n\x04Mode\x12\x06\n\x02RX\x10\x00\x12\x06\n\x02TX\x10\x01\x12\x08\n\x04IDLE\x10\x02\x12\x07\n\x03JAM\x10\x03*H\n\nWhichRadio\x12\n\n\x06RadioA\x10\x00\x12\n\n\x06RadioB\x10\x01\x12\n\n\x06RadioC\x10\x02\x12\n\n\x06RadioD\x10\x03\x12\n\n\x06RadioE\x10\x04*\x1f\n\nModulation\x12\x08\n\x04\x46SK2\x10\x00\x12\x07\n\x03OOK\x10\x01'
 )
 
 _MODE = _descriptor.EnumDescriptor(
@@ -47,8 +47,8 @@ _MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1213,
-  serialized_end=1254,
+  serialized_start=1309,
+  serialized_end=1350,
 )
 _sym_db.RegisterEnumDescriptor(_MODE)
 
@@ -82,8 +82,8 @@ _WHICHRADIO = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1256,
-  serialized_end=1328,
+  serialized_start=1352,
+  serialized_end=1424,
 )
 _sym_db.RegisterEnumDescriptor(_WHICHRADIO)
 
@@ -105,8 +105,8 @@ _MODULATION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1330,
-  serialized_end=1361,
+  serialized_start=1426,
+  serialized_end=1457,
 )
 _sym_db.RegisterEnumDescriptor(_MODULATION)
 
@@ -141,8 +141,8 @@ _CMDINFO_CMDTYPEENUM = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=857,
-  serialized_end=897,
+  serialized_start=953,
+  serialized_end=993,
 )
 _sym_db.RegisterEnumDescriptor(_CMDINFO_CMDTYPEENUM)
 
@@ -191,8 +191,8 @@ _PACKETMODIFICATION_OP = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=1059,
-  serialized_end=1158,
+  serialized_start=1155,
+  serialized_end=1254,
 )
 _sym_db.RegisterEnumDescriptor(_PACKETMODIFICATION_OP)
 
@@ -378,6 +378,41 @@ _PACKET = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='syncWords', full_name='rfquack.Packet.syncWords', index=6,
+      number=7, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"",
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='modulation', full_name='rfquack.Packet.modulation', index=7,
+      number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='frequencyDeviation', full_name='rfquack.Packet.frequencyDeviation', index=8,
+      number=9, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='RSSI', full_name='rfquack.Packet.RSSI', index=9,
+      number=10, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='model', full_name='rfquack.Packet.model', index=10,
+      number=11, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -391,7 +426,7 @@ _PACKET = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=325,
-  serialized_end=455,
+  serialized_end=551,
 )
 
 
@@ -428,8 +463,8 @@ _REGISTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=457,
-  serialized_end=499,
+  serialized_start=553,
+  serialized_end=595,
 )
 
 
@@ -459,8 +494,8 @@ _UINTVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=501,
-  serialized_end=527,
+  serialized_start=597,
+  serialized_end=623,
 )
 
 
@@ -490,8 +525,8 @@ _INTVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=529,
-  serialized_end=554,
+  serialized_start=625,
+  serialized_end=650,
 )
 
 
@@ -521,8 +556,8 @@ _BOOLVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=556,
-  serialized_end=582,
+  serialized_start=652,
+  serialized_end=678,
 )
 
 
@@ -552,8 +587,8 @@ _FLOATVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=584,
-  serialized_end=611,
+  serialized_start=680,
+  serialized_end=707,
 )
 
 
@@ -583,8 +618,8 @@ _BYTESVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=613,
-  serialized_end=640,
+  serialized_start=709,
+  serialized_end=736,
 )
 
 
@@ -614,8 +649,8 @@ _WHICHRADIOVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=642,
-  serialized_end=695,
+  serialized_start=738,
+  serialized_end=791,
 )
 
 
@@ -638,8 +673,8 @@ _VOIDVALUE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=697,
-  serialized_end=708,
+  serialized_start=793,
+  serialized_end=804,
 )
 
 
@@ -676,8 +711,8 @@ _CMDREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=710,
-  serialized_end=753,
+  serialized_start=806,
+  serialized_end=849,
 )
 
 
@@ -722,8 +757,8 @@ _CMDINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=756,
-  serialized_end=897,
+  serialized_start=852,
+  serialized_end=993,
 )
 
 
@@ -789,8 +824,8 @@ _PACKETMODIFICATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=900,
-  serialized_end=1158,
+  serialized_start=996,
+  serialized_end=1254,
 )
 
 
@@ -827,8 +862,8 @@ _PACKETFILTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1160,
-  serialized_end=1211,
+  serialized_start=1256,
+  serialized_end=1307,
 )
 
 _MODEMCONFIG.fields_by_name['modulation'].enum_type = _MODULATION

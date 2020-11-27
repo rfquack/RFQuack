@@ -90,7 +90,7 @@ public:
 
       rfqRadio->setPromiscuousMode(false, radioToUse);
 
-      // Apply best kwnown configurations.
+      // Apply best known configurations.
       uint16_t preset_waitTime = 0;
       const char *chipName = rfqRadio->getChipName(radioToUse);
       if (strncmp(chipName, "CC1101", sizeof(*chipName)) == 0) {

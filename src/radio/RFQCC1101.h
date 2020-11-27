@@ -1,7 +1,6 @@
 #ifndef RFQUACK_PROJECT_RFQCC1101_H
 #define RFQUACK_PROJECT_RFQCC1101_H
 
-
 #include "RadioLibWrapper.h"
 #include "rfquack_logging.h"
 
@@ -50,7 +49,23 @@ public:
       }
 
       // Call to base method.
-      return CC1101::setSyncWord(bytes, size, 0, true);
+      int16_t state = CC1101::setSyncWord(bytes, size, 0, true);
+      if (state == ERR_NONE) {
+        memcpy(_syncWords, bytes, size);
+      }
+      return state;
+    }
+    
+    int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) override {
+      if (CC1101::_promiscuous) {
+        // No sync words when in promiscuous mode.
+        size = 0;
+        return ERR_INVALID_SYNC_WORD;
+      } else {
+        size = CC1101::_syncWordLength;
+        memcpy(bytes, _syncWords, size);
+      }
+      return ERR_NONE;
     }
 
     int16_t receiveMode() override {
@@ -75,8 +90,7 @@ public:
       // Set THR to 4 bytes
       state |= SPIsetRegValue(CC1101_REG_FIFOTHR, CC1101_FIFO_THR_TX_61_RX_4, 3, 0);
 
-      if (state != ERR_NONE)
-        return state;
+      if (state != ERR_NONE) return state;
 
       // Issue receive mode.
       SPIsendCommand(CC1101_CMD_RX);
@@ -100,7 +114,6 @@ public:
       return digitalRead(_mod->getIrq());
     }
 
-
     int16_t readData(uint8_t *data, size_t len) override {
       // Exit if not in RX mode.
       if (_mode != rfquack_Mode_RX) {
@@ -123,7 +136,21 @@ public:
     }
 
     int16_t setFrequencyDeviation(float freqDev) override {
-      return CC1101::setFrequencyDeviation(freqDev);
+      int16_t state = CC1101::setFrequencyDeviation(freqDev);
+      if (state == ERR_NONE) {
+        _frequencyDeviation = freqDev;
+      }
+      return state;
+    }
+    
+    int16_t getFrequencyDeviation(float &freqDev) override {
+      if (CC1101::_modulation == CC1101_MOD_FORMAT_ASK_OOK) {
+        // In OOK frequency deviation is zero
+        freqDev = 0.0;
+      } else {
+        freqDev = _frequencyDeviation;
+      }
+      return ERR_NONE;
     }
 
     int16_t setModulation(rfquack_Modulation modulation) override {
@@ -132,6 +159,18 @@ public:
       }
       if (modulation == rfquack_Modulation_FSK2) {
         return CC1101::setOOK(false);
+      }
+      return ERR_UNSUPPORTED_ENCODING;
+    }
+    
+    int16_t getModulation(char *modulation) override {
+      if (CC1101::_modulation == CC1101_MOD_FORMAT_ASK_OOK) {
+        strcpy(modulation, "OOK");
+        return ERR_NONE;
+      }
+      if (CC1101::_modulation == CC1101_MOD_FORMAT_2_FSK) {
+        strcpy(modulation, "FSK2");
+        return ERR_NONE;
       }
       return ERR_UNSUPPORTED_ENCODING;
     }
@@ -146,35 +185,25 @@ public:
 
       // Set a sync word (no sync words means no preamble generation)
       byte syncW[] = {0xFF, 0xFF};
-      uint8_t result = this->setSyncWord(syncW, 2);
-      if (result != ERR_NONE) {
-        return result;
-      }
+      uint16_t state = this->setSyncWord(syncW, 2);
+      if (state != ERR_NONE) return state;
 
       // Enable FSK mode with 0 frequency deviation
-      result = this->setModulation(rfquack_Modulation_FSK2);
-      result |= this->setFrequencyDeviation(0);
-      if (result != ERR_NONE) {
-        return result;
-      }
+      state = this->setModulation(rfquack_Modulation_FSK2);
+      state |= this->setFrequencyDeviation(0);
+      if (state != ERR_NONE) return state;
 
       // Set bitrate to 1
-      result = this->setBitRate(1);
-      if (result != ERR_NONE) {
-        return result;
-      }
+      state = this->setBitRate(1);
+      if (state != ERR_NONE) return state;
 
       // Put radio in TX Mode
-      result = this->transmitMode();
-      if (result != ERR_NONE) {
-        return result;
-      }
+      state = this->transmitMode();
+      if (state != ERR_NONE) return state;
 
       // Put radio in fixed len mode
-      result = this->fixedPacketLengthMode(1);
-      if (result != ERR_NONE) {
-        return result;
-      }
+      state = this->fixedPacketLengthMode(1);
+      if (state != ERR_NONE) return state;
 
       // Transmit an empty packet.
       rfquack_Packet packet = rfquack_Packet_init_zero;
@@ -218,6 +247,10 @@ public:
     void setInterruptAction(void (*func)(void *)) override {
       attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
+private:
+    // Config variables not provided by RadioLib, initialised with default values
+    float _frequencyDeviation = 48.0;
+    byte _syncWords[2] = {0xD3, 0x91};
 };
 
 #endif //RFQUACK_PROJECT_RFQCC1101_H
