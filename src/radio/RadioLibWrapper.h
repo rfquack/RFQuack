@@ -10,7 +10,7 @@
 
 /* Dirty trick to prevent RadioLib's MQTT class to be included,
  * It clashes with RFQuack's one.
-*/
+ */
 #define _RADIOLIB_MQTT_H
 
 #include <RadioLib.h>
@@ -63,7 +63,7 @@ public:
     }
 
     /**
-     * Set if this instance is either RADIOA / RADIOB / RADIOC / ...
+     * Sets if this instance is either RADIOA / RADIOB / RADIOC / ...
      * @param whichRadio
      */
     void setWhichRadio(rfquack_WhichRadio whichRadio) {
@@ -87,7 +87,6 @@ public:
      */
     virtual int16_t receiveMode() {
       if (_mode != rfquack_Mode_RX) {
-
         // Set mode to RX.
         _mode = rfquack_Mode_RX;
         RFQUACK_LOG_TRACE(F("Entering RX mode."))
@@ -118,12 +117,11 @@ public:
         setFlag(true);
         RFQUACK_LOG_TRACE(F("Entering TX mode."))
       }
-
       return ERR_NONE;
     }
 
     /**
-     * Puts the radio in JAM mode (starts jamming)
+     * Puts radio in jam mode (starts jamming).
      * @return
      */
     virtual int16_t jamMode() {
@@ -131,8 +129,8 @@ public:
     }
 
     /**
-     * Sets radio mode (RX, TX, IDLE)
-     * @param mode RFQuack mode.
+     * Sets radio mode (RX, TX, IDLE, JAM)
+     * @param mode RFQuack mode
      * @return
      */
     int16_t setMode(rfquack_Mode mode) {
@@ -156,8 +154,8 @@ public:
 
     /**
      * Sends packet to air.
-     * @param data buffer to send.
-     * @param len buffer length.
+     * @param data buffer to send
+     * @param len buffer length
      * @return
      */
     virtual int16_t transmit(uint8_t *data, size_t len) {
@@ -205,13 +203,13 @@ public:
     }
 
     /**
-     * Transmit a RFQuack Packet.
+     * Transmit an RFQuack Packet.
      * @param pkt packet to transmit
      * @return
      */
     uint8_t transmit(rfquack_Packet *pkt) {
       if (pkt->has_repeat && pkt->repeat == 0) {
-        RFQUACK_LOG_TRACE (F("Zero packet repeat: no transmission"))
+        RFQUACK_LOG_TRACE(F("Zero packet repeat: no transmission"))
         return ERR_NONE;
       }
 
@@ -224,7 +222,7 @@ public:
 
       for (uint32_t i = 0; i < repeat; i++) {
         int16_t result = transmit((uint8_t *) (pkt->data.bytes), pkt->data.size);
-        RFQUACK_LOG_TRACE("Packet trasmitted, resultCode=%d", result)
+        RFQUACK_LOG_TRACE(F("Packet trasmitted, resultCode=%d"), result)
 
         if (result == ERR_NONE) {
           correct++;
@@ -299,9 +297,14 @@ public:
         pkt.has_millis = true;
         pkt.rxRadio = this->_whichRadio;
         pkt.has_rxRadio = true;
+        strcpy(pkt.model, getChipName());
+        pkt.has_model = true;
+        pkt.has_syncWords = (getSyncWord(pkt.syncWords.bytes, pkt.syncWords.size)) == ERR_NONE; // Set the syncWords
         pkt.has_bitRate = (getBitRate(pkt.bitRate)) == ERR_NONE; // Set the bitrate
         pkt.has_carrierFreq = (getFrequency(pkt.carrierFreq)) == ERR_NONE; // Set the carrierFreq
-
+        pkt.has_frequencyDeviation = (getFrequencyDeviation(pkt.frequencyDeviation)) == ERR_NONE; // Set the frequency deviation
+        pkt.has_modulation = getModulation(pkt.modulation) == ERR_NONE; // Set the modulation
+        pkt.has_RSSI = (getRSSI(pkt.RSSI)) == ERR_NONE; // Set the RSSI
 
         // onPacketReceived() hook
         if (modulesDispatcher.onPacketReceived(pkt, _whichRadio)) {
@@ -313,7 +316,7 @@ public:
 
     /**
      * Reads a radio's internal register.
-     * @param reg register to read.
+     * @param reg register to read
      * @return
      */
     virtual rfquack_register_value_t readRegister(rfquack_register_address_t reg) {
@@ -333,7 +336,7 @@ public:
     /**
      * Sets transmitted / received preamble length.
      * @param size size
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setPreambleLength(uint32_t size) {
       Log.error(F("setPreambleLength was not implemented."));
@@ -343,7 +346,7 @@ public:
     /**
      * Sets radio frequency.
      * @param carrierFreq in MHz
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setFrequency(float carrierFreq) {
       Log.error(F("setFrequency was not implemented."));
@@ -351,9 +354,9 @@ public:
     }
 
     /**
-     * Gets the radio frequency
-     * @param carrierFreq variable where the carrierFrequency gets stored, in MHz.
-     * @return
+     * Gets the radio frequency.
+     * @param carrierFreq variable where the carrierFrequency gets stored, in MHz
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getFrequency(float &carrierFreq) {
       Log.error(F("getFrequency was not implemented."));
@@ -361,19 +364,29 @@ public:
     }
 
     /**
-     * Sets frequency deviation
-     * @param frequency deviation in Mhz
-     * @return
+     * Sets frequency deviation.
+     * @param frequency deviation in MHz
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setFrequencyDeviation(float freqDev) {
       Log.error(F("setFrequencyDeviation was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
+    
+    /**
+     * Gets the radio frequency deviation.
+     * @param freqDev variable where the frequency deviation gets stored, in MHz
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual int16_t getFrequencyDeviation(float &freqDev) {
+      Log.error(F("getFrequencyDeviation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
 
     /**
-     * Sets Sets receiver bandwidth.
-     * @param rxBw in Mhz
-     * @return
+     * Sets receiver bandwidth.
+     * @param rxBw in MHz
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setRxBandwidth(float rxBw) {
       Log.error(F("setRxBandwidth was not implemented."));
@@ -381,9 +394,9 @@ public:
     }
 
     /**
-     * Sets bit rate
+     * Sets bit rate.
      * @param br in kbps
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setBitRate(float br) {
       Log.error(F("setBitRate was not implemented."));
@@ -392,9 +405,9 @@ public:
 
 
     /**
-     * Retrieves the bit rate
-     * @param br variable where bitrate gets stored.
-     * @return
+     * Retrieves the bit rate.
+     * @param br variable where bitrate gets stored
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getBitRate(float &br) {
       Log.error(F("setBitRate was not implemented."));
@@ -403,8 +416,8 @@ public:
 
     /**
      * Sets radio output power.
-     * @param txPower  in dBm.
-     * @return
+     * @param txPower in dBm
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setOutputPower(uint32_t txPower) {
       Log.error(F("setOutputPower was not implemented."));
@@ -412,20 +425,31 @@ public:
     }
 
     /**
-     * Sets radio syncWord and it's size.
-     * @param bytes pointer to syncWord.
-     * @param size syncWord size.
-     * @return
+     * Sets radio syncWord and its size.
+     * @param bytes pointer to syncWord
+     * @param size syncWord size
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t setSyncWord(uint8_t *bytes, uint8_t size) {
+    virtual int16_t setSyncWord(uint8_t *bytes, pb_size_t size) {
       Log.error(F("setSyncWord was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
+     * Gets radio syncWord and its size.
+     * @param bytes pointer where syncWord will be stored
+     * @param size variable where syncWord size will be stored
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) {
+      Log.error(F("getSyncWord was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+    
+    /**
      * Puts radio in fixed packet length mode.
      * @param len packet's size in bytes
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t fixedPacketLengthMode(uint8_t len) {
       Log.error(F("fixedPacketLengthMode was not implemented."));
@@ -434,8 +458,8 @@ public:
 
     /**
      * Puts radio in fixed packet length mode.
-     * @param len maximum packet size  in bytes
-     * @return
+     * @param len maximum packet size in bytes
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t variablePacketLengthMode(uint8_t len) {
       Log.error(F("variablePacketLengthMode was not implemented."));
@@ -445,7 +469,7 @@ public:
     /**
      * Puts radio in promiscuous mode.
      * @param isPromiscuous
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setPromiscuousMode(bool isPromiscuous) {
       Log.error(F("setPromiscuousMode was not implemented."));
@@ -453,9 +477,9 @@ public:
     }
 
     /**
-     * Enables / Disables CRC filtering
+     * Enables / Disables CRC filtering.
      * @param crcOn
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setCrcFiltering(bool crcOn) {
       Log.error(F("setCrcFiltering was not implemented."));
@@ -465,7 +489,7 @@ public:
     /**
      * Enables / Disables automatic packet acknowledge.
      * @param autoAckOn
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setAutoAck(bool autoAckOn) {
       Log.error(F("setAutoAck was not implemented."));
@@ -473,7 +497,7 @@ public:
     }
 
     /**
-     * Whatever carrier presence was detected during last RX
+     * Whatever carrier presence was detected during last RX.
      * @param bool were presence is stored
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
@@ -484,7 +508,7 @@ public:
 
     /**
      * Gets RSSI (Recorded Signal Strength Indicator) of the last received packet.
-     * @param float were rssi will be stored
+     * @param float where RSSI will be stored
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual float getRSSI(float &rssi) {
@@ -496,10 +520,20 @@ public:
     /**
      * Sets modulation.
      * @param modulation
-     * @return
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setModulation(rfquack_Modulation modulation) {
       Log.error(F("setModulation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+    
+    /**
+     * Gets modulation.
+     * @param rfquack_Modulation where modulation will be stored
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual int16_t getModulation(char *modulation) {
+      Log.error(F("getModulation was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -516,7 +550,7 @@ public:
     }
 
 protected:
-    rfquack_Mode _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX]
+    rfquack_Mode _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX|JAM]
 private:
     char *chipName;
     rfquack_WhichRadio _whichRadio;
