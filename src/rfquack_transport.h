@@ -115,7 +115,6 @@ static void rfquack_mqtt_connect() {
     return;
 
   String clientId = RFQUACK_UNIQ_ID;
-  clientId += "_" + String(random(0xffff), HEX);
 
 #ifdef RFQUACK_DEV
   Log.trace("Connecting %s to MQTT broker %s:%d", clientId.c_str(),

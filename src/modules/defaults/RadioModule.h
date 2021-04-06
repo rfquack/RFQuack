@@ -101,6 +101,7 @@ public:
         result = rfqRadio->setPreambleLength(pkt.preambleLen, _whichRadio);
         ASSERT_SET_MODEM_CONFIG("Unable to set preamble len")
       }
+      
       if (pkt.has_syncWords) {
         result = rfqRadio->setSyncWord(pkt.syncWords.bytes, pkt.syncWords.size, _whichRadio);
         ASSERT_SET_MODEM_CONFIG("Unable to set syncword")
@@ -179,7 +180,6 @@ public:
 
       reply.result = ERR_NONE;
     }
-
 
     /**
      * @brief Send register value to the transport.

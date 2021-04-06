@@ -21,7 +21,7 @@ package rfquack;
 
 enum Mode {
     // RX means that whatever packet (matching the preamble and sync word (if
-    // any)) will be sent to the clients that are subscribed to the `rx_packet`
+    // any) will be sent to the clients that are subscribed to the `rx_packet`
     // topic.
     RX = 0;
 
@@ -37,7 +37,7 @@ enum Mode {
 }
 
 enum WhichRadio {
-    // Which of the two Radios is selected.
+    // Which of the Radios is selected
     RadioA = 0;
     RadioB = 1;
     RadioC = 2;
@@ -78,6 +78,11 @@ message Packet {
     optional uint32 repeat = 4;
     optional float bitRate = 5;
     optional float carrierFreq = 6;
+    optional bytes syncWords = 7;
+    optional string modulation = 8;
+    optional float frequencyDeviation = 9;
+    optional float RSSI = 10;
+    optional string model = 11;
 }
 
 // Get or set a given register to the value
@@ -130,7 +135,7 @@ message CmdInfo {
 }
 
 // A packet-modification rule: here you can tell the tool how to modify a given
-// byte of the packet, and re-transmit it when in attakc mode. For example you
+// byte of the packet, and re-transmit it when in attack mode. For example you
 // could XOR byte four with a given operand, and re-transmit the packet so
 // obtained.
 //

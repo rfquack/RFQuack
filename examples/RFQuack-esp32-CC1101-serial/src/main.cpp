@@ -3,7 +3,7 @@
  *****************************************************************************/
 
 /* ID definition */
-#define RFQUACK_UNIQ_ID "EPS32_CC1101"
+#define RFQUACK_UNIQ_ID "ESP32_CC1101"
 #define RFQUACK_TOPIC_PREFIX "MAKE_THIS_UNIQUE"
 
 /* Transport configuration */
@@ -30,12 +30,12 @@
 
 #define USE_RADIOA
 typedef RFQCC1101 RadioA;
-RadioA radioA = new Module(2, 21, NC);
+RadioA radioA = new Module(2, 21, RADIOLIB_NC);
 
 // Uncomment to add a new radio, then change setup(){ rfquack_setup(radioA, radioB); }
 // #define USE_RADIOB
 // typedef RFQCC1101 RadioB;
-// RadioB radioB = new Module(3, 22, NC);
+// RadioB radioB = new Module(3, 22, RADIOLIB_NC);
 
 
 /*****************************************************************************
