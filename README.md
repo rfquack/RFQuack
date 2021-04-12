@@ -87,8 +87,9 @@ The quickest way to get started is by mean of our Docker image. It will automati
 
 | **Command**    | **Description**           |
 |----------------|---------------------------|
-|`docker run --device=/dev/ttyUSB0:/board -e BOARD=HUZZAH32 -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack` | Uploads RFQuack to an `Adafruit HUZZAH32` (`/dev/ttyUSB0`), connected to a `CC1101` (`Chip Select` on PIN2, `GDO0` on PIN5) |
-|`docker run --device=/dev/ttyUSB0:/board -e BOARD=HUZZAH32 -e RADIOA=nRF24  -e RADIOA_CS=5 -e RADIOA_IRQ=4 -e RADIOA_CE=2 --rm -it rfquack/rfquack` | Uploads RFQuack to an `Adafruit HUZZAH32` (`/dev/ttyUSB0`), connected to a `nRF24` (`Chip Select` on PIN5, `IRQ` on PIN4, `Chip Enable` on PIN2) |
+|`docker run -e BOARD=HUZZAH32 -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack` | Build an RFQuack image for an Adafruit HUZZAH32 target, with a `CC1101` (`Chip Select` on PIN2, `GDO0` on PIN5) |
+|`docker run --device=/dev/ttyUSB0:/board -e BOARD=HUZZAH32 -e RADIOA=CC1101 -e RADIOA_CS=2 -e RADIOA_IRQ=5 --rm -it rfquack/rfquack` | Build and upload RFQuack to an Adafruit HUZZAH32 target (on `/dev/ttyUSB0`), with a `CC1101` (`Chip Select` on PIN2, `GDO0` on PIN5) |
+|`docker run --device=/dev/ttyUSB0:/board -e BOARD=HUZZAH32 -e RADIOA=nRF24  -e RADIOA_CS=5 -e RADIOA_IRQ=4 -e RADIOA_CE=2 --rm -it rfquack/rfquack` | Build and upload RFQuack for an Adafruit HUZZAH32 target (on `/dev/ttyUSB0`), with a `nRF24` (`Chip Select` on PIN5, `IRQ` on PIN4, `Chip Enable` on PIN2) |
 
    Please, change the CS, IRQ and CE pins according to your wiring. ([More about container's variables](#docker-container))
 
