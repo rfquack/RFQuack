@@ -22,14 +22,34 @@
 
 # Note: make sure that client/ points to the root of https://github.com/rfquack/RFQuack-cli
 
+# Thanks to: https://gist.github.com/mpneuried/0594963ad38e68917ef189b4e6a269db
+
+# HELP
+# This will output the help for each task
+# thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+.PHONY: help
+
+.DEFAULT_GOAL := help
+
+APP_PREFIX := rfquack
+APP_NAME := rfquack
+APP := $(APP_PREFIX)/$(APP_NAME)
 SHELL := /bin/bash
 EXAMPLES := $(wildcard examples/*)
 
-.PHONY: all proto examples
+help: ## This help.
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-all: proto examples
+docker-build: ## Build the container
+	docker build -t $(APP) .
 
-proto:
+docker-build-nc: ## Build the container without caching
+	docker build --no-cache -t $(APP) .
+
+docker-stop: ## Stop and remove a running container
+	docker stop $(APP_NAME); docker rm $(APP_NAME)
+
+proto: ## Compile protobuf types
 	cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ;  make
 	cd "src" ; \
 	protoc --plugin=protoc-gen-nanopb=${HOME}/.platformio/lib/Nanopb/generator/protoc-gen-nanopb \
@@ -37,7 +57,7 @@ proto:
 		rfquack.proto \
 		--python_out=client/
 
-examples:
+examples:  ## Compile examples
 	for example in $(EXAMPLES); do \
 		pio ci -c $$example/platformio.ini -l src/ $$example; \
 	done
