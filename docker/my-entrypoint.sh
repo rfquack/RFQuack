@@ -13,5 +13,4 @@ then
 	BOARD="HUZZAH32"
 fi
 
-
 platformio run -t upload -e $BOARD

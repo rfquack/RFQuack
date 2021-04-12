@@ -7,6 +7,9 @@ verify_ssl = true
 
 [packages]
 protobuf = "*"
+platformio = "*"
+google = "*"
+j2cli = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.9"
