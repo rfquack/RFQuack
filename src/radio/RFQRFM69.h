@@ -33,11 +33,11 @@ public:
         // RF69 Datasheet states: "It is not possible to only insert preamble or
         // only insert a sync word"
         RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
-        return RF69::disableSyncWordFiltering(true);
+        return RF69::disableSyncWordFiltering();
       }
 
       // Call to base method.
-      return RF69::setSyncWord(bytes, size, 0, true);
+      return RF69::setSyncWord(bytes, size);
     }
 
     int16_t receiveMode() override {
@@ -48,7 +48,7 @@ public:
     }
 
     void scal() {
-      SPIsendCommand(RF69_CMD_CAL);
+      // TODO implement calibration
     }
 
     bool isIncomingDataAvailable() override {
