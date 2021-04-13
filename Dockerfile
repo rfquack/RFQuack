@@ -3,8 +3,9 @@ FROM python:3.9-slim
 VOLUME [ "/tmp/RFQuack" ]
 
 LABEL maintainer "RFQuack"
+
+# TODO maybe library.json does the job already and this is not needed
 ENV NANOPB_URL="https://github.com/nanopb/nanopb/archive/master.zip"
-ENV RADIOLIB_URL="https://github.com/rfquack/RadioLib.git"
 
 WORKDIR /tmp
 
@@ -33,6 +34,8 @@ RUN wget -O /tmp/nanopb.zip ${NANOPB_URL} \
 RUN platformio lib -g install file:///tmp/RFQuack \
   && cd $HOME/.platformio/lib/RFQuack/ \
   && make proto
+
+# TODO add build examples as a simple regression test here
 
 # Add project files
 WORKDIR /quack

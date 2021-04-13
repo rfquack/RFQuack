@@ -52,6 +52,9 @@ docker-stop: ## Stop and remove a running container
 build: ## Build firmware image according to variables set in .env file
 	docker run --rm -it --env-file build.env $(APP)
 
+flash: ## Flash firmware image to $PORT
+	docker run --rm -it --device=${PORT}:/board --env-file build.env $(APP)
+
 proto: ## Compile protobuf types
 	cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ;  make
 	cd "src" ; \

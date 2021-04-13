@@ -12,6 +12,9 @@ We assume you know what you're doing 🤓
 - [Quick Start Usage](#quick-start-usage)
   - [Prepare Your Hardware](#prepare-your-hardware)
   - [Install via Docker](#install-via-docker)
+    - [Building firmware image](#building-firmware-image)
+    - [Flashing via serial port](#flashing-via-serial-port)
+    - [Under the hood](#under-the-hood)
   - [Install from Source](#install-from-source)
 - [Interact with the RFQuack Hardware](#interact-with-the-rfquack-hardware)
 - [Architecture](#architecture)
@@ -82,8 +85,26 @@ You could play around with other combinations, of course. And if you feel genero
 
 ## Install via Docker
 The quickest way to get started is by mean of our Docker image. It will automatically build and upload the code to any supported board.
-* Make sur you have [Docker](https://docs.docker.com/get-started/) installed.
+* Make sure you have [Docker](https://docs.docker.com/get-started/) installed.
 * Run the Docker container: it'll upload RFQuack to any connected board. Use the cheat sheet and look for your configuration:
+
+We provilde a helper `Makefile` and a `build.env` to set the variables.
+
+### Building firmware image
+
+```bash
+$ make docker-build  # or make docker-build-nc to force re-building
+$ make build
+```
+### Flashing via serial port
+
+```bash
+$ PORT=/dev/ttyUSB0 make flash
+```
+
+### Under the hood
+
+This is what the helper `Makefile` is doing.
 
 | **Command**    | **Description**           |
 |----------------|---------------------------|
