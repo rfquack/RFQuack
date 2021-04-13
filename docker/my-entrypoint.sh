@@ -13,4 +13,9 @@ then
 	BOARD="HUZZAH32"
 fi
 
-platformio run -t upload -e $BOARD
+if [ -e "/board" ]
+then
+  platformio run -t upload -e $BOARD
+else
+  platformio run -e $BOARD
+fi
