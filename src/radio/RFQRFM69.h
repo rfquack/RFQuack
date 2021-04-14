@@ -22,7 +22,7 @@ public:
       if (state != ERR_NONE) return state;
 
       // Remove whitening
-      state |= SPIsetRegValue(RF69_REG_PACKET_CONFIG_1, RF69_DC_FREE_NONE, 6, 5);
+      state |= _mod->SPIsetRegValue(RF69_REG_PACKET_CONFIG_1, RF69_DC_FREE_NONE, 6, 5);
 
       return state;
     }
