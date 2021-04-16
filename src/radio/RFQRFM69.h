@@ -100,7 +100,7 @@ public:
 
     void
     writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
-      SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb, 0);
+      _mod->SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb, 0);
     }
 
     void removeInterrupts() override {
