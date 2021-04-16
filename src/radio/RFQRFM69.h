@@ -47,10 +47,6 @@ public:
       return RF69::startReceive();
     }
 
-    void scal() {
-      // TODO implement calibration
-    }
-
     bool isIncomingDataAvailable() override {
       // Makes sense only if in RX mode.
       if (_mode != rfquack_Mode_RX) {
@@ -96,6 +92,81 @@ public:
     int16_t getBitRate(float &br) override {
       br = RF69::_br;
       return ERR_NONE;
+    }
+
+    int16_t jamMode() {
+      Log.error(F("TODO: jamMode was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setPreambleLength(uint32_t size) {
+      Log.error(F("TODO setPreambleLength was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setFrequencyDeviation(float freqDev) {
+      Log.error(F("TODO setFrequencyDeviation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+    
+    int16_t getFrequencyDeviation(float &freqDev) {
+      Log.error(F("TODO getFrequencyDeviation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setRxBandwidth(float rxBw) {
+      Log.error(F("TODO setRxBandwidth was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setOutputPower(uint32_t txPower) {
+      Log.error(F("TODO: setOutputPower was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t fixedPacketLengthMode(uint8_t len) {
+      Log.error(F("TODO fixedPacketLengthMode was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t variablePacketLengthMode(uint8_t len) {
+      Log.error(F("TODO variablePacketLengthMode was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setPromiscuousMode(bool isPromiscuous) {
+      Log.error(F("TODO setPromiscuousMode was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setCrcFiltering(bool crcOn) {
+      Log.error(F("TODO setCrcFiltering was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setAutoAck(bool autoAckOn) {
+      Log.error(F("TODO setAutoAck was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t isCarrierDetected(bool &isDetected) {
+      Log.error(F("TODO isCarrierDetected was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    float getRSSI(float &rssi) {
+      Log.error(F("TODO getRSSI was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    int16_t setModulation(rfquack_Modulation modulation) {
+      Log.error(F("TODO setModulation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+    
+    int16_t getModulation(char *modulation) {
+      Log.error(F("TODO getModulation was not implemented."));
+      return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     void
