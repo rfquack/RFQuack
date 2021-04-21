@@ -1,6 +1,6 @@
 /*
  * RFQuack is a versatile RF-hacking tool that allows you to sniff, analyze, and
- * transmit data over the air.Consider it as the modular version of the great
+ * transmit data over the air.
  *
  * Copyright (C) 2019 Trend Micro Incorporated
  *
