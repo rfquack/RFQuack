@@ -8,6 +8,12 @@ class RFQnRF24 : public RadioLibWrapper<nRF24> {
 public:
     RFQnRF24(Module *module) : RadioLibWrapper(module, "nRF24") {}
 
+    int16_t begin() override {
+      int16_t state = RadioLibWrapper::begin();
+
+      return state;
+    }
+
     virtual int16_t transmitMode() override {
       // Set up TX_ADDR to last used.
       RFQUACK_LOG_TRACE(F("Setting up TX pipe."))
@@ -107,16 +113,6 @@ public:
       return state;
     }
     
-    int16_t getFrequency(float &carrierFreq) override {
-      carrierFreq = _freq;
-      return ERR_NONE;
-    }
-    
-    int16_t getFrequencyDeviation(float &freqDev) override {
-      freqDev = (_br / 1000.0) * 160.0;
-      return ERR_NONE;
-    }
-    
     int16_t getModulation(char *modulation) override {
       // nRF24 supports only GFSK
       strcpy(modulation, "GFSK");
@@ -128,15 +124,11 @@ public:
     }
 
     int16_t setBitRate(float br) override {
-      int16_t state = nRF24::setDataRate(br); // !?!
-      if (state == ERR_NONE) {
-        _br = br;
-      }
-      return state;
+      return(nRF24::setDataRate(br));
     }
     
     int16_t getBitRate(float &br) override {
-      br = _br;
+      br = nRF24::_dataRate;
       return ERR_NONE;
     }
 
@@ -210,8 +202,6 @@ public:
     }
 private:
     // Config variables not provided by RadioLib, initialised with default values
-    float _freq = 2400.0;
-    float _br = 1000.0;
     byte _addr[5] = {0x01, 0x23, 0x45, 0x67, 0x89}; // Cannot be > 5 bytes. Default len is 5.
     bool _promiscuous = false;
 };

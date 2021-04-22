@@ -7,11 +7,13 @@
 class RFQCC1101 : public RadioLibWrapper<CC1101> {
 public:
     using CC1101::setPreambleLength;
+    using CC1101::fixedPacketLengthMode;
     using CC1101::setOutputPower;
     using CC1101::setPromiscuousMode;
     using CC1101::variablePacketLengthMode;
     using CC1101::setCrcFiltering;
     using CC1101::setRxBandwidth;
+    using CC1101::setBitRate;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module, "CC1101") {}
 
@@ -45,7 +47,7 @@ public:
         // CC1101 Datasheet states: "It is not possible to only insert preamble or
         // only insert a sync word"
         RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
-        return CC1101::disableSyncWordFiltering(true);
+        return CC1101::disableSyncWordFiltering();
       }
 
       // Call to base method.
@@ -124,31 +126,12 @@ public:
       return CC1101::readData(data, len);
     }
 
-    int16_t setFrequency(float carrierFreq) override {
-      // This command, as side effect, sets mode to Standby
-      _mode = rfquack_Mode_IDLE;
-      return CC1101::setFrequency(carrierFreq);
-    }
-
-    int16_t getFrequency(float &carrierFreq) override {
-      carrierFreq = CC1101::_freq;
-      return ERR_NONE;
-    }
-
-    int16_t setFrequencyDeviation(float freqDev) override {
-      int16_t state = CC1101::setFrequencyDeviation(freqDev);
-      if (state == ERR_NONE) {
-        _frequencyDeviation = freqDev;
-      }
-      return state;
-    }
-    
     int16_t getFrequencyDeviation(float &freqDev) override {
       if (CC1101::_modulation == CC1101_MOD_FORMAT_ASK_OOK) {
         // In OOK frequency deviation is zero
         freqDev = 0.0;
       } else {
-        freqDev = _frequencyDeviation;
+        freqDev = CC1101::_freqDev;
       }
       return ERR_NONE;
     }
@@ -173,10 +156,6 @@ public:
         return ERR_NONE;
       }
       return ERR_UNSUPPORTED_ENCODING;
-    }
-
-    int16_t fixedPacketLengthMode(uint8_t len) override {
-      return CC1101::fixedPacketLengthMode(len);
     }
 
     int16_t jamMode() override {
@@ -226,17 +205,7 @@ public:
       return ERR_NONE;
     }
 
-    int16_t setBitRate(float br) override {
-      return CC1101::setBitRate(br);
-    }
-
-    int16_t getBitRate(float &br) override {
-      br = CC1101::_br;
-      return ERR_NONE;
-    }
-
-    void
-    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
+    void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
       SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb, 0);
     }
 
@@ -247,9 +216,9 @@ public:
     void setInterruptAction(void (*func)(void *)) override {
       attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
+
 private:
     // Config variables not provided by RadioLib, initialised with default values
-    float _frequencyDeviation = 48.0;
     byte _syncWords[2] = {0xD3, 0x91};
 };
 

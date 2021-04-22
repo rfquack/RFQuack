@@ -6,6 +6,7 @@
 #define ERR_WRONG_MODE              -591
 
 // Enable super powers :)
+#define RADIOLIB_LOW_LEVEL
 #define RADIOLIB_GODMODE
 
 /* Dirty trick to prevent RadioLib's MQTT class to be included,
@@ -330,8 +331,7 @@ public:
      * @param msb
      * @param lsb
      */
-    virtual void
-    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb = 7, uint8_t lsb = 0) = 0;
+    virtual void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb = 7, uint8_t lsb = 0) = 0;
 
     /**
      * Sets transmitted / received preamble length.
@@ -359,16 +359,16 @@ public:
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getFrequency(float &carrierFreq) {
-      Log.error(F("getFrequency was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
+      carrierFreq = T::_freq;
+      return ERR_NONE;
     }
 
     /**
      * Sets frequency deviation.
-     * @param frequency deviation in MHz
+     * @param frequency deviation in kHz
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t setFrequencyDeviation(float freqDev) {
+    virtual int16_t setFrequencyDeviation(float freqDev) override {
       Log.error(F("setFrequencyDeviation was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
@@ -403,14 +403,13 @@ public:
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
-
     /**
      * Retrieves the bit rate.
      * @param br variable where bitrate gets stored
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getBitRate(float &br) {
-      Log.error(F("setBitRate was not implemented."));
+      Log.error(F("getBitRate was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -422,6 +421,16 @@ public:
     virtual int16_t setOutputPower(uint32_t txPower) {
       Log.error(F("setOutputPower was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Retrieves radio output power.
+     * @param txPower variable where result will be stored
+     * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual int16_t getOutputPower(uint32_t &txPower) {
+      txPower = T::_power;
+      return ERR_NONE;
     }
 
     /**
@@ -522,7 +531,7 @@ public:
      * @param modulation
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t setModulation(rfquack_Modulation modulation) {
+      virtual int16_t setModulation(rfquack_Modulation modulation) {
       Log.error(F("setModulation was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
@@ -551,6 +560,7 @@ public:
 
 protected:
     rfquack_Mode _mode = rfquack_Mode_IDLE; // RFQRADIO_MODE_[STANDBY|RX|TX|JAM]
+
 private:
     char *chipName;
     rfquack_WhichRadio _whichRadio;

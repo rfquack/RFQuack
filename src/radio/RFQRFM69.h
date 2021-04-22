@@ -13,6 +13,10 @@ public:
     using RF69::variablePacketLengthMode;
     using RF69::setCrcFiltering;
     using RF69::setRxBandwidth;
+    using RF69::fixedPacketLengthMode;
+    using RF69::setFrequency;
+    using RF69::setFrequencyDeviation;
+    using RF69::setBitRate;
 
     RFQRF69(Module *module) : RadioLibWrapper(module, "RF69") {}
 
@@ -29,15 +33,33 @@ public:
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       if (size == 0) {
-        // Warning: as side effect this also disables preamble generation / detection.
-        // RF69 Datasheet states: "It is not possible to only insert preamble or
-        // only insert a sync word"
         RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
         return RF69::disableSyncWordFiltering();
       }
 
       // Call to base method.
-      return RF69::setSyncWord(bytes, size);
+      int16_t state = RF69::setSyncWord(bytes, size, 0);
+      if (state == ERR_NONE) {
+        memcpy(_syncWords, bytes, size);
+      }
+      return state;
+    }
+
+    int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) override {
+      if (RF69::_promiscuous) {
+        // No sync words when in promiscuous mode.
+        size = 0;
+        return ERR_INVALID_SYNC_WORD;
+      } else {
+        size = RF69::_syncWordLength;
+        memcpy(bytes, _syncWords, size);
+      }
+      return ERR_NONE;
+    }
+
+    int16_t getBitRate(float &br) override {
+      br = RF69::_br;
+      return ERR_NONE;
     }
 
     int16_t receiveMode() override {
@@ -68,17 +90,6 @@ public:
       return RF69::readData(data, len);
     }
 
-    int16_t setFrequency(float carrierFreq) override {
-      // This command, as side effect, sets mode to Standby
-      _mode = rfquack_Mode_IDLE;
-      return RF69::setFrequency(carrierFreq);
-    }
-
-    int16_t getFrequency(float &carrierFreq) override {
-      carrierFreq = RF69::_freq;
-      return ERR_NONE;
-    }
-
     int16_t setModulation(rfquack_Modulation modulation) override {
       if (modulation == rfquack_Modulation_OOK) {
         return RF69::setOOK(true);
@@ -89,8 +100,13 @@ public:
       return ERR_UNSUPPORTED_ENCODING;
     }
 
-    int16_t getBitRate(float &br) override {
-      br = RF69::_br;
+    int16_t getModulation(char *modulation) {
+      if (!RF69::_ook) {
+        strcpy(modulation, "FSK2");
+      } else {
+        strcpy(modulation, "OOK");
+      }
+
       return ERR_NONE;
     }
 
@@ -99,78 +115,31 @@ public:
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
-    int16_t setPreambleLength(uint32_t size) {
-      Log.error(F("TODO setPreambleLength was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
+    int16_t getFrequencyDeviation(float &freqDev) override {
+      if (RF69::_ook) {
+        freqDev = 0.0;
+      } else {
+        freqDev = RF69::_freqDev;
+      }
+
+      return ERR_NONE;
     }
 
-    int16_t setFrequencyDeviation(float freqDev) {
-      Log.error(F("TODO setFrequencyDeviation was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-    
-    int16_t getFrequencyDeviation(float &freqDev) {
-      Log.error(F("TODO getFrequencyDeviation was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t setRxBandwidth(float rxBw) {
-      Log.error(F("TODO setRxBandwidth was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t setOutputPower(uint32_t txPower) {
-      Log.error(F("TODO: setOutputPower was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t fixedPacketLengthMode(uint8_t len) {
-      Log.error(F("TODO fixedPacketLengthMode was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t variablePacketLengthMode(uint8_t len) {
-      Log.error(F("TODO variablePacketLengthMode was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t setPromiscuousMode(bool isPromiscuous) {
-      Log.error(F("TODO setPromiscuousMode was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t setCrcFiltering(bool crcOn) {
-      Log.error(F("TODO setCrcFiltering was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    int16_t setAutoAck(bool autoAckOn) {
+    int16_t setAutoAck(bool autoAckOn) override {
       Log.error(F("TODO setAutoAck was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
-    int16_t isCarrierDetected(bool &isDetected) {
+    int16_t isCarrierDetected(bool &isDetected) override {
       Log.error(F("TODO isCarrierDetected was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
-    float getRSSI(float &rssi) {
-      Log.error(F("TODO getRSSI was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
+    float getRSSI(float &rssi) override {
+      rssi = RF69::getRSSI();
     }
 
-    int16_t setModulation(rfquack_Modulation modulation) {
-      Log.error(F("TODO setModulation was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-    
-    int16_t getModulation(char *modulation) {
-      Log.error(F("TODO getModulation was not implemented."));
-      return ERR_COMMAND_NOT_IMPLEMENTED;
-    }
-
-    void
-    writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
+    void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
       _mod->SPIsetRegValue((uint8_t) reg, (uint8_t) value, msb, lsb, 0);
     }
 
@@ -181,6 +150,9 @@ public:
     void setInterruptAction(void (*func)(void *)) override {
       attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
     }
+
+private:
+    byte _syncWords[2] = {0x2D, 0xD4};
 };
 
 #endif //RFQUACK_PROJECT_RFQRF69_H
