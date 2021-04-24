@@ -53,5 +53,4 @@ src/client/configs/*
 .DS_Store
 =======
 !**/*credentials*.example
-lib
 TODO
