@@ -4,9 +4,6 @@ VOLUME [ "/tmp/RFQuack" ]
 
 LABEL maintainer "RFQuack"
 
-# TODO maybe library.json does the job already and this is not needed
-ENV NANOPB_URL="https://github.com/nanopb/nanopb/archive/master.zip"
-
 WORKDIR /tmp
 
 # Install RFQuack as library.
@@ -25,11 +22,6 @@ RUN apt-get update \
   && pip install -U pip \
   && pip install -r /tmp/RFQuack/requirements.pip \
   && platformio platform install espressif32
-
-# NOTE: platformio will **COPY** the library to its private folder.
-RUN wget -O /tmp/nanopb.zip ${NANOPB_URL} \
-  && mkdir /tmp/RFQuack/lib \
-  && unzip -d /tmp/RFQuack/lib/nanopb /tmp/nanopb.zip
 
 RUN platformio lib -g install file:///tmp/RFQuack \
   && cd $HOME/.platformio/lib/RFQuack/ \
