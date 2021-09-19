@@ -110,6 +110,7 @@ public:
       return ERR_NONE;
     }
 
+    // TODO implement jamMode for RFM69
     int16_t jamMode() {
       Log.error(F("TODO: jamMode was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
@@ -125,11 +126,13 @@ public:
       return ERR_NONE;
     }
 
+    // TODO implement setAutoAck for RFM69
     int16_t setAutoAck(bool autoAckOn) override {
       Log.error(F("TODO setAutoAck was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
+    // TODO implement isCarrierDetected for RFM69
     int16_t isCarrierDetected(bool &isDetected) override {
       Log.error(F("TODO isCarrierDetected was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
@@ -137,6 +140,8 @@ public:
 
     float getRSSI(float &rssi) override {
       rssi = RF69::getRSSI();
+
+      return rssi;
     }
 
     void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
