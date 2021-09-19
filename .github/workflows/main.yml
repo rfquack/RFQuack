@@ -32,6 +32,12 @@ jobs:
         run: |
           pipenv install --deploy --dev
 
+      - name: Cache PlatformIO
+        uses: actions/cache@v2
+        with:
+          path: ~/.platformio
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+
       - name: Build project
         run: |
           platformio run
