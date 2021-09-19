@@ -12,7 +12,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
 
-      # Setup Python (faster than using Python container)
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -32,3 +31,7 @@ jobs:
         if: steps.cache-pipenv.outputs.cache-hit != 'true'
         run: |
           pipenv install --deploy --dev
+
+      - name: Build project
+        run: |
+          pio run
