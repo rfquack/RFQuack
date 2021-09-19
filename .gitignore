@@ -44,6 +44,7 @@ __pycache__/*
 # Protobuf
 src/*.pb.c
 src/*.pb.h
+src/client/*_pb2.py
 
 # Secrets
 src/client/configs/*
@@ -53,3 +54,7 @@ src/client/configs/*
 .DS_Store
 TODO
 .vscode/*
+
+# Default main
+src/main.cpp
+src/main.ino
