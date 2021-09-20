@@ -27,4 +27,4 @@ jobs:
 
       - name: Build project
         run: |
-          pio run
+          pipenv run pio run
