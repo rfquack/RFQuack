@@ -40,4 +40,4 @@ jobs:
 
       - name: Build project
         run: |
-          platformio run
+          pwd && ls -lah
