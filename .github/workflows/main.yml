@@ -26,5 +26,6 @@ jobs:
           pipenv install --deploy --dev
 
       - name: Build project
-        run: |
-          pipenv run pio run
+        - run: pipenv run pio lib install
+        - run: make
+        - run: pipenv run pio run
