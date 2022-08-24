@@ -36,10 +36,10 @@ jobs:
         platformio lib -g install file://./
     - name: Install APT packages
       run: |
-        apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler
+        apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler python3-protobuf
      - name: Install APT packages
       run: |
-        cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ;  make
+        cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ; ls && make
         cd "src" ; \
         protoc --plugin=protoc-gen-nanopb=${HOME}/.platformio/lib/Nanopb/generator/protoc-gen-nanopb \
                 --nanopb_out=./ \
