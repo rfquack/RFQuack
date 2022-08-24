@@ -1,11 +1,11 @@
-name: PlatformIO CI
+name: Build Firmware
 
 on: [push]
 
 jobs:
   build:
 
-    runs-on: [ubuntu-latest, [linux, ARM64]]
+    runs-on: [ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v2
