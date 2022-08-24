@@ -7,7 +7,7 @@ on: [push]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, [linux, ARM64]]
 
     steps:
     - uses: actions/checkout@v2
@@ -39,13 +39,8 @@ jobs:
         apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler python3-protobuf
      - name: Install APT packages
       run: |
-        cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ; ls && make
-        cd "src" ; \
-        protoc --plugin=protoc-gen-nanopb=${HOME}/.platformio/lib/Nanopb/generator/protoc-gen-nanopb \
-                --nanopb_out=./ \
-                rfquack.proto \
-                --python_out=client/
+        cd /home/runner/work/RFQuack/RFQuack
+        make proto
     - name: Run PlatformIO
       run: |
-        cd ./examples/RFQuack-esp32-CC1101-serial
         pio run 
