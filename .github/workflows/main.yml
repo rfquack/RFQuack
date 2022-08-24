@@ -22,27 +22,26 @@ jobs:
 
       - name: Install pipenv
         run: |
-          python -m pip install --upgrade pipenv wheel
+          python3 -m pip install --upgrade pipenv wheel
 
       - name: Install Python dependencies via Pipenv
         run: |
           pipenv install --deploy --dev
 
-      - name: Install PIO projet libraries
+      - name: Install PIO project libraries
         run: |
           pipenv run pio lib install
 
       - name: Build Nanopb protobuf compiler
         run: |
           cd .pio/libdeps/dev-esp32/Nanopb/generator/proto
-          ls
           make
 
       - name: Build protobuf headers
         run: |
             cd src;
             ls
-            pipenv run python ../.pio/libdeps/dev-esp32/Nanopb/generator/protoc --python_out=client/ --nanopb_out=. rfquack.proto
+            pipenv run python3 ../.pio/libdeps/dev-esp32/Nanopb/generator/protoc --python_out=client/ --nanopb_out=. rfquack.proto
       
       - name: Build PIO project
         run: |
