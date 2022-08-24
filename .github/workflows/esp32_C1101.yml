@@ -23,7 +23,7 @@ jobs:
         key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
     - name: Install APT packages
       run: |
-        apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler python3-protobuf
+        sudo apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler python3-protobuf
     - name: Set up Python
       uses: actions/setup-python@v2
     - name: Install PlatformIO
