@@ -23,22 +23,18 @@ jobs:
       with:
         path: ~/.platformio
         key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+    - name: Install APT packages
+      run: |
+        apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler python3-protobuf
     - name: Set up Python
       uses: actions/setup-python@v2
     - name: Install PlatformIO
       run: |
-        pwd
-        ls
         python -m pip install --upgrade pip
-        pip install --upgrade platformio
         pip install -r requirements.pip
+        pip install --upgrade platformio
         pio pkg install -g --platform "platformio/espressif32@^5.1.0"
         platformio lib -g install file://./
-    - name: Install APT packages
-      run: |
-        apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler python3-protobuf
-     - name: Install APT packages
-      run: |
         cd /home/runner/work/RFQuack/RFQuack
         make proto
     - name: Run PlatformIO
