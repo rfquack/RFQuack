@@ -1,9 +1,7 @@
 name: PlatformIO CI
 
 on: [push]
-    branches:
-      - main
-      - 'releases/**'
+
 jobs:
   build:
 
