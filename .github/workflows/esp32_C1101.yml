@@ -1,0 +1,51 @@
+name: PlatformIO CI
+
+on: [push]
+    branches:
+      - main
+      - 'releases/**'
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Cache pip
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Cache PlatformIO
+      uses: actions/cache@v2
+      with:
+        path: ~/.platformio
+        key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+    - name: Set up Python
+      uses: actions/setup-python@v2
+    - name: Install PlatformIO
+      run: |
+        pwd
+        ls
+        python -m pip install --upgrade pip
+        pip install --upgrade platformio
+        pip install -r requirements.pip
+        pio pkg install -g --platform "platformio/espressif32@^5.1.0"
+        platformio lib -g install file://./
+    - name: Install APT packages
+      run: |
+        apt-get update && apt-get install -y --no-install-recommends git wget unzip make protobuf-compiler
+     - name: Install APT packages
+      run: |
+        cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ;  make
+        cd "src" ; \
+        protoc --plugin=protoc-gen-nanopb=${HOME}/.platformio/lib/Nanopb/generator/protoc-gen-nanopb \
+                --nanopb_out=./ \
+                rfquack.proto \
+                --python_out=client/
+    - name: Run PlatformIO
+      run: |
+        cd ./examples/RFQuack-esp32-CC1101-serial
+        pio run 
