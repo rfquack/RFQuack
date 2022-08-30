@@ -1,3 +1,5 @@
+# RFQuack
+
 [![RFQuack DEMO - Packet capture and filtering via interactive CLI](https://img.youtube.com/vi/_59SRwfS6PU/0.jpg)](https://www.youtube.com/watch?v=_59SRwfS6PU)
 
 RFQuack is the only versatile RF-analysis tool that quacks!
@@ -6,72 +8,74 @@ It's a library firmware that allows you to sniff, manipulate, and transmit data 
 
 We assume you know what you're doing 🤓
 
-- [Demos for the Impatients](#demos-for-the-impatients)
-- [Join the Community](#join-the-community)
-- [Another RF-analysis Dongle?](#another-rf-analysis-dongle)
-- [Quick Start Usage](#quick-start-usage)
-  - [Prepare Your Hardware](#prepare-your-hardware)
-  - [Install via Docker](#install-via-docker)
-    - [Building firmware image](#building-firmware-image)
-    - [Flashing via serial port](#flashing-via-serial-port)
-    - [Under the hood](#under-the-hood)
-  - [Install from Source](#install-from-source)
-- [Interact with the RFQuack Hardware](#interact-with-the-rfquack-hardware)
-- [Architecture](#architecture)
-- [Firmware Modules (a.k.a. plug-ins)](#firmware-modules-aka-plug-ins)
-  - [Radio Module](#radio-module)
-    - [Modem Configuration](#modem-configuration)
-    - [Transmit and Receive](#transmit-and-receive)
-    - [Register Access](#register-access)
-  - [Packet Filtering Module](#packet-filtering-module)
-  - [Packet Modification Module](#packet-modification-module)
-  - [Automatic Frequency Tuning and Bitrate Estimation](#automatic-frequency-tuning-and-bitrate-estimation)
-  - [Other Modules](#other-modules)
-  - [Frequency Synthesizer Calibration](#frequency-synthesizer-calibration)
-- [Docker Container Configuration](#docker-container-configuration)
-  - [General configuration](#general-configuration)
-  - [Radio configuration](#radio-configuration)
-- [License](#license)
-- [Talks & Publications about RFQuack](#talks--publications-about-rfquack)
-- [Research Projects that used RFQuack](#research-projects-that-used-rfquack)
-- [Disclaimer](#disclaimer)
+- [RFQuack](#rfquack)
+  - [Demos for the Impatients](#demos-for-the-impatients)
+  - [Join the Community](#join-the-community)
+  - [Another RF-analysis Dongle?](#another-rf-analysis-dongle)
+  - [Quick Start Usage](#quick-start-usage)
+    - [Prepare Your Hardware](#prepare-your-hardware)
+    - [Install via Docker](#install-via-docker)
+      - [Building firmware image](#building-firmware-image)
+      - [Flashing via serial port](#flashing-via-serial-port)
+      - [Under the hood](#under-the-hood)
+    - [Install from Source](#install-from-source)
+  - [Interact with the RFQuack Hardware](#interact-with-the-rfquack-hardware)
+  - [Architecture](#architecture)
+  - [Firmware Modules (a.k.a. plug-ins)](#firmware-modules-aka-plug-ins)
+    - [Radio Module](#radio-module)
+      - [Modem Configuration](#modem-configuration)
+      - [Transmit and Receive](#transmit-and-receive)
+      - [Register Access](#register-access)
+    - [Packet Filtering Module](#packet-filtering-module)
+    - [Packet Modification Module](#packet-modification-module)
+    - [Automatic Frequency Tuning and Bitrate Estimation](#automatic-frequency-tuning-and-bitrate-estimation)
+    - [Other Modules](#other-modules)
+    - [Frequency Synthesizer Calibration](#frequency-synthesizer-calibration)
+  - [Docker Container Configuration](#docker-container-configuration)
+    - [General configuration](#general-configuration)
+    - [Radio Configuration](#radio-configuration)
+  - [License](#license)
+  - [Talks & Publications About RFQuack](#talks--publications-about-rfquack)
+  - [Research Projects that used RFQuack](#research-projects-that-used-rfquack)
+  - [Disclaimer](#disclaimer)
 
-# Demos for the Impatients
+## Demos for the Impatients
 
 [![RFQuack DEMO - Packet capture and filtering via interactive CLI](https://img.youtube.com/vi/_59SRwfS6PU/0.jpg)](https://www.youtube.com/watch?v=_59SRwfS6PU)
 
 [![RFQuack DEMO - Analyzing 2.4GHz RF protocols](https://img.youtube.com/vi/XNLTjWi7cPo/0.jpg)](https://www.youtube.com/watch?v=XNLTjWi7cPo)
 
-# Join the Community
-* Slack team: https://join-rfquack-slack.herokuapp.com
-* Twitter: https://twitter.com/rfquack
-# Another RF-analysis Dongle?
+## Join the Community
+
+- Discord: <https://discord.gg/6c8hcGbdc5>
+- Twitter: <https://twitter.com/rfquack>
+
+## Another RF-analysis Dongle?
+
 Not really. RFQuack is midway between software-defined radios (SDRs), which offer great
 flexibility at the price of a fatter code base, and RF dongles, which offer
 great speed and a plug-and-play experience at the price of less flexibility
-(you can't change the radio module).
+p(you can't change the radio module).
 
 RFQuack is unique in these ways:
 
-* It's a **library** firmware, with many settings, sane defaults, and rich logging and debugging functionalities.
-* Supports **multiple radio chips**: nRF24, CC1101, basically all the chips supported by [RadioLib](https://github.com/jgromes/RadioLib), and we're adding more.
-* Does not require a **wired connection** to the host computer: the serial port is used only to display debugging messages, but the interaction between the client and the node is over TCP using WiFi (via Arduino WiFi) and GPRS (via [TinyGSM](https://github.com/vshymanskyy/TinyGSM) library) as physical layers.
-* The [RFQuack client](https://github.com/rfquack/RFQuack-cli) allows both **high- and low-level operations**: change frequency, change modulation, etc., as well as to interact with the radio chip via registers.
-* The firmware and its API support the concept of **packet-filtering** and **packet-modification rules**, which means that you can instruct the firmware to listen for a packet matching a given signature (in addition to the usual sync-word- and address-based filtering, which normally happen in the radio hardware), optionally modify it right away, and re-transmit it.
+- It's a **library** firmware, with many settings, sane defaults, and rich logging and debugging functionalities.
+- Supports **multiple radio chips**: nRF24, CC1101, basically all the chips supported by [RadioLib](https://github.com/jgromes/RadioLib), and we're adding more.
+- Does not require a **wired connection** to the host computer: the serial port is used only to display debugging messages, but the interaction between the client and the node is over TCP using WiFi (via Arduino WiFi) and GPRS (via [TinyGSM](https://github.com/vshymanskyy/TinyGSM) library) as physical layers.
+- The [RFQuack client](https://github.com/rfquack/RFQuack-cli) allows both **high- and low-level operations**: change frequency, change modulation, etc., as well as to interact with the radio chip via registers.
+- The firmware and its API support the concept of **packet-filtering** and **packet-modification rules**, which means that you can instruct the firmware to listen for a packet matching a given signature (in addition to the usual sync-word- and address-based filtering, which normally happen in the radio hardware), optionally modify it right away, and re-transmit it.
 
-So, if you need to analyze a weird RF protocol with that special packet format
-or that very special modulation scheme, with mixed symbol encodings (yes, I'm
-looking at you, CC1120 in 4-FSK mode 🤬), with RFQuack you just swap the radio
-shield and you can just start working right away. And if we don't support that
-special radio chip, you can just craft your shield and add support to the software!
+So, if you need to analyze a weird RF protocol with that special packet format or that very special modulation scheme, with mixed symbol encodings (yes, I'm looking at you, CC1120 in 4-FSK mode 🤬), with RFQuack you just swap the radio shield and you can just start working right away. And if we don't support that special radio chip, you can just craft your shield and add support to the software!
 
-# Quick Start Usage
+## Quick Start Usage
+
 RFQuack is quite experimental, expect glitches and imperfections. So far we're quite happy with it, and used it successfully to analyze some industrial radio protocols (read the [Trend Micro Research white paper](https://www.trendmicro.com/vinfo/us/security/news/vulnerabilities-and-exploits/attacks-against-industrial-machines-via-vulnerable-radio-remote-controllers-security-analysis-and-recommendations) or the [DIMVA 2019 paper](https://www.dimva2019.org) for details).
 
-## Prepare Your Hardware
-* Choose the radio chip and board that you want to use among the supported ones: we tested the CC1101, nRF24 and ESP32-based boards (namely the Adafruit Feather HUZZAH32).
-* Assemble the board and the radio chip together: if you choose the Adafruit Feather system, all you have to do is stack the boards together, and do some minor soldering.
-* Connect the board to the USB port.
+### Prepare Your Hardware
+
+- Choose the radio chip and board that you want to use among the supported ones: we tested the CC1101, nRF24 and ESP32-based boards (namely the Adafruit Feather HUZZAH32).
+- Assemble the board and the radio chip together: if you choose the Adafruit Feather system, all you have to do is stack the boards together, and do some minor soldering.
+- Connect the board to the USB port.
 
 | **Main board** | **Radio daughter board** | **Network connectivity** | **Cellular connectivity** |
 |----------------|-------------------------------------|----------------------|-----------------------|
@@ -83,26 +87,29 @@ You could play around with other combinations, of course. And if you feel genero
 
 <img src="docs/imgs/base.jpg" width="30%" /><img src="docs/imgs/mcu-huzzah32.jpg" width="30%" /><img src="docs/imgs/mcu-huzzah32-cc1101-433.jpg" width="30%" /><img src="docs/imgs/mcu-huzza32-433-868.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-cc1101-433.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-rf24-cc1101.jpg" width="30%" /><img src="docs/imgs/mcu-teensy-cc1120-cc1101.jpg" width="30%" /><img src="docs/imgs/battery.jpg" width="30%" />
 
-## Install via Docker
+### Install via Docker
+
 The quickest way to get started is by mean of our Docker image. It will automatically build and upload the code to any supported board.
-* Make sure you have [Docker](https://docs.docker.com/get-started/) installed.
-* Run the Docker container: it'll upload RFQuack to any connected board. Use the cheat sheet and look for your configuration:
+
+- Make sure you have [Docker](https://docs.docker.com/get-started/) installed.
+- Run the Docker container: it'll upload RFQuack to any connected board. Use the cheat sheet and look for your configuration:
 
 We provilde a helper `Makefile` and a `build.env` to set the variables.
 
-### Building firmware image
+#### Building firmware image
 
 ```bash
-$ make docker-build  # or make docker-build-nc to force re-building
-$ make build
+make docker-build  # or make docker-build-nc to force re-building
+make build
 ```
-### Flashing via serial port
+
+#### Flashing via serial port
 
 ```bash
-$ PORT=/dev/ttyUSB0 make flash
+PORT=/dev/ttyUSB0 make flash
 ```
 
-### Under the hood
+#### Under the hood
 
 This is what the helper `Makefile` is doing.
 
@@ -114,37 +121,39 @@ This is what the helper `Makefile` is doing.
 
    Please, change the CS, IRQ and CE pins according to your wiring. ([More about container's variables](#docker-container))
 
-* Done 😎 RFQuack is installed on your hardware and reachable via *serial*. It's time to [test it!](#test-it)
+- Done 😎 RFQuack is installed on your hardware and reachable via *serial*. It's time to [test it!](#test-it)
 
-## Install from Source
+### Install from Source
+
 RFQuack comes in the form of a firmware *library*, which means that you need to write your own "main" to define a minimum set of parameters. Don't worry, there's not much to write in there, and we provide a [few working examples](https://github.com/trendmicro/RFQuack/tree/RadioLib/examples).
 
-* Clone this repository
-* Make sure you have `platformio` and `protoc` installed.
-* Install `Nanopb 0.3.9.2` using `platformio lib -g install git+https://github.com/nanopb/nanopb.git#0.3.9.2`
-* Enter the main directory: `cd RFQuack`
-* Generate protobuf implementations: `make proto`
-* Install the RFQuack library via `platformio lib -g install file://./` (if you want to install it globally)
+- Clone this repository
+- Make sure you have `platformio` and `protoc` installed.
+- Install `Nanopb 0.3.9.2` using `platformio lib -g install git+https://github.com/nanopb/nanopb.git#0.3.9.2`
+- Enter the main directory: `cd RFQuack`
+- Generate protobuf implementations: `make proto`
+- Install the RFQuack library via `platformio lib -g install file://./` (if you want to install it globally)
 
   **NOTE** Platformio will *copy* the library to its internal storage. Any change to sources will not be reflected.
-* To talk to your RFQuack dongle, you have two options:
-  * **MQTT Transport (and hardware serial console):** install or have access to an MQTT broker (Mosquitto is just perfect for this):
-    * PROs:
-      * you don't need cables (hint: your RFQuack hardware can be battery powered)
-      * if you want to connect the RFQuack hardware to your computer, you get a free (hardware) serial console for monitoring on the USB port
-    * CONs:
-      * you need network connectivity (WiFi or cellular)
-      * there's latency
-  * **Hardware Serial Transport (and software serial console):** connect the dongle via USB
-    * PROs:
-      * there's little latency
-      * you don't need to rely on network stability
-    * CONs:
-      * if you want full monitoring and debugging capabilities, you'll need to hookup a UART cable to the RFQuack hardware (by default, a software serial device is used, and will write on pins 16, 12 (RX, TX); this can be changed by defining `RFQUACK_LOG_SS_RX_PIN` and `RFQUACK_LOG_SS_TX_PIN` before `#include <rfquack.h>`)
-      * your range is limited by the length of your USB cable (you don't say! 😮)
-* configure the firmware: best if you use one of the proposed examples.
+- To talk to your RFQuack dongle, you have two options:
+  - **MQTT Transport (and hardware serial console):** install or have access to an MQTT broker (Mosquitto is just perfect for this):
+    - PROs:
+      - you don't need cables (hint: your RFQuack hardware can be battery powered)
+      - if you want to connect the RFQuack hardware to your computer, you get a free (hardware) serial console for monitoring on the USB port
+    - CONs:
+      - you need network connectivity (WiFi or cellular)
+      - there's latency
+  - **Hardware Serial Transport (and software serial console):** connect the dongle via USB
+    - PROs:
+      - there's little latency
+      - you don't need to rely on network stability
+    - CONs:
+      - if you want full monitoring and debugging capabilities, you'll need to hookup a UART cable to the RFQuack hardware (by default, a software serial device is used, and will write on pins 16, 12 (RX, TX); this can be changed by defining `RFQUACK_LOG_SS_RX_PIN` and `RFQUACK_LOG_SS_TX_PIN` before `#include <rfquack.h>`)
+      - your range is limited by the length of your USB cable (you don't say! 😮)
+- configure the firmware: best if you use one of the proposed examples.
 
-# Interact with the RFQuack Hardware
+## Interact with the RFQuack Hardware
+
 Now you can use RFQuack via the IPython shell. We highly recommend tmux to keep an eye on the output log.
 
 You need to install the [RFQuack CLI package](https://github.com/rfquack/RFQuack-cli). For the sake of simplicity we'll run it through Docker:
@@ -198,7 +207,7 @@ More concretely:
 ```bash
 $ docker run --device /dev/ttyUSB0 --rm -it rfquack/cli tty -P /dev/ttyUSB0
 2019-04-10 18:04:31 local RFQuack[20877] INFO Transport initialized
-2019-04-10 18:04:31 local RFQuack[20877] INFO Transport pipe initialized (QoS = 2): mid = 2
+2019-04-10 18:04:31 local RFQuack[20877] INFO Transport   e initialized (QoS = 2): mid = 2
 
 ...
 
@@ -220,28 +229,30 @@ At this point you're good to go from here!
 ![RFQuack Console](docs/imgs/console1.png)
 ![RFQuack Console](docs/imgs/console2.png)
 
-# Architecture
+## Architecture
 
 ![RFQuack Architecture](docs/imgs/RFQuack%20Architecture.png)
 
 RFQuack has a modular software and hardware architecture comprising:
 
-* a radio chip (usually within a module)
-* a micro-controller unit (MCU)
-* an optional network adapter (cellular or WiFi)
+- a radio chip (usually within a module)
+- a micro-controller unit (MCU)
+- an optional network adapter (cellular or WiFi)
 
 The communication layers are organized as follows:
 
-* The Python client encodes the message for RFQuack with Protobuf (via [nanopb](https://github.com/nanopb/nanopb)): this ensures data-type consistency across firmware (written in C) and client (written in Python), light data validation, and consistent development experience.
-* The serialized messages are transported over MQTT (which allows multi-node and multi-client scenarios) or serial (when you need minimal latency).
-* The connectivity layer is just a thin abstraction over various cellular modems and the Arduino/ESP WiFi (or simply serial).
-* The message is decoded and handled by a software [module](#modules)
+- The Python client encodes the message for RFQuack with Protobuf (via [nanopb](https://github.com/nanopb/nanopb)): this ensures data-type consistency across firmware (written in C) and client (written in Python), light data validation, and consistent development experience.
+- The serialized messages are transported over MQTT (which allows multi-node and multi-client scenarios) or serial (when you need minimal latency).
+- The connectivity layer is just a thin abstraction over various cellular modems and the Arduino/ESP WiFi (or simply serial).
+- The message is decoded and handled by a software [module](#modules)
 
-# Firmware Modules (a.k.a. plug-ins)
+## Firmware Modules (a.k.a. plug-ins)
+
 RFQuack's functionalities are built as pluggable modules, developed on top of a generic API.
 When you fire up the Python shell, you can interact with the connected dongle through the `q` object; try auto-completion *(tab is your friend)* and discover each loaded module.
 
 Each module has a built-in, super handy, helper function:
+
 ```python
 RFQuack(/dev/ttyUSB0, 115200,8,N,1)> q.frequency_scanner.help()  
 
@@ -258,13 +269,13 @@ Starts frequency scan
 ```
 
 For sure, you already understood how it works: `q.frequency_scanner.freq_step` is a `float` property; you are free to **get** it.
+
 ```python
 RFQuack(/dev/ttyUSB0, 115200,8,N,1)> q.frequency_scanner.freq_step
 value = 1.0
 ```
 
 or **set** it:
-
 
 ```python
 RFQuack(/dev/ttyUSB0, 115200,8,N,1)> q.frequency_scanner.freq_step = 5.0
@@ -273,6 +284,7 @@ message =
 ```
 
 While `q.frequency_scanner.start()` is a `function(void)` :
+
 ```python
 RFQuack(/dev/ttyUSB0, 115200,8,N,1)> q.frequency_scanner.start()
 result = 0
@@ -285,23 +297,25 @@ If unsure which parameters a function/property can take please check the `src/rf
 
 In the following, we explore the main functionalities of each - built in - module through some examples.
 
-## Radio Module
+### Radio Module
+
 Each connected radio will pop up as a module, progressively named after `radioA`, `radioB`, `radioC`, `radioD`, `radioE`.
 
 RFQuack's radio sub-system is based on [RadioLib](https://github.com/jgromes/RadioLib), so for most aspects you can refer to the RadioLib documentation. (yep, even for error codes).
 
-### Modem Configuration
+#### Modem Configuration
+
 Not all radio modules support modem configuration. Sub-gigahertz modems usually do. The `q.radioA.set_modem_config()` function takes as argument a `rfquack_ModemConfig`, which is built of the following optional parameters:
 
-* `carrierFreq`: this is the carrier frequency, easy; make sure you comply to the radio module you chosen.
-* `txPower`: control the transmission power; set them wisely and make sure to follow the laws that apply to your country.
-* `preambleLen`: control the length of the radio's preamble.
-* `syncWords`: sync-word matching is a basic functionality of most packet-radio modules, which allow to efficiently filter packets that match the sync words and just ignore the rest, in order to keep the radio chip and the MCU busy only when an expected packet is received; depending on the radio module, the sync words can be set to zero (promiscuous mode) or up to a certain number of octects (e.g., 4); in promiscuous mode, the radio and MCU will be *very* busy, because they will pick up *everything*, including noise.
-* `isPromiscuous`: handy way to automatically set neat parameters and enter a fully *promiscuous* mode: sets syncword, disable crc filtering, disables automatic acknowledges, ...
-* `modulation`: this is the carrier modulation (ASK, OOK, FSK, GSK ...); make sure you comply to the radio module you chosen.
-* `useCRC`: whatever to enable or disable CRC filtering.
-* `bitRate`: this is the symbol bitrate (in kbps); make sure you comply to the radio module you chosen.
-* `rxBandwidth`: Sets receiver bandwidth (in kHz); make sure you comply to the radio module you chosen.
+- `carrierFreq`: this is the carrier frequency, easy; make sure you comply to the radio module you chosen.
+- `txPower`: control the transmission power; set them wisely and make sure to follow the laws that apply to your country.
+- `preambleLen`: control the length of the radio's preamble.
+- `syncWords`: sync-word matching is a basic functionality of most packet-radio modules, which allow to efficiently filter packets that match the sync words and just ignore the rest, in order to keep the radio chip and the MCU busy only when an expected packet is received; depending on the radio module, the sync words can be set to zero (promiscuous mode) or up to a certain number of octects (e.g., 4); in promiscuous mode, the radio and MCU will be *very* busy, because they will pick up *everything*, including noise.
+- `isPromiscuous`: handy way to automatically set neat parameters and enter a fully *promiscuous* mode: sets syncword, disable crc filtering, disables automatic acknowledges, ...
+- `modulation`: this is the carrier modulation (ASK, OOK, FSK, GSK ...); make sure you comply to the radio module you chosen.
+- `useCRC`: whatever to enable or disable CRC filtering.
+- `bitRate`: this is the symbol bitrate (in kbps); make sure you comply to the radio module you chosen.
+- `rxBandwidth`: Sets receiver bandwidth (in kHz); make sure you comply to the radio module you chosen.
 
 Usage example (on a `CC1101` radio):
 
@@ -332,7 +346,8 @@ result = 0
 message =
 ```
 
-### Transmit and Receive
+#### Transmit and Receive
+
 The `tx()`, `rx()`, `idle()` functions are self-explanatory: they set the module in transmit, receive and idle mode, respectively. To actually transmit data, you can use `send(data=b"\xAA\xBB")`, where data must be a list of raw octect values; there's a limit in the length, which is imposed by the radio module, so make sure you check the documentation.
 
 ```python
@@ -351,7 +366,8 @@ message =
 
 By default, a packet is transmitted only once. If you want to repeat it, just set `repetitions` to whatever you want, and RFQuack will repeat the transmission as fast as possible (bound by the MCU clock, of course).
 
-### Register Access
+#### Register Access
+
 While RadioLib has gone very far in abstracting the interaction with the radio,
 
 Some radio chips are really "unique," so to speak. In these cases, the only option is to grab a large cup of your favorite beverage, read through the datasheet, read again, again, and again.
@@ -361,6 +377,7 @@ Once you understand enough of how the radio works at the low level, you want to 
 RFQuack is meant to be as generic as possible. What's not directly abstracted within a module can be accomplished by setting the registers via the `set_register` and `get_register` function.
 
 Usage example: retrieve the content of register `0x02`
+
 ```python
 RFQuack(/dev/ttyUSB0, 115200,8,N,1)> q.radioA.get_register(int("0x02",16))  
 address = 2
@@ -369,34 +386,36 @@ value = 3
 ```
 
 Or alter it:
+
 ```python
 RFQuack(/dev/ttyUSB0, 115200,8,N,1)> q.radioA.set_register(address=int("0x02",16), value=int("0xFF",16))  
 result = 0
 message =
 ```
+
 Recall that Python lets you do nice things like `q.radioA.set_register(address=int("0x02", 16), value=0x01001100)` so you don't have to do any conversions.
 
 Note that every call to `set_modem_config()` will **alter the modem state, including several registers** to their default values (according to the datasheet). Also, many radio chips need to be in an "idle" state while setting certain registers. Please check the datasheet and use `idle()` before setting registers to be on the safe side. Last, be wise and double check that the values you set are actually there, using `get_register` after each `set_register`.
 
 We noticed some timing issues with some radio chips. So, allow a small delay if you're setting many registers in a row (e.g., `for addr, value in regs: q.radioA.set_register(address=addr, value=value); time.sleep(0.2)`).
 
+### Packet Filtering Module
 
-## Packet Filtering Module
 One of the main reasons why we created RFQuack is that we wanted to automate certain tasks in a flexible and fast way. For instance, we were building a PoC for a vulnerability in a radio protocol that, with a change in two bytes of the payload, the vulnerable receiver would execute another command. So, all we had to do was: stay in RX mode, wait for a packet matching a pattern, alter it, and re-transmit it.
 
 Most of this could be done with an SDR or with a RF-dongle and RFCat, but in both cases you'd have to "pay" the round-trip time from the radio, to the client, and back. For certain protocols, this timing is not acceptable. RFQuack's firmware implements this functionality natively, and exposes a simple API to configure packet filtering and manipulation.
 
 **Important:** filtering and patterns are applied past any filtering performed by the radio (e.g., based on sync words, address, CRC, RSSI, LQI). If you want to consider any packet, including noise, you'll have to disable these low-level filters enabling *promiscuous mode*)
 
-* `q.packet_filter.add(pattern="", negateRule=bool)` takes two parameters: a regular-expression pattern complying with the [tiny-regex-c](https://github.com/kokke/tiny-regex-c) library (most common patterns are supported); adding a pattern means that RFQuack will discard any payload not matching that regex (or matching it, using `negateRule`); you can add multiple filters, they'll be applied one next the other (AND logic).
-* `q.packet_filter.reset()` will delete any stored filtering rule.
-* `q.packet_filter.dump()` will dump to CLI any stored rule.
-* `q.packet_filter.enabled` boolean that controls whatever the module is enabled, **do not forget to set it!**
-
+- `q.packet_filter.add(pattern="", negateRule=bool)` takes two parameters: a regular-expression pattern complying with the [tiny-regex-c](https://github.com/kokke/tiny-regex-c) library (most common patterns are supported); adding a pattern means that RFQuack will discard any payload not matching that regex (or matching it, using `negateRule`); you can add multiple filters, they'll be applied one next the other (AND logic).
+- `q.packet_filter.reset()` will delete any stored filtering rule.
+- `q.packet_filter.dump()` will dump to CLI any stored rule.
+- `q.packet_filter.enabled` boolean that controls whatever the module is enabled, **do not forget to set it!**
 
 **NOTE** Packet's payload will be treated as a hex string.
 
 Example:
+
 ```python
 RFQuack(/dev/ttyDUMMY, 115200,8,N,1)> \
   q.packet_filter.add(
@@ -414,25 +433,25 @@ result = 0
 message =
 ```
 
-## Packet Modification Module
+### Packet Modification Module
+
 RFQuacks comes with a powerful packet modification module:
 
- * `q.packet_modification.add()` takes several parameters:
-    * `position` (number, optional) indicates the position in the payload that will be modified (e.g., 3rd byte);
-    * `content` (byte, optional) indicates the content that will be modified (e.g., all octects which value is `'A'`);
-    * `pattern` (optional) same as for the filter: only packets matching the pattern will be modified; if no pattern is specified, all packets will be modified.
-    * `operation` (enum) is the action to be performed, available operations are:
-      * (AND, OR, XOR, NOT, SLEFT, SRIGHT) + `operand` field.
-      * (PREPEND, APPEND, INSERT) + `payload` field.
-      * NOT.
-    * `operand` (byte) is the "right" value for the operations that need it *(AND, OR, XOR, NOT, SLEFT, SRIGHT)*.
-    * `payload` (byte) is the "payload" value for the operations that need it *(PREPEND, APPEND, INSERT)*.
-    * `pattern` (string) a regular-expression pattern complying with the [tiny-regex-c](https://github.com/kokke/tiny-regex-c), to restrict modifications to matching packets only.
- * `q.packet_modification.reset()` will delete any stored rule.
- * `q.packet_modification.dump()` will dump to CLI any stored rule.
- * `q.packet_modification.auto_shift` (boolean), if enabled the module will automatically left shifts packets matching `^5555` to get `^aaaa` packets.
- * `q.packet_modification.enabled` (boolean), controls whatever the module is enabled, **do not forget to set it!**
-
+- `q.packet_modification.add()` takes several parameters:
+  - `position` (number, optional) indicates the position in the payload that will be modified (e.g., 3rd byte);
+  - `content` (byte, optional) indicates the content that will be modified (e.g., all octects which value is `'A'`);
+  - `pattern` (optional) same as for the filter: only packets matching the pattern will be modified; if no pattern is specified, all packets will be modified.
+  - `operation` (enum) is the action to be performed, available operations are:
+    - (AND, OR, XOR, NOT, SLEFT, SRIGHT) + `operand` field.
+    - (PREPEND, APPEND, INSERT) + `payload` field.
+    - NOT.
+  - `operand` (byte) is the "right" value for the operations that need it *(AND, OR, XOR, NOT, SLEFT, SRIGHT)*.
+  - `payload` (byte) is the "payload" value for the operations that need it *(PREPEND, APPEND, INSERT)*.
+  - `pattern` (string) a regular-expression pattern complying with the [tiny-regex-c](https://github.com/kokke/tiny-regex-c), to restrict modifications to matching packets only.
+- `q.packet_modification.reset()` will delete any stored rule.
+- `q.packet_modification.dump()` will dump to CLI any stored rule.
+- `q.packet_modification.auto_shift` (boolean), if enabled the module will automatically left shifts packets matching `^5555` to get `^aaaa` packets.
+- `q.packet_modification.enabled` (boolean), controls whatever the module is enabled, **do not forget to set it!**
 
 **Example:** Let's say that you want to invert byte 3 of all packets that end with `'XYZ'` and XOR with `0x44` all bytes which value is `'A'` (and in position 5) of all packets that start with `'AAA'`. And you want to ignore any packet that do not contain at least 3 digits in their payload. You're going to need two modifications and one filter:
 
@@ -475,7 +494,8 @@ In [78]: q.packet_modification.add(
 In [79]: q.packet_modification.enabled = True # enable packet manipulation
 ```
 
-## Automatic Frequency Tuning and Bitrate Estimation
+### Automatic Frequency Tuning and Bitrate Estimation
+
 It may happen that you don't know the frequency and/or the bitrate used by a transmitted. RFQuack comes with a module called `guessing` which automatically tries to, well, guess them!
 The module comes already configured for scanning from `432MHz` up to `437MHz`, you can easily tweak its parameters using the CLI and use it on any carrier frequency supported by the radio module.
 
@@ -499,19 +519,22 @@ hex data = 06aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 **Note:** Currently it only supports OOK modulation, but we believe it can be extended to 2-FSK with some offset tuning (which will make a 2-FSK look like an OOK).
 
-## Other Modules
+### Other Modules
+
 There are few other built-in modules, and you can check their documentation by typing `q.moduleName.help()` in the CLI.
-* **Frequency Scanner Module** : Useful module to perform frequency scanning in a range of frequencies.
-* **Mouse Jack Module** : Module implementing [mouse jack](https://github.com/insecurityofthings/uC_mousejack)
-* **Packet Repeater Module** Useful to repeat a packet (maybe after Packet Filtering and Modification)
-* **Roll Jam Module**: Module implementing Samy Kamkar's roll jam.
-* **You Own Module**: It's super easy to create a module! Please check [src/modules/](src/modules/) and create your own. (Do not forget to send a PR!)
+
+- **Frequency Scanner Module** : Useful module to perform frequency scanning in a range of frequencies.
+- **Mouse Jack Module** : Module implementing [mouse jack](https://github.com/insecurityofthings/uC_mousejack)
+- **Packet Repeater Module** Useful to repeat a packet (maybe after Packet Filtering and Modification)
+- **Roll Jam Module**: Module implementing Samy Kamkar's roll jam.
+- **You Own Module**: It's super easy to create a module! Please check [src/modules/](src/modules/) and create your own. (Do not forget to send a PR!)
 
 Looking at the full picture, here's the full journey of a packet within RFQuack.
 
 ![RFQuack Full Architecture](docs/imgs/RFQuack%20Full%20Architecture.png)
 
-## Frequency Synthesizer Calibration
+### Frequency Synthesizer Calibration
+
 Recall that radio chips may have internal calibration routines (manual or
 automatic) for the frequency synthesizer, which outcome may vary slightly.
 Temperature is another factor that may slightly influence the actual carrier
@@ -519,10 +542,12 @@ frequency. In lack of a stable and reliable reference point, we suggest to set
 the registers so as to get as close as possible to your target frequency (e.g.,
 aided by a spectrogram), and then nudge around until matched.
 
-# Docker Container Configuration
+## Docker Container Configuration
+
 RFQuack's docker container automatically builds the firmware for you, more information about its variables:
 
-## General configuration
+### General configuration
+
 Remember that RFQuack can be reached via WiFi or Serial,
 
 | Variable           | Description                                                                | Required |
@@ -539,19 +564,19 @@ Remember that RFQuack can be reached via WiFi or Serial,
 | `MQTT_PASS`        | MQTT Broker password                                                       | No       |
 | `MQTT_SSL`         | Enables MQTT over SSL (put your certificates into `rfquack_certificates.h`)  | No       |
 
-## Radio configuration
+### Radio Configuration
+
 RFQuack supports up to *5 radios*; **you must configure - at least - RadioA**:
 
 | Variable      | Description                                                           | Required |
 |---------------|-----------------------------------------------------------------------|----------|
-| `RADIOX`      | Chosen modem for RadioX: (options: `CC1101`, `nRF24` _case sensitive_)| Yes, if `RADIOA`     |
+| `RADIOX`      | Chosen modem for RadioX: (options: `CC1101`, `nRF24` *case sensitive*)| Yes, if `RADIOA`     |
 | `RADIOX_CS`   | SPI `Chip Select` pin for RadioX                                      | No      |
 | `RADIOX_IRQ`  | Interrupt pin for RadioX. It's labeled `IRQ` on `nRF24` modules, or `GDO0` on `CC1101` ones | No      |
 | `RADIOX_CE`   | `Chip Enable` pin for RadioX (needed only for `nRF24` radios)         | No      |
 
+## License
 
-
-# License
 Copyright (C) 2019 Trend Micro Incorporated.
 
 This program is free software; you can redistribute it and/or modify it under
@@ -567,25 +592,31 @@ You should have received a copy of the GNU General Public License along with
 this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# Talks & Publications about RFQuack
+## Talks & Publications About RFQuack
+
 If you use RFQuack and find it useful, we'd appreciate if you cite at least one of the following resources:
 
-* **RFQuack - Cheap and easy RF analysis**, Andrea Guglielmini, [CanSecWest 2020](https://cansecwest.com/post/2020-03-09-22:00:00_2020_Speakers)
-* **RFQuack: The RF-Analysis Tool That Quacks**, Federico Maggi, HITB Amory, Amsterdam, May 9, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/talks/maggi_rfquack_talk_2019.pdf)]
-  * 🇮🇹 Radio and Hardware Security Testing for Human Beings, Federico Maggi, NoHat 2019, [[Video](https://www.youtube.com/watch?v=0m-Rjb5aWaM)]
-  * 🇮🇹 Reverse engineering di protocolli radio proprietari, Federico Maggi, HackInBo® Winter Edition 2019, [[Video](https://www.youtube.com/watch?v=3r_9Za_Xboc)]
+- **RFQuack - Cheap and easy RF analysis**, Andrea Guglielmini, [CanSecWest 2020](https://cansecwest.com/post/2020-03-09-22:00:00_2020_Speakers)
+- **RFQuack: The RF-Analysis Tool That Quacks**, Federico Maggi, HITB Amory, Amsterdam, May 9, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/talks/maggi_rfquack_talk_2019.pdf)]
+  - 🇮🇹 Radio and Hardware Security Testing for Human Beings, Federico Maggi, NoHat 2019, [[Video](https://www.youtube.com/watch?v=0m-Rjb5aWaM)]
+  - 🇮🇹 Reverse engineering di protocolli radio proprietari, Federico Maggi, HackInBo® Winter Edition 2019, [[Video](https://www.youtube.com/watch?v=3r_9Za_Xboc)]
 
-# Research Projects that used RFQuack
-*  **A Security Evaluation of Industrial Radio Remote Controllers**, Federico Maggi, Marco Balduzzi, Jonathan Andersson, Philippe Lin, Stephen Hilt, Akira Urano, and Rainer Vosseler. Proceedings of the 16th International Conference on Detection of Intrusions and Malware, and Vulnerability Assessment (DIMVA). Gothenburg, Sweden, June 19, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/papers/conference-papers/maggi_industrialradios_2019.pdf)]
-* **A Security Analysis of Radio Remote Controllers for Industrial Applications**,
+## Research Projects that used RFQuack
+
+- **A Security Evaluation of Industrial Radio Remote Controllers**, Federico Maggi, Marco Balduzzi, Jonathan Andersson, Philippe Lin, Stephen Hilt, Akira Urano, and Rainer Vosseler. Proceedings of the 16th International Conference on Detection of Intrusions and Malware, and Vulnerability Assessment (DIMVA). Gothenburg, Sweden, June 19, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/papers/conference-papers/maggi_industrialradios_2019.pdf)]
+
+- **A Security Analysis of Radio Remote Controllers for Industrial Applications**,
 Jonathan Andersson, Marco Balduzzi, Stephen Hilt, Philippe Lin, Federico Maggi, Akira Urano, and Rainer Vosseler., Trend Micro, Inc. Trend Micro Research, January 15, 2019 [[PDF](https://documents.trendmicro.com/assets/white_papers/wp-a-security-analysis-of-radio-remote-controllers.pdf)]
-  * Attacking Industrial Remote Controllers, Marco Balduzzi and Federico Maggi, HITB2019, Amsterdam [[Video](https://www.youtube.com/watch?v=pEP7EOQkm_0)]
-  * How we reverse-engineered multiple industrial radio remote-control systems, Stephen Hilt, BSides Knoxville 2020, [[Video](https://www.youtube.com/watch?v=xBXktWwvEyI)]
-  * Attacking industrial remote controllers for fun and profit, Dr. Marco Balduzzi, CONFidence 2019, [[Video](https://www.youtube.com/watch?v=T6sJCUxFohc)]
-  * How we reverse-engineered multiple industrial radio remote-control systems, Stephen Hilt, CS3STHLM 2019, [[Video](https://www.youtube.com/watch?v=5l_cWD5ZR-M)]
-* [EvilCrowRF](https://github.com/joelsernamoreno/EvilCrowRF-Beta)
+  - Attacking Industrial Remote Controllers, Marco Balduzzi and Federico Maggi, HITB2019, Amsterdam [[Video](https://www.youtube.com/watch?v=pEP7EOQkm_0)]
+  - How we reverse-engineered multiple industrial radio remote-control systems, Stephen Hilt, BSides Knoxville 2020, [[Video](https://www.youtube.com/watch?v=xBXktWwvEyI)]
+  - Attacking industrial remote controllers for fun and profit, Dr. Marco Balduzzi, CONFidence 2019, [[Video](https://www.youtube.com/watch?v=T6sJCUxFohc)]
+  - How we reverse-engineered multiple industrial radio remote-control systems, Stephen Hilt, CS3STHLM 2019, [[Video](https://www.youtube.com/watch?v=5l_cWD5ZR-M)]
+- [EvilCrowRF](https://github.com/joelsernamoreno/EvilCrowRF-Beta)
 
-# Disclaimer
-RFQuack is a research tool intended to analyze radio-frequency (RF) signals via
-software, with native hardware support. It is not intended for malicious or
-offensive purposes.
+## Disclaimer
+
+RFQuack is a research tool intended to analyze and emit radio-frequency (RF)
+signals via software, with native hardware support. Although it is not intended
+for illegal, malicious or offensive purposes, it can be used to those ends. We
+take no responsibility whatsoever about the unforeseen consequences of unethical
+or illegal use of this software.
