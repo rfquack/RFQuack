@@ -21,7 +21,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/* \
   && pip install -U pip \
   && pip install -r /tmp/RFQuack/requirements.pip \
-  && platformio platform install espressif32
+  && pio pkg install -g --platform "platformio/espressif32@^5.1.0"
 
 RUN platformio lib -g install file:///tmp/RFQuack \
   && cd $HOME/.platformio/lib/RFQuack/ \
