@@ -54,7 +54,7 @@ src/client/configs/*
 .DS_Store
 TODO
 .vscode/*
-
+*.swp
 # Default main
 src/main.cpp
 src/main.ino
