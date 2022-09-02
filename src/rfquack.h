@@ -101,7 +101,7 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   // Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
   rfqRadio = new RFQRadio(_radioA, _radioB, _radioC, _radioD, _radioE);
   int16_t result = rfqRadio->begin();
-  if (result != ERR_NONE) {
+  if (result != RADIOLIB_ERR_NONE) {
     RFQUACK_LOG_TRACE(F("Something went wrong, check your wiring."))
     while (true);
   }

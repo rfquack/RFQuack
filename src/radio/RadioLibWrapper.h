@@ -5,6 +5,7 @@
 #define ERR_COMMAND_NOT_IMPLEMENTED -590
 #define ERR_WRONG_MODE              -591
 
+
 // Enable super powers :)
 #define RADIOLIB_LOW_LEVEL
 #define RADIOLIB_GODMODE
@@ -94,14 +95,14 @@ public:
 
         // Start async RX
         int16_t state = T::startReceive();
-        if (state != ERR_NONE)
+        if (state != RADIOLIB_ERR_NONE)
           return state;
 
         // Register an interrupt routine to set flag when radio receives something.
         setFlag(false);
         setInterruptAction(radioInterrupt);
       }
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     /**
@@ -118,7 +119,7 @@ public:
         setFlag(true);
         RFQUACK_LOG_TRACE(F("Entering TX mode."))
       }
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     /**
@@ -145,7 +146,7 @@ public:
         case rfquack_Mode_JAM:
           return jamMode();
         default:
-          return ERR_UNKNOWN;
+          return RADIOLIB_ERR_UNKNOWN;
       }
     }
 
@@ -189,13 +190,13 @@ public:
 
       // Start async TX.
       int16_t state = T::startTransmit(data, len, 0); // 3rd param is not used.
-      if (state != ERR_NONE)
+      if (state != RADIOLIB_ERR_NONE)
         return state;
 
       // Register an interrupt, we'll use it to know when TX is over and channel gets free.
       setInterruptAction(radioInterrupt);
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     virtual bool isTxChannelFree() {
@@ -211,7 +212,7 @@ public:
     uint8_t transmit(rfquack_Packet *pkt) {
       if (pkt->has_repeat && pkt->repeat == 0) {
         RFQUACK_LOG_TRACE(F("Zero packet repeat: no transmission"))
-        return ERR_NONE;
+        return RADIOLIB_ERR_NONE;
       }
 
       uint32_t repeat = 1;
@@ -225,14 +226,14 @@ public:
         int16_t result = transmit((uint8_t *) (pkt->data.bytes), pkt->data.size);
         RFQUACK_LOG_TRACE(F("Packet trasmitted, resultCode=%d"), result)
 
-        if (result == ERR_NONE) {
+        if (result == RADIOLIB_ERR_NONE) {
           correct++;
         }
       }
 
       RFQUACK_LOG_TRACE(F("%d packets transmitted"), correct)
-      if (correct > 0) return ERR_NONE;
-      return ERR_UNKNOWN;
+      if (correct > 0) return RADIOLIB_ERR_NONE;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     /**
@@ -285,7 +286,7 @@ public:
         uint64_t startReceive = millis();
         int16_t result = readData((uint8_t *) pkt.data.bytes, packetLen);
 
-        if (result != ERR_NONE) {
+        if (result != RADIOLIB_ERR_NONE) {
           Log.error(F("Error while reading data from driver, code=%d"), result);
         }
 
@@ -300,12 +301,12 @@ public:
         pkt.has_rxRadio = true;
         strcpy(pkt.model, getChipName());
         pkt.has_model = true;
-        pkt.has_syncWords = (getSyncWord(pkt.syncWords.bytes, pkt.syncWords.size)) == ERR_NONE; // Set the syncWords
-        pkt.has_bitRate = (getBitRate(pkt.bitRate)) == ERR_NONE; // Set the bitrate
-        pkt.has_carrierFreq = (getFrequency(pkt.carrierFreq)) == ERR_NONE; // Set the carrierFreq
-        pkt.has_frequencyDeviation = (getFrequencyDeviation(pkt.frequencyDeviation)) == ERR_NONE; // Set the frequency deviation
-        pkt.has_modulation = getModulation(pkt.modulation) == ERR_NONE; // Set the modulation
-        pkt.has_RSSI = (getRSSI(pkt.RSSI)) == ERR_NONE; // Set the RSSI
+        pkt.has_syncWords = (getSyncWord(pkt.syncWords.bytes, pkt.syncWords.size)) == RADIOLIB_ERR_NONE; // Set the syncWords
+        pkt.has_bitRate = (getBitRate(pkt.bitRate)) == RADIOLIB_ERR_NONE; // Set the bitrate
+        pkt.has_carrierFreq = (getFrequency(pkt.carrierFreq)) == RADIOLIB_ERR_NONE; // Set the carrierFreq
+        pkt.has_frequencyDeviation = (getFrequencyDeviation(pkt.frequencyDeviation)) == RADIOLIB_ERR_NONE; // Set the frequency deviation
+        pkt.has_modulation = getModulation(pkt.modulation) == RADIOLIB_ERR_NONE; // Set the modulation
+        pkt.has_RSSI = (getRSSI(pkt.RSSI)) == RADIOLIB_ERR_NONE; // Set the RSSI
 
         // onPacketReceived() hook
         if (modulesDispatcher.onPacketReceived(pkt, _whichRadio)) {
@@ -360,7 +361,7 @@ public:
      */
     virtual int16_t getFrequency(float &carrierFreq) {
       carrierFreq = T::_freq;
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     /**
@@ -430,7 +431,7 @@ public:
      */
     virtual int16_t getOutputPower(uint32_t &txPower) {
       txPower = T::_power;
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     /**

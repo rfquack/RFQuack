@@ -167,7 +167,7 @@ public:
     void start(rfquack_CmdReply &reply) {
       int16_t state = scanMode();
 
-      if (state != ERR_NONE) {
+      if (state != RADIOLIB_ERR_NONE) {
         setReplyMessage(reply, F("Unable to setup radio, check logs."), state);
         return;
       }

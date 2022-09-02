@@ -57,18 +57,18 @@ public:
 
     void start(rfquack_CmdReply &reply) {
       // Check if start and stop frequencies are allowed.
-      if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != ERR_NONE) {
+      if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != RADIOLIB_ERR_NONE) {
         setReplyMessage(reply, F("startFrequency is not valid"), result);
         return;
       }
       if (int16_t result =
-        rfqRadio->setFrequency(endFrequency, radioToUse) != ERR_NONE || endFrequency <= startFrequency) {
+        rfqRadio->setFrequency(endFrequency, radioToUse) != RADIOLIB_ERR_NONE || endFrequency <= startFrequency) {
         setReplyMessage(reply, F("endFrequency is not valid"), result);
         return;
       }
 
       if (frequencyStep < 0) {
-        setReplyMessage(reply, F("Frequency step must be positive"), ERR_INVALID_FREQUENCY);
+        setReplyMessage(reply, F("Frequency step must be positive"), RADIOLIB_ERR_INVALID_FREQUENCY);
         return;
       }
 
@@ -101,11 +101,11 @@ public:
         int16_t status = rfqRadio->setBitRate(600, radioToUse);
         status |= rfqRadio->setModulation(rfquack_Modulation_FSK2, radioToUse);
         status |= rfqRadio->setRxBandwidth(102, radioToUse);
-        rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, 0x43 | 0x0C, radioToUse);
-        rfqRadio->writeRegister(CC1101_REG_AGCCTRL0, 0xB0, radioToUse);
+        rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, 0x43 | 0x0C, radioToUse);
+        rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL0, 0xB0, radioToUse);
         preset_waitTime = 1700;
 
-        if (status != ERR_NONE) {
+        if (status != RADIOLIB_ERR_NONE) {
           RFQUACK_LOG_ERROR(F("Unable to apply configuration to CC1101"));
         }
       } else if (strncmp(chipName, "nRF24", sizeof(*chipName)) == 0) {
@@ -133,7 +133,7 @@ public:
         for (int hop = 0; hop < hops; hop++) {
 
           // Try to set frequency
-          if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != ERR_NONE) {
+          if (int16_t result = rfqRadio->setFrequency(startFrequency, radioToUse) != RADIOLIB_ERR_NONE) {
             Log.error(F("Unable to setFrequency = %d Hz, result=%d"), (int) (currentFreq * 1000), result);
           } else {
 

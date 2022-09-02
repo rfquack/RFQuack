@@ -23,10 +23,10 @@ public:
     int16_t begin() override {
       int16_t state = RadioLibWrapper::begin();
 
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Remove whitening
-      state |= _mod->SPIsetRegValue(RF69_REG_PACKET_CONFIG_1, RF69_DC_FREE_NONE, 6, 5);
+      state |= _mod->SPIsetRegValue(RADIOLIB_RF69_REG_PACKET_CONFIG_1, RADIOLIB_RF69_DC_FREE_NONE, 6, 5);
 
       return state;
     }
@@ -39,7 +39,7 @@ public:
 
       // Call to base method.
       int16_t state = RF69::setSyncWord(bytes, size, 0);
-      if (state == ERR_NONE) {
+      if (state == RADIOLIB_ERR_NONE) {
         memcpy(_syncWords, bytes, size);
       }
       return state;
@@ -49,22 +49,22 @@ public:
       if (RF69::_promiscuous) {
         // No sync words when in promiscuous mode.
         size = 0;
-        return ERR_INVALID_SYNC_WORD;
+        return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
         size = RF69::_syncWordLength;
         memcpy(bytes, _syncWords, size);
       }
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t getBitRate(float &br) override {
       br = RF69::_br;
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t receiveMode() override {
       if (_mode == rfquack_Mode_RX)
-        return ERR_NONE;
+        return RADIOLIB_ERR_NONE;
 
       return RF69::startReceive();
     }
@@ -97,7 +97,7 @@ public:
       if (modulation == rfquack_Modulation_FSK2) {
         return RF69::setOOK(false);
       }
-      return ERR_UNSUPPORTED_ENCODING;
+      return RADIOLIB_ERR_UNSUPPORTED_ENCODING;
     }
 
     int16_t getModulation(char *modulation) {
@@ -107,7 +107,7 @@ public:
         strcpy(modulation, "OOK");
       }
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     // TODO implement jamMode for RFM69
@@ -123,7 +123,7 @@ public:
         freqDev = RF69::_freqDev;
       }
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     // TODO implement setAutoAck for RFM69

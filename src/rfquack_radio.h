@@ -101,7 +101,7 @@ typedef NoRadio RadioE;
 }
 
 #define ASSERT_RESULT(result, message){ \
-  if (result != ERR_NONE){ \
+  if (result != RADIOLIB_ERR_NONE){ \
     RFQUACK_LOG_ERROR(F(message ", got code %d"), result) \
   } \
 }
@@ -121,7 +121,7 @@ public:
      * @param whichRadio
      */
     int16_t begin() {
-      int16_t result = ERR_NONE;
+      int16_t result = RADIOLIB_ERR_NONE;
       FOREACH_RADIO({
                       radio->setWhichRadio(whichRadio);
                       result |= radio->begin();
@@ -170,7 +170,7 @@ public:
     int16_t transmit(rfquack_Packet *pkt, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     /**
@@ -204,13 +204,13 @@ public:
     int16_t fixedPacketLengthMode(uint8_t len, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->fixedPacketLengthMode(len));
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t variablePacketLengthMode(uint8_t len, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->variablePacketLengthMode(len));
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     /**
@@ -222,13 +222,13 @@ public:
     int16_t setMode(rfquack_Mode mode, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setMode(mode))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setAutoAck(bool autoAckOn, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setAutoAck(autoAckOn))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     rfquack_Mode getMode(rfquack_WhichRadio whichRadio) {
@@ -259,74 +259,74 @@ public:
     int16_t setFrequency(float carrierFreq, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setFrequency(carrierFreq))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setOutputPower(uint32_t power, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setOutputPower(power))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setPreambleLength(uint32_t size, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setPreambleLength(size))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setSyncWord(uint8_t *bytes, uint8_t size, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setSyncWord(bytes, size))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setModulation(rfquack_Modulation modulation, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setModulation(modulation))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setCrcFiltering(bool useCRC, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setCrcFiltering(useCRC))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setRxBandwidth(float rxBandwidth, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setRxBandwidth(rxBandwidth))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setBitRate(float bitRate, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setBitRate(bitRate))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setFrequencyDeviation(float frequencyDeviation, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setFrequencyDeviation(frequencyDeviation))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t setPromiscuousMode(bool enabled, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->setPromiscuousMode(enabled))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t getRSSI(float &rssi, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->getRSSI(rssi))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     int16_t isCarrierDetected(bool &cd, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->isCarrierDetected(cd))
       unableToFindRadioError();
-      return ERR_UNKNOWN;
+      return RADIOLIB_ERR_UNKNOWN;
     }
 
     void unableToFindRadioError() {

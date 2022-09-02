@@ -98,14 +98,14 @@ public:
 
       // Put jamRadio in Jamming Mode.
       reply.result = rfqRadio->setMode(rfquack_Mode_JAM, jamRadio);
-      if (reply.result != ERR_NONE) {
+      if (reply.result != RADIOLIB_ERR_NONE) {
         setReplyMessage(reply, F("Unable to start jam mode."), -1);
         return;
       }
 
       // Put RadioA in RX mode.
       reply.result = rfqRadio->setMode(rfquack_Mode_RX, listenRadio);
-      if (reply.result != ERR_NONE) {
+      if (reply.result != RADIOLIB_ERR_NONE) {
         setReplyMessage(reply, F("Unable to start rx mode."), -1);
         return;
       }
