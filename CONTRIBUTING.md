@@ -2,18 +2,38 @@
 
 - [Contributing to RFQuack](#contributing-to-rfquack)
   - [Code of Conduct](#code-of-conduct)
+  - [RadioLib and 3rd Party Libraries](#radiolib-and-3rd-party-libraries)
   - [Issues](#issues)
   - [Code style guidelines](#code-style-guidelines)
+    - [Tabs](#tabs)
+    - [Single-line comments](#single-line-comments)
+    - [Split code into blocks](#split-code-into-blocks)
+    - [No Arduino Strings](#no-arduino-strings)
+
+---
 
 First of all, thank you very much for taking the time to contribute! All feedback and ideas are greatly appreciated.
 To keep this library organized, please follow these guidelines.
-
-**Credits:** Given the tight coupling between RFQuack and [RadioLib](https://gituhb.com/jgromes/RadioLib), these contributing guidelines as well as the issue templates are based on RadioLib's.
 
 ## Code of Conduct
 
 Please read through our community [Code of Conduct](https://github.com/rfquack/RFQuack/blob/master/CODE_OF_CONDUCT.md).
 
+## RadioLib and 3rd Party Libraries
+
+If you find a bug or want to add a feature to a radio module (e.g., CC1101), you must take into account that *most*, but not all, the radio abstraction is implemented through [RadioLib](https://github.com/jgromes/RadioLib).
+Those changes that cannot be accommodated into RadioLib's upstream, we have [RFQuack's fork of RadioLib](https://github.com/rfquack/radiolib).
+
+Given this tight coupling between RFQuack and RadioLib, we try to make absolutely minimal changes into RFQuack's fork of RadioLib and always send PRs back to ensure we don't diverge too much from RadioLib's upstream.
+
+In short:
+
+1. **Use RadioLib for radio abstraction:** if we need to add a new radio module not currently supported by RadioLib, it should be implemented in RFQuack's RadioLib for and then send a pull request.
+2. **Send pull requests to RadioLib:** if we can make an acceptable change in RadioLib, we should do it and send a pull request.
+3. **Use radio wrappers:** if the pull request is not accepted, we incorporate the change in RFQuack's wrapper classes (e.g., the CC1101 wrapper `radio/RFQCC1101.h`).
+4. **Use our fork (last resort):** if the change can only be made in RadioLib, we keep it in our fork.
+
+The same principles should be applied for any other 3rd party library. It's easy to make a fork and modify, but it's not sustainable. So, whenever possible, let's try to send pull requests to minimize divergency.
 ## Issues
 
 The following rules guide submission of new issues. These rules are in place mainly so that the issue author can get help as quickly as possible.
@@ -42,10 +62,12 @@ if (foo) {
 }
 ```
 
-1. **Tabs**  
+### Tabs
+
 Use 4 space characters for tabs.
 
-1. **Single-line comments**  
+### Single-line comments
+
 Comments can be very useful and they can become the bane of readability. Every single-line comment should start at new line, have one space between comment delimiter `//` and the start of the comment itself. The comment should also start with a lower-case letter.
 
 ```c++
@@ -56,7 +78,8 @@ foo("bar");
 foo(12345);
 ```
 
-1. **Split code into blocks**  
+### Split code into blocks
+
 It is very easy to write code that machine can read. It is much harder to write one that humans can read. That's why it's a great idea to split code into blocks - even if the block is just a single line!
 
 ```c++
@@ -73,5 +96,6 @@ state = readData(data, len);
 data[len] = 0;
 ```
 
-1. **No Arduino Strings**  
+### No Arduino Strings
+
 Arduino `String` class should never be used internally in the library. The only allowed occurrence of Arduino `String` is in public API methods, and only at the top-most layer.
