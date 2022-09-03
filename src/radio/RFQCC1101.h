@@ -20,23 +20,23 @@ public:
     int16_t begin() override {
       int16_t state = RadioLibWrapper::begin();
 
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Set MAX_DVGA_GAIN: Disable the highest step amplification,
       // This will prevent noise to be amplified and trigger the CS.
-      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6);
+      state |= SPIsetRegValue(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAX_DVGA_GAIN_1, 7, 6);
 
       // Same as above could be achieved by reducing the LNA again. Both seem to work well, just pick one.
-      state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3);
+      state |= SPIsetRegValue(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3);
 
       // MAGN_TARGET: Set the target for the amplifier loop.
       //state |= SPIsetRegValue(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0);
 
       // Remove whitening
-      state |= SPIsetRegValue(CC1101_REG_PKTCTRL0, CC1101_WHITE_DATA_OFF, 6, 6);
+      state |= SPIsetRegValue(RADIOLIB_CC1101_REG_PKTCTRL0, RADIOLIB_CC1101_WHITE_DATA_OFF, 6, 6);
 
       // Do not append status byte
-      state |= SPIsetRegValue(CC1101_REG_PKTCTRL1, CC1101_APPEND_STATUS_OFF, 2, 2);
+      state |= SPIsetRegValue(RADIOLIB_CC1101_REG_PKTCTRL1, RADIOLIB_CC1101_APPEND_STATUS_OFF, 2, 2);
 
       return state;
     }
@@ -52,7 +52,7 @@ public:
 
       // Call to base method.
       int16_t state = CC1101::setSyncWord(bytes, size, 0, true);
-      if (state == ERR_NONE) {
+      if (state == RADIOLIB_ERR_NONE) {
         memcpy(_syncWords, bytes, size);
       }
       return state;
@@ -62,47 +62,47 @@ public:
       if (CC1101::_promiscuous) {
         // No sync words when in promiscuous mode.
         size = 0;
-        return ERR_INVALID_SYNC_WORD;
+        return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
         size = CC1101::_syncWordLength;
         memcpy(bytes, _syncWords, size);
       }
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t receiveMode() override {
       if (_mode == rfquack_Mode_RX) {
-        return ERR_NONE;
+        return RADIOLIB_ERR_NONE;
       }
 
       // Set mode to standby (needed to flush fifo)
       standby();
 
       // Flush RX FIFO
-      SPIsendCommand(CC1101_CMD_FLUSH_RX);
+      SPIsendCommand(RADIOLIB_CC1101_CMD_FLUSH_RX);
 
       _mode = rfquack_Mode_RX;
 
       // Stay in RX mode after a packet is received.
-      uint8_t state = SPIsetRegValue(CC1101_REG_MCSM1, CC1101_RXOFF_RX, 3, 2);
+      uint8_t state = SPIsetRegValue(RADIOLIB_CC1101_REG_MCSM1, RADIOLIB_CC1101_RXOFF_RX, 3, 2);
 
       // set GDO0 mapping. Asserted when RX FIFO > THR.
-      state |= SPIsetRegValue(CC1101_REG_IOCFG0, CC1101_GDOX_RX_FIFO_FULL_OR_PKT_END);
+      state |= SPIsetRegValue(RADIOLIB_CC1101_REG_IOCFG0, RADIOLIB_CC1101_GDOX_RX_FIFO_FULL_OR_PKT_END);
 
       // Set THR to 4 bytes
-      state |= SPIsetRegValue(CC1101_REG_FIFOTHR, CC1101_FIFO_THR_TX_61_RX_4, 3, 0);
+      state |= SPIsetRegValue(RADIOLIB_CC1101_REG_FIFOTHR, RADIOLIB_CC1101_FIFO_THR_TX_61_RX_4, 3, 0);
 
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Issue receive mode.
-      SPIsendCommand(CC1101_CMD_RX);
+      SPIsendCommand(RADIOLIB_CC1101_CMD_RX);
       _mode = rfquack_Mode_RX;
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     void scal() {
-      SPIsendCommand(CC1101_CMD_CAL);
+      SPIsendCommand(RADIOLIB_CC1101_CMD_CAL);
     }
 
     bool isIncomingDataAvailable() override {
@@ -127,13 +127,13 @@ public:
     }
 
     int16_t getFrequencyDeviation(float &freqDev) override {
-      if (CC1101::_modulation == CC1101_MOD_FORMAT_ASK_OOK) {
+      if (CC1101::_modulation == RADIOLIB_CC1101_MOD_FORMAT_ASK_OOK) {
         // In OOK frequency deviation is zero
         freqDev = 0.0;
       } else {
         freqDev = CC1101::_freqDev;
       }
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setModulation(rfquack_Modulation modulation) override {
@@ -143,19 +143,19 @@ public:
       if (modulation == rfquack_Modulation_FSK2) {
         return CC1101::setOOK(false);
       }
-      return ERR_UNSUPPORTED_ENCODING;
+      return RADIOLIB_ERR_UNSUPPORTED_ENCODING;
     }
     
     int16_t getModulation(char *modulation) override {
-      if (CC1101::_modulation == CC1101_MOD_FORMAT_ASK_OOK) {
+      if (CC1101::_modulation == RADIOLIB_CC1101_MOD_FORMAT_ASK_OOK) {
         strcpy(modulation, "OOK");
-        return ERR_NONE;
+        return RADIOLIB_ERR_NONE;
       }
-      if (CC1101::_modulation == CC1101_MOD_FORMAT_2_FSK) {
+      if (CC1101::_modulation == RADIOLIB_CC1101_MOD_FORMAT_2_FSK) {
         strcpy(modulation, "FSK2");
-        return ERR_NONE;
+        return RADIOLIB_ERR_NONE;
       }
-      return ERR_UNSUPPORTED_ENCODING;
+      return RADIOLIB_ERR_UNSUPPORTED_ENCODING;
     }
 
     int16_t jamMode() override {
@@ -165,24 +165,24 @@ public:
       // Set a sync word (no sync words means no preamble generation)
       byte syncW[] = {0xFF, 0xFF};
       uint16_t state = this->setSyncWord(syncW, 2);
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Enable FSK mode with 0 frequency deviation
       state = this->setModulation(rfquack_Modulation_FSK2);
       state |= this->setFrequencyDeviation(0);
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Set bitrate to 1
       state = this->setBitRate(1);
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Put radio in TX Mode
       state = this->transmitMode();
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Put radio in fixed len mode
       state = this->fixedPacketLengthMode(1);
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // Transmit an empty packet.
       rfquack_Packet packet = rfquack_Packet_init_zero;
@@ -190,19 +190,19 @@ public:
       packet.data.size = 0;
       this->transmit(&packet);
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     float getRSSI(float &rssi) override {
-      CC1101::_rawRSSI = SPIreadRegister(CC1101_REG_RSSI);
+      CC1101::_rawRSSI = SPIreadRegister(RADIOLIB_CC1101_REG_RSSI);
       rssi = CC1101::getRSSI();
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t isCarrierDetected(bool &isDetected) override {
-      uint8_t pktStatus = SPIreadRegister(CC1101_REG_PKTSTATUS);
+      uint8_t pktStatus = SPIreadRegister(RADIOLIB_CC1101_REG_PKTSTATUS);
       isDetected = pktStatus & 0x40;
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {

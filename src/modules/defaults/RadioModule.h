@@ -74,7 +74,7 @@ public:
 
 
 #define ASSERT_SET_MODEM_CONFIG(error) { \
-  if (result == ERR_NONE){ \
+  if (result == RADIOLIB_ERR_NONE){ \
       changes++; \
     }else{ \
       failures++; \
@@ -85,7 +85,7 @@ public:
     void set_modem_config(rfquack_ModemConfig pkt, rfquack_CmdReply &reply) {
       uint8_t changes = 0;
       uint8_t failures = 0;
-      int16_t result = ERR_UNKNOWN;
+      int16_t result = RADIOLIB_ERR_UNKNOWN;
 
       if (pkt.has_carrierFreq) {
         result = rfqRadio->setFrequency(pkt.carrierFreq, _whichRadio);
@@ -137,7 +137,7 @@ public:
         ASSERT_SET_MODEM_CONFIG("Unable to set frequencyDeviation")
       }
 
-      if (failures > 0) reply.result = ERR_UNKNOWN;
+      if (failures > 0) reply.result = RADIOLIB_ERR_UNKNOWN;
       reply.has_message = true;
       snprintf(reply.message, sizeof(reply.message), "%d changes applied and %d failed.", changes, failures);
     }
@@ -178,7 +178,7 @@ public:
                           RFQUACK_REGISTER_VALUE_HEX_FORMAT,
                         addr, value)
 
-      reply.result = ERR_NONE;
+      reply.result = RADIOLIB_ERR_NONE;
     }
 
     /**

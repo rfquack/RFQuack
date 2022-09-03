@@ -18,14 +18,14 @@ public:
       // Set up TX_ADDR to last used.
       RFQUACK_LOG_TRACE(F("Setting up TX pipe."))
       int16_t state = nRF24::setTransmitPipe(_addr);
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       return RadioLibWrapper::transmitMode();
     }
 
     bool isTxChannelFree() override {
       // Check if max number of retransmits has occurred.
-      if (nRF24::getStatus(NRF24_MAX_RT)) {
+      if (nRF24::getStatus(RADIOLIB_NRF24_MAX_RT)) {
         nRF24::standby();
         nRF24::clearIRQ();
         RFQUACK_LOG_TRACE(F("No ACK received from previous TX. Abort TX."))
@@ -41,12 +41,12 @@ public:
         // Set up receiving pipe.
         // Note: this command will bring radio back to standby mode.
         int16_t state = nRF24::setReceivePipe(0, _addr);
-        if (state != ERR_NONE) return state;
+        if (state != RADIOLIB_ERR_NONE) return state;
 
         // Call to base method.
         return RadioLibWrapper::receiveMode();
       } else {
-        return ERR_NONE;
+        return RADIOLIB_ERR_NONE;
       }
     }
 
@@ -62,9 +62,9 @@ public:
 
       // clear status bits
       setFlag(false);
-      _mod->SPIsetRegValue(NRF24_REG_STATUS, NRF24_RX_DR | NRF24_TX_DS | NRF24_MAX_RT, 6, 4);
+      _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_STATUS, RADIOLIB_NRF24_RX_DR | RADIOLIB_NRF24_TX_DS | RADIOLIB_NRF24_MAX_RT, 6, 4);
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     // NOTE: nRF24 does not have a "setSyncword()" method since it's called "address" and is set
@@ -75,24 +75,24 @@ public:
 
       // First try to set addr width.
       int16_t state = nRF24::setAddressWidth(size);
-      if (state != ERR_NONE) return state;
+      if (state != RADIOLIB_ERR_NONE) return state;
 
       // If addr width is valid store it.
       memcpy(_addr, bytes, size);
 
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
     
     int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) override {
       if (_promiscuous) {
         // No sync words when in promiscuous mode.
         size = 0; 
-        return ERR_INVALID_SYNC_WORD;
+        return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
         size = nRF24::_addrWidth;
         memcpy(bytes, _addr, size);
       }
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     // Wrap base method since it changes radio mode.
@@ -107,7 +107,7 @@ public:
       auto freq = (int16_t) carrierFreq;
       RFQUACK_LOG_TRACE("Frequency = %d", freq)
       int16_t state = nRF24::setFrequency(freq);
-      if (state == ERR_NONE) {
+      if (state == RADIOLIB_ERR_NONE) {
         _freq = carrierFreq;
       }
       return state;
@@ -116,7 +116,7 @@ public:
     int16_t getModulation(char *modulation) override {
       // nRF24 supports only GFSK
       strcpy(modulation, "GFSK");
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setCrcFiltering(bool crcOn) override {
@@ -129,7 +129,7 @@ public:
     
     int16_t getBitRate(float &br) override {
       br = nRF24::_dataRate;
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setPromiscuousMode(bool isEnabled) override {
@@ -143,7 +143,7 @@ public:
       // Set fixed packet len
       state |= fixedPacketLengthMode(32);
       
-      if (state == ERR_NONE) {
+      if (state == RADIOLIB_ERR_NONE) {
         _promiscuous = isEnabled;
       }
       
@@ -152,35 +152,35 @@ public:
 
     int16_t fixedPacketLengthMode(uint8_t len) override {
       // Packet cannot be longer than 32 bytes
-      if (len > 32) return ERR_PACKET_TOO_LONG;
+      if (len > 32) return RADIOLIB_ERR_PACKET_TOO_LONG;
 
       // Turn off Dynamic Payload Length as Global feature
-      int16_t state = _mod->SPIsetRegValue(NRF24_REG_FEATURE, NRF24_DPL_OFF, 2, 2);
+      int16_t state = _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_FEATURE, RADIOLIB_NRF24_DPL_OFF, 2, 2);
       RADIOLIB_ASSERT(state);
 
       // Set len in RX_PW_P0/1
-      state = _mod->SPIsetRegValue(NRF24_REG_RX_PW_P0, len, 5, 0);
-      state |= _mod->SPIsetRegValue(NRF24_REG_RX_PW_P1, len, 5, 0);
+      state = _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_RX_PW_P0, len, 5, 0);
+      state |= _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_RX_PW_P1, len, 5, 0);
       return state;
     }
 
     int16_t variablePacketLengthMode(uint8_t len) override {
-      int16_t state = _mod->SPIsetRegValue(NRF24_REG_RX_PW_P0, len, 5, 0);
-      state |= _mod->SPIsetRegValue(NRF24_REG_RX_PW_P1, len, 5, 0);
+      int16_t state = _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_RX_PW_P0, len, 5, 0);
+      state |= _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_RX_PW_P1, len, 5, 0);
       RADIOLIB_ASSERT(state);
 
       // Turn on Dynamic Payload Length as Global feature
-      state |= _mod->SPIsetRegValue(NRF24_REG_FEATURE, NRF24_DPL_ON, 2, 2);
+      state |= _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_FEATURE, RADIOLIB_NRF24_DPL_ON, 2, 2);
       RADIOLIB_ASSERT(state);
 
       // Enable dynamic payloads on all pipes
-      return _mod->SPIsetRegValue(NRF24_REG_DYNPD, NRF24_DPL_ALL_ON, 5, 0);
+      return _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_DYNPD, RADIOLIB_NRF24_DPL_ALL_ON, 5, 0);
     }
 
     int16_t isCarrierDetected(bool &isDetected) override {
       // Value is correct 170uS after RX mode is issued
       isDetected = nRF24::isCarrierDetected();
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setAutoAck(bool autoAckOn) override {

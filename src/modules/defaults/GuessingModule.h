@@ -77,12 +77,12 @@ public:
       }
 
       // Check if start and stop frequencies are allowed.
-      if (int16_t result = rfqRadio->setFrequency(startFrequency, scanRadio) != ERR_NONE) {
+      if (int16_t result = rfqRadio->setFrequency(startFrequency, scanRadio) != RADIOLIB_ERR_NONE) {
         setReplyMessage(reply, F("startFrequency is not valid"), result);
         return;
       }
       if (int16_t result =
-        rfqRadio->setFrequency(endFrequency, scanRadio) != ERR_NONE || endFrequency <= startFrequency) {
+        rfqRadio->setFrequency(endFrequency, scanRadio) != RADIOLIB_ERR_NONE || endFrequency <= startFrequency) {
         setReplyMessage(reply, F("endFrequency is not valid"), result);
         return;
       }
@@ -93,7 +93,7 @@ public:
       }
 
       // Disable autocal
-      rfqRadio->writeRegister(CC1101_REG_MCSM0, CC1101_FS_AUTOCAL_NEVER, 5, 4, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_MCSM0, RADIOLIB_CC1101_FS_AUTOCAL_NEVER, 5, 4, scanRadio);
 
       bootstrapScanning();
 
@@ -256,19 +256,19 @@ private:
       status |= rfqRadio->setCrcFiltering(true, scanRadio);
 
       // Require syncWord, in order to stop packet capture.
-      rfqRadio->writeRegister(CC1101_REG_MDMCFG2, CC1101_SYNC_MODE_16_16, 2, 0, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_MDMCFG2, RADIOLIB_CC1101_SYNC_MODE_16_16, 2, 0, scanRadio);
 
       // Re-Enable the highest gain.
       // This helps during freq scanning *BUT* will cause noise to trigger the CS during RX.
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_0, 7, 6, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAX_DVGA_GAIN_0, 7, 6, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3, scanRadio);
 
 
       // SmartRF specific values for the chosen RF band.
-      rfqRadio->writeRegister(CC1101_REG_FSCTRL1, 0x06, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_FREND1, 0x56, scanRadio);
-      rfqRadio->writeRegister(CC1101_FSCAL0, 0x1F, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_TEST0, 0x09, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_FSCTRL1, 0x06, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_FREND1, 0x56, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_FSCAL0, 0x1F, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST0, 0x09, scanRadio);
 
       // Start selecting 812kHz BW.
       bw812();
@@ -347,8 +347,8 @@ private:
       rfqRadio->fixedPacketLengthMode(254, scanRadio);
 
       // Reduce gain to reduce noise:
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAX_DVGA_GAIN_1, 7, 6, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAX_DVGA_GAIN_1, 7, 6, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_LNA_GAIN_REDUCE_17_1_DB, 5, 3, scanRadio);
 
       // Start receive
       rfqRadio->setMode(rfquack_Mode_RX, scanRadio);
@@ -387,9 +387,9 @@ private:
         return;
       }
 
-      uint8_t registersToStore[] = {CC1101_REG_MDMCFG2, CC1101_REG_MCSM0, CC1101_REG_AGCCTRL2, CC1101_REG_FSCTRL1,
-                                    CC1101_REG_FREND1,
-                                    CC1101_FSCAL0, CC1101_REG_TEST0, CC1101_REG_TEST1, CC1101_REG_TEST2};
+      uint8_t registersToStore[] = {RADIOLIB_CC1101_REG_MDMCFG2, RADIOLIB_CC1101_REG_MCSM0, RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_REG_FSCTRL1,
+                                    RADIOLIB_CC1101_REG_FREND1,
+                                    RADIOLIB_CC1101_FSCAL0, RADIOLIB_CC1101_REG_TEST0, RADIOLIB_CC1101_REG_TEST1, RADIOLIB_CC1101_REG_TEST2};
 
       // Store a copy of the registers since we'll alter them.
       previousRegisters = new rfquack_Register[sizeof(registersToStore)];
@@ -446,9 +446,9 @@ private:
         delay(2);
 
         // Store calibration
-        FSCALA1[i] = rfqRadio->readRegister(CC1101_REG_FSCAL1, scanRadio);
-        FSCALA2[i] = rfqRadio->readRegister(CC1101_REG_FSCAL2, scanRadio);
-        FSCALA3[i] = rfqRadio->readRegister(CC1101_REG_FSCAL3, scanRadio);
+        FSCALA1[i] = rfqRadio->readRegister(RADIOLIB_CC1101_REG_FSCAL1, scanRadio);
+        FSCALA2[i] = rfqRadio->readRegister(RADIOLIB_CC1101_REG_FSCAL2, scanRadio);
+        FSCALA3[i] = rfqRadio->readRegister(RADIOLIB_CC1101_REG_FSCAL3, scanRadio);
       }
     }
 
@@ -458,9 +458,9 @@ private:
       rfqRadio->setFrequency(freq, scanRadio);
 
       // SET FSCAL REGS:
-      rfqRadio->writeRegister(CC1101_REG_FSCAL1, FSCALA1[freqId], scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_FSCAL2, FSCALA2[freqId], scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_FSCAL3, FSCALA3[freqId], scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_FSCAL1, FSCALA1[freqId], scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_FSCAL2, FSCALA2[freqId], scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_FSCAL3, FSCALA3[freqId], scanRadio);
     }
 
     // FSCAL:
@@ -473,40 +473,40 @@ private:
     void bw812() {
       rfqRadio->setRxBandwidth(812, scanRadio);
       // 33 for <100Khz, 42Khz otherwise.
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_42_DB, 2, 0, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_TEST2, 0x88, scanRadio);  //// FOR BW 812
-      rfqRadio->writeRegister(CC1101_REG_TEST1, 0x31, scanRadio); //// FOR BW 812
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAGN_TARGET_42_DB, 2, 0, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST2, 0x88, scanRadio);  //// FOR BW 812
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST1, 0x31, scanRadio); //// FOR BW 812
     }
 
     void bw406() {
       rfqRadio->setRxBandwidth(406, scanRadio);
       // 33 for <100Khz, 42Khz otherwise.
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_42_DB, 2, 0, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_TEST2, 0x88, scanRadio);  //// FOR BW 406
-      rfqRadio->writeRegister(CC1101_REG_TEST1, 0x31, scanRadio); //// FOR BW 406
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAGN_TARGET_42_DB, 2, 0, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST2, 0x88, scanRadio);  //// FOR BW 406
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST1, 0x31, scanRadio); //// FOR BW 406
     }
 
     void bw102() {
       rfqRadio->setRxBandwidth(102, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_TEST2, 0x81, scanRadio);  //// FOR BW 102
-      rfqRadio->writeRegister(CC1101_REG_TEST1, 0x35, scanRadio); //// FOR BW 102
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST2, 0x81, scanRadio);  //// FOR BW 102
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST1, 0x35, scanRadio); //// FOR BW 102
     }
 
     void bw203() {
       rfqRadio->setRxBandwidth(203, scanRadio);
       // 33 for <100Khz, 42Khz otherwise.
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_TEST2, 0x81, scanRadio);  //// FOR BW 203
-      rfqRadio->writeRegister(CC1101_REG_TEST1, 0x35, scanRadio); //// FOR BW 203
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST2, 0x81, scanRadio);  //// FOR BW 203
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST1, 0x35, scanRadio); //// FOR BW 203
     }
 
     void bw58() {
       rfqRadio->setRxBandwidth(58, scanRadio);
       // 33 for <100Khz, 42Khz otherwise.
-      rfqRadio->writeRegister(CC1101_REG_AGCCTRL2, CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
-      rfqRadio->writeRegister(CC1101_REG_TEST2, 0x81, scanRadio); //// FOR BW 58
-      rfqRadio->writeRegister(CC1101_REG_TEST1, 0x35, scanRadio); ///// FOR BW 58
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_AGCCTRL2, RADIOLIB_CC1101_MAGN_TARGET_33_DB, 2, 0, scanRadio);
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST2, 0x81, scanRadio); //// FOR BW 58
+      rfqRadio->writeRegister(RADIOLIB_CC1101_REG_TEST1, 0x35, scanRadio); ///// FOR BW 58
     }
 
     float spacing = 0.02;

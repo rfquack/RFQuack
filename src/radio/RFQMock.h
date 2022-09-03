@@ -15,25 +15,25 @@ public:
     }
 
     int16_t begin() {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t standbyMode() {
       _mode = rfquack_Mode_IDLE;
       RFQUACK_LOG_TRACE("Idle mode entered");
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t receiveMode() {
       _mode = rfquack_Mode_RX;
       RFQUACK_LOG_TRACE("Rx mode entered");
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t transmitMode() {
       _mode = rfquack_Mode_TX;
       RFQUACK_LOG_TRACE("Tx mode entered");
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setMode(rfquack_Mode mode) {
@@ -45,7 +45,7 @@ public:
         case rfquack_Mode_TX:
           return transmitMode();
         default:
-          return ERR_UNKNOWN;
+          return RADIOLIB_ERR_UNKNOWN;
       }
     }
 
@@ -55,7 +55,7 @@ public:
 
 
     int16_t transmit(uint8_t *data, size_t len) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t transmit(rfquack_Packet *pkt) {
@@ -63,7 +63,7 @@ public:
     }
 
     int16_t readData(uint8_t *data, size_t len) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     unsigned long lastRX = 0;
@@ -101,31 +101,31 @@ public:
     }
 
     int16_t setPreambleLength(uint32_t size) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setFrequency(float carrierFreq) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setOutputPower(uint32_t txPower) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t fixedPacketLengthMode(uint8_t len) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t variablePacketLengthMode(uint8_t len) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
     int16_t setPromiscuousMode(bool isPromiscuous) {
-      return ERR_NONE;
+      return RADIOLIB_ERR_NONE;
     }
 
 
