@@ -48,11 +48,11 @@ enum WhichRadio {
 enum Modulation {
     // Which modulation to use (if supported)
     FSK2 = 0;
-    FSK4 = 1;
-    GFSK2 = 2;
-    GFSK4 = 3;
-    MSK = 4;
-    OOK = 5;
+    OOK = 1;
+    FSK4 = 2;
+    GFSK2 = 3;
+    GFSK4 = 4;
+    MSK = 5;
 }
 
 message PacketLen {
