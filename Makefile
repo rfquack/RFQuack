@@ -26,7 +26,9 @@
 
 # HELP
 # This will output the help for each task
-# thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+#
+# Thanks to https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+
 .PHONY: help
 
 .DEFAULT_GOAL := help
@@ -34,31 +36,87 @@
 APP_PREFIX := rfquack
 APP_NAME := rfquack
 APP := $(APP_PREFIX)/$(APP_NAME)
+RFQ_VOLUME := /tmp/RFQuack
 SHELL := /bin/bash
 EXAMPLES := $(wildcard examples/*)
 
 help: ## This help.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-docker-build: ## Build the container
-	docker build --progress plain -t $(APP) .
+clean: ## Clean build environment
+	rm -rf .pio
 
-docker-build-nc: ## Build the container without caching
-	docker build --progress plain --no-cache -t $(APP) .
+docker-build-image: ## Build the container
+	docker build \
+		--progress plain \
+		-t $(APP) .
 
-docker-stop: ## Stop and remove a running container
-	docker stop $(APP_NAME); docker rm $(APP_NAME)
+docker-build-image-nc: ## Build the container without caching
+	docker build \
+		--progress plain \
+		--no-cache \
+		-t $(APP) .
 
-build: ## Build firmware image according to variables set in .env file
-	docker run --rm -it --env-file build.env $(APP)
+docker-stop-container: ## Stop and remove a running container
+	docker stop $(APP_NAME)
+	docker rm $(APP_NAME)
 
-flash: ## Flash firmware image to $PORT
-	docker run --rm -it --device=${PORT}:/board --env-file build.env $(APP)
+build-in-docker: ## Spawn a shell in Docker container
+	docker run \
+		--rm -it \
+		--volume ${PWD}:$(RFQ_VOLUME) $(APP) \
+		make build
+
+flash-via-docker: ## Flash firmware image to $PORT
+	docker run \
+		--rm -it \
+		--volume ${PWD}:$(RFQ_VOLUME) \
+		--device=${PORT}:/board $(APP) \
+		make flash
+
+build: ## Build firmware image via PlatformIO
+	pio run
+
+flash: ## Flash firmware
+	pio run -t upload
+
+console: ## Serial console
+	pio device monitor
+
+build-ci: ## Run CI-based script on $EXAMPLE and $BOARD
+	pio ci \
+		-O "build_unflags=-fno-rtti" \
+		-O "custom_nanopb_protos=+<lib/RFQuack/src/rfquack.proto>" \
+		-O "custom_nanopb_options=--error-on-unmatched" \
+		--exclude=lib/RFQuack/lib \
+		--lib=lib/RadioLib \
+		--lib="." \
+		--board $(BOARD) \
+		$(EXAMPLE)
+
+build-ci-tmp: ## Run CI-based script on $EXAMPLE and $BOARD (wipe and keep /tmp/build)
+	rm -rf /tmp/build
+	pio ci \
+		-O "build_unflags=-fno-rtti" \
+		-O "custom_nanopb_protos=+<lib/RFQuack/src/rfquack.proto>" \
+		-O "custom_nanopb_options=--error-on-unmatched" \
+		--exclude=lib/RFQuack/lib \
+		--lib=lib/RadioLib \
+		--lib="." \
+		--board $(BOARD) \
+		--keep-build-dir \
+		--build-dir /tmp/build \
+		$(EXAMPLE)
 	
-proto: ## Compile protobuf types
-	cd "${HOME}/.platformio/lib/Nanopb/generator/proto" ;  make
-	cd "src" ; \
-	protoc --plugin=protoc-gen-nanopb=${HOME}/.platformio/lib/Nanopb/generator/protoc-gen-nanopb \
-		--nanopb_out=./ \
-		rfquack.proto \
-		--python_out=client/
+proto-dev: ## Compile protobuf types (for dev purposes only, makes lots of assumptions)
+	pio pkg install \
+		-f -l \
+		nanopb/Nanopb
+	protoc \
+		-I . \
+		--plugin=protoc-gen-nanopb=.pio/libdeps/${BOARD}/Nanopb/generator/protoc-gen-nanopb \
+		--nanopb_out=. \
+		src/rfquack.proto
+
+lsd: ## Print list of serial USB devices connected
+	pio device list
