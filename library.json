@@ -1,6 +1,6 @@
 {
   "name": "RFQuack",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "RFQuack is a versatile RF-analysis tool that allows you to sniff, analyze, and transmit data over the air. Similarly to RFCat, RFQuack has a Python-based scriptable shell that allows you to set parameters, receive, transmit, and so on.",
   "keywords": "RF, Radio, GSM, nRF24, CC1101",
   "authors": [
@@ -8,6 +8,11 @@
       "name": "Federico Maggi",
       "url": "https://github.com/phretor",
       "maintainer": true
+    },
+    {
+      "name": "RFQuack Community",
+      "url": "https://github.com/rfquack",
+      "maintainer": false
     },
     {
       "name": "Trend Micro Incorporated",
@@ -24,37 +29,15 @@
     "include": ["src/*"]
   },
   "frameworks": ["arduino"],
-  "platforms": ["espressif32"],
-  "dependencies": [
-    {
-      "name": "Nanopb",
-      "version": "https://github.com/nanopb/nanopb.git"
-    },
-    {
-      "name": "TinyGSM",
-      "version": "~0.6.0"
-    },
-    {
-      "name": "MQTT",
-      "version": "2.4.7"
-    },
-    {
-      "name": "Queue",
-      "version": "~1.6"
-    },
-    {
-      "name": "ArduinoLog",
-      "version": "~1.0.3"
-    },
-    {
-      "name": "RadioLib",
-      "version": "https://github.com/rfquack/RadioLib"
-    },
-    {
-      "name": "Base64",
-      "version": "https://github.com/phretor/Base64"
-    }
-  ],
+  "platforms": ["platformio/espressif32@^5.2.0"],
+  "dependencies": {
+      "nanopb/Nanopb": "*",
+      "vshymanskyy/TinyGSM": "~0.6.0",
+      "256dpi/MQTT": "2.4.7",
+      "SMFSW/Queue": "1.6",
+      "thijse/ArduinoLog": "~1.0.3",
+      "Densaugeo/base64": "1.4.0"
+  },
   "build": {
     "unflags": "-fno-rtti"
   }
