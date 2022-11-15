@@ -1,0 +1,106 @@
+[tool.poetry]
+name = "rfquack"
+version = "0.0.3"
+description = "RFQuack is a versatile RF-analysis tool that allows you to sniff, analyze, and transmit data over the air."
+authors = ["Federico Maggi <federico@maggi.cc>"]
+license = "GPL 2"
+readme = "README.md"
+packages = [
+    { include = "rfquack", from = "client" }
+]
+
+[tool.poetry.scripts]
+rfq = "rfquack.cli:main"
+rq = "rfquack.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+aiofiles = "22.1.0"
+ajsonrpc = "1.2.0"
+beautifulsoup4 = "4.11.1"
+bottle = "0.12.23"
+certifi = "2022.9.24"
+chardet = "5.0.0"
+click = "8.1.3"
+google = "3.0.0"
+h11 = "0.14.0"
+idna = "3.4"
+ifaddr = "0.2.0"
+j2cli = "0.3.10"
+jinja2 = "3.1.2"
+markupsafe = "2.1.1"
+marshmallow = "3.19.0"
+platformio = "6.1.5"
+protobuf = "4.21.9"
+pyelftools = "0.29"
+requests = "2.28.1"
+semantic-version = "2.10.0"
+six = "1.16.0"
+soupsieve = "2.3.2.post1"
+starlette = "0.21.0"
+tabulate = "0.9.0"
+urllib3 = "1.26.12"
+uvicorn = "0.19.0"
+wsproto = "1.2.0"
+zeroconf = "0.39.4"
+appnope = "0.1.3"
+backcall = "0.2.0"
+decorator = "5.1.1"
+humanfriendly = "10.0"
+jedi = "0.18.1"
+parso = "0.8.3"
+pexpect = "4.8.0"
+pickleshare = "0.7.5"
+prompt-toolkit = "3.0.32"
+ptyprocess = "0.7.0"
+pygments = "2.13.0"
+traitlets = "5.5.0"
+wcwidth = "0.2.5"
+charset-normalizer = ">=2,<3"
+pyserial = "^3.5"
+paho-mqtt = "^1.6.1"
+colorama = "^0.4.6"
+coloredlogs = "^15.0.1"
+ipython = "^8.6.0"
+
+
+[tool.poetry.group.dev.dependencies]
+bandit = "^1.7.4"
+black = "^22.10.0"
+isort = "^5.10.1"
+mypy = "^0.991"
+pylint = "^2.15.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+exclude = '''
+(
+    \.DS_Store |
+    \.githooks |
+    \.html$ |
+    \.idea |
+    \.json$ |
+    \.poetry |
+    \.pyc$ |
+    \.sql$ |
+    \.vscode |
+    \.venv |
+    node_modules
+)
+'''
+
+[tool.pylint.FORMAT]
+good-names = "s,f,T,mu"
+
+[tool.pylint.messages_control]
+disable = """
+bad-continuation,
+missing-module-docstring,
+too-few-public-methods,
+unused-argument,
+unused-variable,
+"""

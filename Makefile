@@ -116,7 +116,11 @@ proto-dev: ## Compile protobuf types (for dev purposes only, makes lots of assum
 		-I . \
 		--plugin=protoc-gen-nanopb=.pio/libdeps/${BOARD}/Nanopb/generator/protoc-gen-nanopb \
 		--nanopb_out=. \
+		--python_out=client/rfquack \
 		src/rfquack.proto
 
 lsd: ## Print list of serial USB devices connected
 	pio device list
+
+gen-requirements:  ## Generates requirements.pip
+	poetry export > requirements.pip
