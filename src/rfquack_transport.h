@@ -28,8 +28,12 @@
 
 extern ModulesDispatcher modulesDispatcher;
 
-/*
- * This is called every time there's an inbound message from the other side.
+/**
+ * Called every time there's an inbound message from the other side.
+ * 
+ * @param topic Message topic.
+ * @param payload Message payload.
+ * @param payload_length Message length.
  */
 void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_length) {
   // Topic example: rfquack/in/{ <verb> : [set|get|info] }/<module_name>/<args>/<args>/<args>/...
@@ -158,7 +162,7 @@ static void rfquack_mqtt_connect() {
   Log.trace("Subscribed to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
 }
 
-/*
+/**
  * Connect transport (MQTT) and keep retrying every 5s if failure
  */
 void rfquack_transport_loop() {
@@ -198,7 +202,7 @@ uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
 
 #elif defined(RFQUACK_TRANSPORT_SERIAL)
 
-#include <Base64.h>
+#include <base64.hpp>
 
 // topic
 uint8_t rfquack_topic_buf[RFQUACK_MAX_TOPIC_LEN];
@@ -249,12 +253,11 @@ uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
   written += Serial.write((uint8_t) RFQUACK_SERIAL_TOPIC_DATA_SEPARATOR_CHAR);
 
   // encode payload in Base64
-  char enc_data[RFQUACK_SERIAL_B64_MAX_PACKET_SIZE];
-  uint32_t enc_len = Base64.encodedLength(len);
-  Base64.encode(enc_data, (char *) data, len);
+  uint8_t enc_data[RFQUACK_SERIAL_B64_MAX_PACKET_SIZE];
+  uint32_t enc_len = encode_base64(data, len, enc_data);
 
   // send payload
-  written += Serial.write((uint8_t *) enc_data, enc_len);
+  written += Serial.write(enc_data, enc_len);
   written += Serial.write((uint8_t) RFQUACK_SERIAL_SUFFIX_OUT_CHAR);
 
   return written >= len;
@@ -291,6 +294,10 @@ static void rfquack_serial_recv() {
   }
 }
 
+/**
+ * Run RFQuack serial loop.
+ * 
+ */
 void rfquack_transport_loop() {
   rfquack_serial_recv();
 
@@ -300,10 +307,9 @@ void rfquack_transport_loop() {
     memcpy(topic, rfquack_topic_buf, rfquack_topic_buf_len + 1);
 
     // decode the payload
-    char payload[RFQUACK_SERIAL_MAX_PACKET_SIZE];
-    uint32_t payload_length =
-      Base64.decodedLength((char *) rfquack_payload_buf, rfquack_payload_buf_len);
-    Base64.decode(payload, (char *) rfquack_payload_buf, rfquack_payload_buf_len);
+    uint8_t payload[RFQUACK_SERIAL_MAX_PACKET_SIZE];
+    uint32_t payload_length = decode_base64(
+      rfquack_payload_buf, rfquack_payload_buf_len, payload);
 
     // free the buffers and unlock receive function
     rfquack_topic_buf_len = 0;

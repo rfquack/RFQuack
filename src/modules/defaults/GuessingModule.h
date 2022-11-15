@@ -5,7 +5,7 @@
 #include "../../rfquack_common.h"
 #include "../../rfquack_radio.h"
 
-// This module is - almost - time critical, logging makes the difference :)
+// This module is time critical, logging makes a big difference :)
 #define GUESSING_MODULE_LOG(...) {}
 
 extern RFQRadio *rfqRadio; // Bridge between RFQuack and radio drivers.
@@ -377,7 +377,7 @@ private:
 
     float getRSSI() {
       float rssi;
-      rfqRadio->getRSSI(rssi, scanRadio);
+      rfqRadio->getRSSI(&rssi, scanRadio);
       return rssi;
     }
 

@@ -33,7 +33,7 @@
 #include "pb.h"
 #include "pb_decode.h"
 #include "pb_encode.h"
-#include "rfquack.pb.h"
+#include <rfquack.pb.h>
 
 // Regex
 #include "utils/regex/re.h"

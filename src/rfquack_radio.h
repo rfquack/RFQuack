@@ -117,8 +117,7 @@ public:
     }
 
     /**
-     * @brief Inits radio driver.
-     * @param whichRadio
+     * @brief Initializes radio driver for each radio.
      */
     int16_t begin() {
       int16_t result = RADIOLIB_ERR_NONE;
@@ -162,10 +161,12 @@ public:
     }
 
     /**
-     * Sends a packet over the air
-     * @param pkt pkt to be sent
-     * @param whichRadio choosen radio
-     * @return
+     * Sends a packet over the air.
+     * 
+     * @param pkt Packet to be sent.
+     * @param whichRadio Choosen radio.
+     * 
+     * @return \ref status_codes
      */
     int16_t transmit(rfquack_Packet *pkt, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->transmit(pkt))
@@ -174,7 +175,8 @@ public:
     }
 
     /**
-     * Read register value
+     * Read register value.
+     * 
      * @param reg
      * @param whichRadio
      * @return
@@ -186,9 +188,9 @@ public:
     }
 
     /**
-     * @brief Write register value
+     * Write value to register.
      *
-     * @param addr Address of the register
+     * @param addr Address of the register to write to.
      *
      */
     void writeRegister(uint8_t reg, uint8_t value, rfquack_WhichRadio whichRadio) {
@@ -316,14 +318,14 @@ public:
       return RADIOLIB_ERR_UNKNOWN;
     }
 
-    int16_t getRSSI(float &rssi, rfquack_WhichRadio whichRadio) {
+    int16_t getRSSI(float *rssi, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio,
                    return radio->getRSSI(rssi))
       unableToFindRadioError();
       return RADIOLIB_ERR_UNKNOWN;
     }
 
-    int16_t isCarrierDetected(bool &cd, rfquack_WhichRadio whichRadio) {
+    int16_t isCarrierDetected(bool *cd, rfquack_WhichRadio whichRadio) {
       SWITCH_RADIO(whichRadio, return radio->isCarrierDetected(cd))
       unableToFindRadioError();
       return RADIOLIB_ERR_UNKNOWN;

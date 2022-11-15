@@ -51,7 +51,7 @@ public:
                        rounds)
 
       CMD_MATCHES_UINT("override_wait_time",
-                       "uS to wait before jumping to next frequency. Overrides the preset values. (default: 0)",
+                       "uS to wait before jumping to next frequency (default: 0).",
                        waitTime)
     }
 
@@ -77,9 +77,9 @@ public:
       bool hasCD;
       {
         float fakeRSSI;
-        hasRSSI = rfqRadio->getRSSI(fakeRSSI, radioToUse) != ERR_COMMAND_NOT_IMPLEMENTED;
+        hasRSSI = rfqRadio->getRSSI(&fakeRSSI, radioToUse) != ERR_COMMAND_NOT_IMPLEMENTED;
         bool fakeCD;
-        hasCD = rfqRadio->isCarrierDetected(fakeCD, radioToUse) != ERR_COMMAND_NOT_IMPLEMENTED;
+        hasCD = rfqRadio->isCarrierDetected(&fakeCD, radioToUse) != ERR_COMMAND_NOT_IMPLEMENTED;
       }
 
       // Exit if neither RSSI or CD is there.
@@ -145,7 +145,7 @@ public:
 
             // Check if something was transmitting via RSSI
             float rssi;
-            rfqRadio->getRSSI(rssi, radioToUse);
+            rfqRadio->getRSSI(&rssi, radioToUse);
             RFQUACK_LOG_TRACE("%d RSSI = %d", (int) (currentFreq * 1000), (int) rssi)
             results[hop].hop = hop; // Should set it only first time,
             results[hop].detections += rssi; // Who minds the fractional part.

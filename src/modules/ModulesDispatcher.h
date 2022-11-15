@@ -14,7 +14,7 @@ extern QueueHandle_t queue; // Queue of incoming packets
 class ModulesDispatcher {
 public:
     /**
-     * Forwards any CLI issued command to the right module.
+     * Forwards any received command to the right module.
      */
     void executeUserCommand(char *moduleName, char *verb, char **args, uint8_t argsLen,
                             char *messagePayload, uint8_t messageLen) {

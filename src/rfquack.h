@@ -77,6 +77,15 @@ void rfquackTask(void *pvParameters) {
   }
 }
 
+/**
+ * @brief Setup of the RFQuack library.
+ * 
+ * @param _radioA First radio module.
+ * @param _radioB Second radio module.
+ * @param _radioC Third radio module.
+ * @param _radioD Fourth radio module.
+ * @param _radioE Fifth radio module.
+ */
 void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC = nullptr,
                    RadioD *_radioD = nullptr, RadioD *_radioE = nullptr) {
 
@@ -98,7 +107,8 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
 
   delay(100);
 
-  // Initialize all radios, will do nothing on radios which are not enabled with "#define USE_RADIOX"
+  // Initialize all radios, will do nothing on radios which are not enabled with
+  // "#define USE_RADIOX"
   rfqRadio = new RFQRadio(_radioA, _radioB, _radioC, _radioD, _radioE);
   int16_t result = rfqRadio->begin();
   if (result != RADIOLIB_ERR_NONE) {
@@ -109,8 +119,9 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   delay(100);
 
   // Register default modules.
-  // Modules will be called in the order they are registered;
-  // As consequence it's important that you load them in a mindful order.
+  //
+  // Modules will be called in the order they are registered; As consequence
+  // it's important that you load them in a mindful order.
   modulesDispatcher.registerModule(&guessingModule);
   modulesDispatcher.registerModule(&frequencyScannerModule);
   modulesDispatcher.registerModule(&mouseJackModule);
@@ -146,12 +157,18 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
 
   // Delete "loopTask" and recreate it with increased stackDepth.
   RFQUACK_LOG_TRACE(F("Setup is over."))
+
   delay(10);
+
   xTaskCreateUniversal(rfquackTask, "loopTaskRevamp", 10000, NULL, 1, NULL, CONFIG_ARDUINO_RUNNING_CORE);
   vTaskDelete(NULL);
   while (true); // Never reached.
 }
 
+/**
+ * @brief RFQuack main loop.
+ * 
+ */
 void rfquack_loop() {
   rfquack_network_loop();
 
