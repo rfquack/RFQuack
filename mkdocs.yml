@@ -1,0 +1,11 @@
+site_name: RFQuack
+repo_url: https://github.com/rfquack/RFQuack
+theme:
+  name: material
+  palette:
+    primary: orange
+  logo: imgs/logo-round.png
+  plugins:
+  - social
+  - git-revision-date-localized:
+      enable_creation_date: true
