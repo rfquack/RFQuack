@@ -62,7 +62,11 @@ public:
 
       // clear status bits
       setFlag(false);
-      _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_STATUS, RADIOLIB_NRF24_RX_DR | RADIOLIB_NRF24_TX_DS | RADIOLIB_NRF24_MAX_RT, 6, 4);
+      _mod->SPIsetRegValue(
+        RADIOLIB_NRF24_REG_STATUS, (
+          RADIOLIB_NRF24_RX_DR | 
+          RADIOLIB_NRF24_TX_DS | 
+          RADIOLIB_NRF24_MAX_RT), 6, 4);
 
       return RADIOLIB_ERR_NONE;
     }
@@ -83,14 +87,14 @@ public:
       return RADIOLIB_ERR_NONE;
     }
     
-    int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) override {
+    int16_t getSyncWord(uint8_t *bytes, pb_size_t *size) {
       if (_promiscuous) {
         // No sync words when in promiscuous mode.
-        size = 0; 
+        *size = 0; 
         return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
-        size = nRF24::_addrWidth;
-        memcpy(bytes, _addr, size);
+        *size = nRF24::_addrWidth;
+        memcpy(bytes, _addr, (size_t)*size);
       }
       return RADIOLIB_ERR_NONE;
     }
@@ -124,11 +128,11 @@ public:
     }
 
     int16_t setBitRate(float br) override {
-      return(nRF24::setDataRate(br));
+      return(nRF24::setBitRate(br));
     }
     
-    int16_t getBitRate(float &br) override {
-      br = nRF24::_dataRate;
+    int16_t getBitRate(float *br) override {
+      *br = nRF24::_dataRate;
       return RADIOLIB_ERR_NONE;
     }
 
@@ -177,9 +181,9 @@ public:
       return _mod->SPIsetRegValue(RADIOLIB_NRF24_REG_DYNPD, RADIOLIB_NRF24_DPL_ALL_ON, 5, 0);
     }
 
-    int16_t isCarrierDetected(bool &isDetected) override {
+    int16_t isCarrierDetected(bool *isDetected) override {
       // Value is correct 170uS after RX mode is issued
-      isDetected = nRF24::isCarrierDetected();
+      *isDetected = nRF24::isCarrierDetected();
       return RADIOLIB_ERR_NONE;
     }
 

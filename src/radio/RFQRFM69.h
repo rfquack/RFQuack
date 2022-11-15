@@ -16,6 +16,7 @@ public:
     using RF69::fixedPacketLengthMode;
     using RF69::setFrequency;
     using RF69::setFrequencyDeviation;
+    using RF69::getFrequencyDeviation;
     using RF69::setBitRate;
 
     RFQRF69(Module *module) : RadioLibWrapper(module, "RF69") {}
@@ -45,20 +46,20 @@ public:
       return state;
     }
 
-    int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) override {
+    int16_t getSyncWord(uint8_t *bytes, pb_size_t *size) override {
       if (RF69::_promiscuous) {
         // No sync words when in promiscuous mode.
-        size = 0;
+        *size = 0;
         return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
-        size = RF69::_syncWordLength;
-        memcpy(bytes, _syncWords, size);
+        *size = RF69::_syncWordLength;
+        memcpy(bytes, _syncWords, *size);
       }
       return RADIOLIB_ERR_NONE;
     }
 
-    int16_t getBitRate(float &br) override {
-      br = RF69::_br;
+    int16_t getBitRate(float *br) override {
+      *br = RF69::_br;
       return RADIOLIB_ERR_NONE;
     }
 
@@ -116,16 +117,6 @@ public:
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
-    int16_t getFrequencyDeviation(float &freqDev) override {
-      if (RF69::_ook) {
-        freqDev = 0.0;
-      } else {
-        freqDev = RF69::_freqDev;
-      }
-
-      return RADIOLIB_ERR_NONE;
-    }
-
     // TODO implement setAutoAck for RFM69
     int16_t setAutoAck(bool autoAckOn) override {
       Log.error(F("TODO setAutoAck was not implemented."));
@@ -133,15 +124,15 @@ public:
     }
 
     // TODO implement isCarrierDetected for RFM69
-    int16_t isCarrierDetected(bool &isDetected) override {
+    int16_t isCarrierDetected(bool *isDetected) override {
       Log.error(F("TODO isCarrierDetected was not implemented."));
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
-    float getRSSI(float &rssi) override {
-      rssi = RF69::getRSSI();
+    float getRSSI(float *rssi) override {
+      *rssi = RF69::getRSSI();
 
-      return rssi;
+      return *rssi;
     }
 
     void writeRegister(rfquack_register_address_t reg, rfquack_register_value_t value, uint8_t msb, uint8_t lsb) override {
@@ -157,7 +148,8 @@ public:
     }
 
 private:
-    byte _syncWords[2] = {0x2D, 0xD4};
+    byte _syncWords[RADIOLIB_RF69_DEFAULT_SW_LEN] = RADIOLIB_RF69_DEFAULT_SW;
+    // TODO set cached variables here
 };
 
 #endif //RFQUACK_PROJECT_RFQRF69_H

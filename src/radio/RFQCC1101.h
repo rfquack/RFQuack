@@ -14,6 +14,9 @@ public:
     using CC1101::setCrcFiltering;
     using CC1101::setRxBandwidth;
     using CC1101::setBitRate;
+    using CC1101::setFrequencyDeviation;
+    using CC1101::getFrequencyDeviation;
+    using CC1101::setFrequency;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module, "CC1101") {}
 
@@ -58,14 +61,14 @@ public:
       return state;
     }
     
-    int16_t getSyncWord(uint8_t *bytes, pb_size_t &size) override {
+    int16_t getSyncWord(uint8_t *bytes, pb_size_t *size) override {
       if (CC1101::_promiscuous) {
         // No sync words when in promiscuous mode.
-        size = 0;
+        *size = 0;
         return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
-        size = CC1101::_syncWordLength;
-        memcpy(bytes, _syncWords, size);
+        *size = CC1101::_syncWordLength;
+        memcpy(bytes, _syncWords, (size_t)*size);
       }
       return RADIOLIB_ERR_NONE;
     }
@@ -126,16 +129,6 @@ public:
       return CC1101::readData(data, len);
     }
 
-    int16_t getFrequencyDeviation(float &freqDev) override {
-      if (CC1101::_modulation == RADIOLIB_CC1101_MOD_FORMAT_ASK_OOK) {
-        // In OOK frequency deviation is zero
-        freqDev = 0.0;
-      } else {
-        freqDev = CC1101::_freqDev;
-      }
-      return RADIOLIB_ERR_NONE;
-    }
-
     int16_t setModulation(rfquack_Modulation modulation) override {
       if (modulation == rfquack_Modulation_OOK) {
         return CC1101::setOOK(true);
@@ -193,15 +186,16 @@ public:
       return RADIOLIB_ERR_NONE;
     }
 
-    float getRSSI(float &rssi) override {
+    float getRSSI(float *rssi) override {
       CC1101::_rawRSSI = SPIreadRegister(RADIOLIB_CC1101_REG_RSSI);
-      rssi = CC1101::getRSSI();
+      *rssi = CC1101::getRSSI();
+
       return RADIOLIB_ERR_NONE;
     }
 
-    int16_t isCarrierDetected(bool &isDetected) override {
+    int16_t isCarrierDetected(bool *isDetected) override {
       uint8_t pktStatus = SPIreadRegister(RADIOLIB_CC1101_REG_PKTSTATUS);
-      isDetected = pktStatus & 0x40;
+      *isDetected = (pktStatus & 0x40);
       return RADIOLIB_ERR_NONE;
     }
 
@@ -219,7 +213,7 @@ public:
 
 private:
     // Config variables not provided by RadioLib, initialised with default values
-    byte _syncWords[2] = {0xD3, 0x91};
+    byte _syncWords[RADIOLIB_CC1101_DEFAULT_SW_LEN] = RADIOLIB_CC1101_DEFAULT_SW;
 };
 
 #endif //RFQUACK_PROJECT_RFQCC1101_H
