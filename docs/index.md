@@ -2,7 +2,7 @@
 
 RFQuack is the only versatile RF-analysis tool that quacks! 🦆
 
-## Here, Flash Your Dongle!
+## Quickstart
 
 ```bash
 git clone --recursive https://github.com/rfquack/RFQuack
@@ -33,6 +33,31 @@ RFQuack is unique in these ways:
 
 So, if you need to analyze a weird RF protocol with that special packet format or that very special modulation scheme, with mixed symbol encodings (yes, I'm looking at you, CC1120 in 4-FSK mode 🤬), with RFQuack you just swap the radio shield and you can just start working right away. And if we don't support that special radio chip, you can just craft your shield and add support to the software!
 
+## Talks & Publications About RFQuack
+
+If you use RFQuack and find it useful, we'd appreciate if you cite at least one of the following resources:
+
+- **RFQuack - Cheap and easy RF analysis**, Andrea Guglielmini, [CanSecWest 2020](https://cansecwest.com/post/2020-03-09-22:00:00_2020_Speakers)
+- **RFQuack: The RF-Analysis Tool That Quacks**, Federico Maggi, HITB Amory, Amsterdam, May 9, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/talks/maggi_rfquack_talk_2019.pdf)]
+  - Radio and Hardware Security Testing for Human Beings, Federico Maggi, NoHat 2019, [[Video](https://www.youtube.com/watch?v=0m-Rjb5aWaM)]
+  - Reverse engineering di protocolli radio proprietari, Federico Maggi, HackInBo® Winter Edition 2019, [[Video](https://www.youtube.com/watch?v=3r_9Za_Xboc)]
+
+## Research Projects that used RFQuack
+
+- **A Security Evaluation of Industrial Radio Remote Controllers**, Federico Maggi, Marco Balduzzi, Jonathan Andersson, Philippe Lin, Stephen Hilt, Akira Urano, and Rainer Vosseler. Proceedings of the 16th International Conference on Detection of Intrusions and Malware, and Vulnerability Assessment (DIMVA). Gothenburg, Sweden, June 19, 2019 [[PDF](https://github.com/phretor/publications/raw/master/files/papers/conference-papers/maggi_industrialradios_2019.pdf)]
+
+- **A Security Analysis of Radio Remote Controllers for Industrial Applications**,
+Jonathan Andersson, Marco Balduzzi, Stephen Hilt, Philippe Lin, Federico Maggi, Akira Urano, and Rainer Vosseler., Trend Micro, Inc. Trend Micro Research, January 15, 2019 [[PDF](https://documents.trendmicro.com/assets/white_papers/wp-a-security-analysis-of-radio-remote-controllers.pdf)]
+  - Attacking Industrial Remote Controllers, Marco Balduzzi and Federico Maggi, HITB2019, Amsterdam [[Video](https://www.youtube.com/watch?v=pEP7EOQkm_0)]
+  - How we reverse-engineered multiple industrial radio remote-control systems, Stephen Hilt, BSides Knoxville 2020, [[Video](https://www.youtube.com/watch?v=xBXktWwvEyI)]
+  - Attacking industrial remote controllers for fun and profit, Dr. Marco Balduzzi, CONFidence 2019, [[Video](https://www.youtube.com/watch?v=T6sJCUxFohc)]
+  - How we reverse-engineered multiple industrial radio remote-control systems, Stephen Hilt, CS3STHLM 2019, [[Video](https://www.youtube.com/watch?v=5l_cWD5ZR-M)]
+- [EvilCrowRF](https://github.com/joelsernamoreno/EvilCrowRF-Beta)
+
 ## Development Status and Maturity
 
 RFQuack is quite experimental, expect glitches and imperfections. So far we're quite happy with it, and used it successfully to analyze some industrial radio protocols (read the [Trend Micro Research white paper](https://www.trendmicro.com/vinfo/us/security/news/vulnerabilities-and-exploits/attacks-against-industrial-machines-via-vulnerable-radio-remote-controllers-security-analysis-and-recommendations) or the [DIMVA 2019 paper](https://www.dimva2019.org) for details).
+
+## Disclaimer
+
+RFQuack is a research tool intended to analyze and emit radio-frequency (RF) signals via software, with native hardware support. Although it is not intended for illegal, malicious or offensive purposes, it can be used to those ends. We take no responsibility whatsoever about the unforeseen consequences of unethical or illegal use of this software.
