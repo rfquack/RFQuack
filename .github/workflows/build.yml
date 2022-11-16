@@ -1,0 +1,34 @@
+name: PlatformIO CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        board: [featheresp32]
+        # example: [examples/RFQuack-esp32-CC1101-serial, examples/RFQuack-esp32-nRF24, RFQuack-esp32-nRF24-serial]
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.platformio/.cache
+          key: ${{ runner.os }}-pio
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install deps
+        run: |
+          /bin/sh docker/deps/${{ matrix.os }}/packages.sh
+          /bin/sh docker/deps/python/packages.sh
+      - name: Run PlatformIO
+        run: pio run
+        # env:
+        #   PLATFORMIO_CI_SRC: ${{ matrix.example }}
+        #   BOARD: ${{ matrix.board }}
