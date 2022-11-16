@@ -70,6 +70,7 @@ black = "^22.10.0"
 isort = "^5.10.1"
 mypy = "^0.991"
 pylint = "^2.15.5"
+types-protobuf = "^3.20.4.5"
 
 [build-system]
 requires = ["poetry-core"]
