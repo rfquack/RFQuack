@@ -4,7 +4,6 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -22,10 +21,9 @@ jobs:
           key: ${{ runner.os }}-pio
       - uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
       - name: Install deps
         run: |
-          /bin/sh docker/deps/${{ matrix.os }}/packages.sh
           /bin/sh docker/deps/python/packages.sh
       - name: Run PlatformIO
         run: pio run
