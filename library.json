@@ -31,12 +31,12 @@
   "frameworks": ["arduino"],
   "platforms": ["platformio/espressif32@^5.2.0"],
   "dependencies": {
-      "nanopb/Nanopb": "*",
-      "vshymanskyy/TinyGSM": "~0.6.0",
-      "256dpi/MQTT": "2.4.7",
-      "SMFSW/Queue": "1.6",
-      "thijse/ArduinoLog": "~1.0.3",
-      "Densaugeo/base64": "1.4.0"
+    "nanopb/Nanopb": "~0.4.6",
+    "vshymanskyy/TinyGSM": "~0.6.0",
+    "256dpi/MQTT": "2.4.7",
+    "SMFSW/Queue": "1.6",
+    "thijse/ArduinoLog": "~1.0.3",
+    "Densaugeo/base64": "1.4.0"
   },
   "build": {
     "unflags": "-fno-rtti"

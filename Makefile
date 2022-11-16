@@ -38,7 +38,10 @@ APP_NAME := rfquack
 APP := $(APP_PREFIX)/$(APP_NAME)
 RFQ_VOLUME := /tmp/RFQuack
 SHELL := /bin/bash
-EXAMPLES := $(wildcard examples/*)
+
+example_src := examples/RFQuack-esp32-CC1101-serial
+tmp_build_dir := /tmp/build
+pio_env := ESP32
 
 help: ## This help.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -84,38 +87,13 @@ flash: ## Flash firmware
 console: ## Serial console
 	pio device monitor
 
-build-ci: ## Run CI-based script on $EXAMPLE and $BOARD
-	pio ci \
-		-O "build_unflags=-fno-rtti" \
-		-O "custom_nanopb_protos=+<lib/RFQuack/src/rfquack.proto>" \
-		-O "custom_nanopb_options=--error-on-unmatched" \
-		--exclude=lib/RFQuack/lib \
-		--lib=lib/RadioLib \
-		--lib="." \
-		--board $(BOARD) \
-		$(EXAMPLE)
-
-build-ci-tmp: ## Run CI-based script on $EXAMPLE and $BOARD (wipe and keep /tmp/build)
-	rm -rf /tmp/build
-	pio ci \
-		-O "build_unflags=-fno-rtti" \
-		-O "custom_nanopb_protos=+<lib/RFQuack/src/rfquack.proto>" \
-		-O "custom_nanopb_options=--error-on-unmatched" \
-		--exclude=lib/RFQuack/lib \
-		--lib=lib/RadioLib \
-		--lib="." \
-		--board $(BOARD) \
-		--keep-build-dir \
-		--build-dir /tmp/build \
-		$(EXAMPLE)
-	
 proto-dev: ## Compile protobuf types (for dev purposes only, makes lots of assumptions)
 	pio pkg install \
 		-f -l \
 		nanopb/Nanopb
 	protoc \
 		-I . \
-		--plugin=protoc-gen-nanopb=.pio/libdeps/${BOARD}/Nanopb/generator/protoc-gen-nanopb \
+		--plugin=protoc-gen-nanopb=.pio/libdeps/$(pio_env)/Nanopb/generator/protoc-gen-nanopb \
 		--nanopb_out=. \
 		--python_out=client/rfquack \
 		src/rfquack.proto
