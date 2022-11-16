@@ -1,9 +1,46 @@
 !!! warning
     This section is fairly incomplete.
 
+To talk to your RFQuack dongle, you have two options:
+
+- MQTT
+- Serial
+
+Let's see the pros and cons of each.
+
+## MQTT Transport
+
+(and hardware serial console)
+
+Install or have access to an MQTT broker (Mosquitto is just perfect for this):
+
+* PROs
+    * you don't need cables (hint: your RFQuack hardware can be battery powered)
+    * if you want to connect the RFQuack hardware to your computer, you get a free (hardware) serial console for monitoring on the USB port
+* CONs
+    * you need network connectivity (WiFi or cellular)
+    * there's latency
+
+## Hardware Serial Transport
+
+(and software serial console)
+
+Connect the dongle via USB
+
+* PROs
+    * there's little latency
+    * you don't need to rely on network stability
+* CONs
+    * if you want full monitoring and debugging capabilities, you'll need to hookup a UART cable to the RFQuack hardware
+        * by default, a software serial device is used, and will write on pins 16, 12 (RX, TX)
+        * this can be changed by defining `RFQUACK_LOG_SS_RX_PIN` and `RFQUACK_LOG_SS_TX_PIN` before `#include <rfquack.h>`
+    * your range is limited by the length of your USB cable (you don't say! 😮)
+
+## Command Line Interface
+
 Now you can use RFQuack via the IPython-based shell. We highly recommend using a second console open to keep an eye on the output log.
 
-## Test the Shell
+### Test the Shell
 
 ```shell
 $ rfq --help
@@ -19,7 +56,7 @@ Commands:
 ```
 
 
-## MQTT Transport
+### MQTT Transport
 
 To use this, you'll have to build a firmware configured to use the MQTT transport. Please check the `USE_MQTT` configuration variable in this manual.
 ```rfq
@@ -37,7 +74,7 @@ Options:
   -h, --help            Show this message and exit.
 ```
 
-## Serial Transport
+### Serial Transport
 
 This is the default transport, unless `USE_MQTT` is set in the `build.env` file.
 
@@ -57,7 +94,7 @@ Options:
   --help                    Show this message and exit.
 ```
 
-## Examples
+### Examples
 
 More concretely:
 
@@ -79,6 +116,5 @@ result = 0
 message =
 ...
 ```
-
 
 At this point you're good to go from here!
