@@ -25,4 +25,4 @@ jobs:
         run: |
           /bin/sh docker/deps/python/packages.sh
       - name: Run PlatformIO
-        run: pio run
+        run: make clean build
