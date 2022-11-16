@@ -1,14 +1,10 @@
-# RFQuack
-
 <a name="readme-top"></a>
 
-![Build Status](https://github.com/rfquack/RFQuack/actions/workflows/build.yml/badge.svg)
-
+[![PlatformIO CI][ci-shield]][ci-url]
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![GPL 2 License][license-shield]][license-url]
 
 
 <!-- PROJECT LOGO -->
@@ -190,6 +186,8 @@ RFQuack wouldn't exist without the inspiration, feedback, and help received from
 [forks-shield]: https://img.shields.io/github/forks/rfquack/RFQuack.svg?style=for-the-badge
 [forks-url]: https://github.com/rfquack/RFQuack/network/members
 [stars-shield]: https://img.shields.io/github/stars/rfquack/RFQuack.svg?style=for-the-badge
+[ci-url]: https://github.com/rfquack/RFQuack/actions/workflows/build.yml
+[ci-shield]: https://img.shields.io/github/workflow/status/rfquack/RFQuack/PlatformIO%20CI?style=for-the-badge
 [stars-url]: https://github.com/rfquack/RFQuack/stargazers
 [issues-shield]: https://img.shields.io/github/issues/rfquack/RFQuack.svg?style=for-the-badge
 [issues-url]: https://github.com/rfquack/RFQuack/issues
