@@ -18,6 +18,6 @@ First of all, thanks! If you found a bug or security vulnerability, reporting it
 
 Although the development of this project is mostly following an irregular schedule due to its pro-bono nature, we're happy to receive suggestions on new features. This said, please [file an issue choosing the appropriate type](https://github.com/rfquack/RFQuack/issues/new/choose).
 
-## Why is F.A.Q. list is so whort?
+## Why is F.A.Q. list is so short?
 
 Because we're newborn! 😜
