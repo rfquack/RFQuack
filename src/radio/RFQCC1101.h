@@ -57,6 +57,7 @@ public:
       int16_t state = CC1101::setSyncWord(bytes, size, 0, true);
       if (state == RADIOLIB_ERR_NONE) {
         memcpy(_syncWords, bytes, size);
+        _syncWordLength = size;
       }
       return state;
     }
@@ -67,7 +68,7 @@ public:
         *size = 0;
         return RADIOLIB_ERR_INVALID_SYNC_WORD;
       } else {
-        *size = CC1101::_syncWordLength;
+        *size = _syncWordLength;
         memcpy(bytes, _syncWords, (size_t)*size);
       }
       return RADIOLIB_ERR_NONE;
@@ -214,6 +215,8 @@ public:
 private:
     // Config variables not provided by RadioLib, initialised with default values
     byte _syncWords[RADIOLIB_CC1101_DEFAULT_SW_LEN] = RADIOLIB_CC1101_DEFAULT_SW;
+
+    uint8_t _syncWordLength = RADIOLIB_CC1101_DEFAULT_SW_LEN;
 };
 
 #endif //RFQUACK_PROJECT_RFQCC1101_H
