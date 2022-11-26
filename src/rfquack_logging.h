@@ -39,9 +39,13 @@ void printNewline(Print *_logOutput) { _logOutput->print('\n'); }
 #ifdef RFQUACK_LOG_ENABLED
 #define RFQUACK_LOG_TRACE(...) {     Log.trace(__VA_ARGS__); }
 #define RFQUACK_LOG_ERROR(...) {     Log.error(__VA_ARGS__); }
+#define RFQUACK_LOG_WARN(...) {     Log.warning(__VA_ARGS__); }
+#define RFQUACK_LOG_FATAL(...) {     Log.fatal(__VA_ARGS__); }
 #else
 #define RFQUACK_LOG_TRACE(...) {}
+#define RFQUACK_LOG_WARN(...) {}
 #define RFQUACK_LOG_ERROR(...) {}
+#define RFQUACK_LOG_FATAL(...) {}
 #endif
 
 void rfquack_logging_setup() {

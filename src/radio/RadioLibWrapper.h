@@ -9,6 +9,7 @@
 // Enable super powers :)
 #define RADIOLIB_LOW_LEVEL
 #define RADIOLIB_GODMODE
+#define RADIOLIB_DEBUG
 
 /* Dirty trick to prevent RadioLib's MQTT class to be included,
  * It clashes with RFQuack's one.
@@ -320,7 +321,7 @@ public:
         int16_t result = readData((uint8_t *) pkt.data.bytes, packetLen);
 
         if (result != RADIOLIB_ERR_NONE) {
-          Log.error(F("Error while reading data from driver, code=%d"), result);
+          RFQUACK_LOG_ERROR(F("Error while reading data from driver, code=%d"), result);
         }
 
         // Put radio back in receiveMode.
@@ -331,7 +332,7 @@ public:
         pkt.millis = startReceive;
         pkt.has_millis = true;
         pkt.rxRadio = this->_whichRadio;
-        pkt.has_rxRadio = true;
+        pkt.has_rxRadio= true;
         strcpy(pkt.model, getChipName());
         pkt.has_model = true;
 
@@ -390,7 +391,7 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setPreambleLength(uint32_t size) {
-      Log.error(F("setPreambleLength was not implemented."));
+      RFQUACK_LOG_ERROR(F("setPreambleLength was not implemented."));
 
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
@@ -398,26 +399,28 @@ public:
     /**
      * Sets radio frequency.
      * 
-     * @param carrierFreq Carrier frequency in MHz.
+     * @param freq Carrier frequency in MHz.
      * 
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t setFrequency(float carrierFreq) {
-      Log.error(F("setFrequency was not implemented."));
+    virtual int16_t setFrequency(float freq)
+    {
+      RFQUACK_LOG_ERROR(F("setFrequency was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
      * Gets the radio frequency.
      * 
-     * @param[out] carrierFreq variable where the carrierFrequency gets stored, in MHz
+     * @param[out] freq Variable where the carrierFrequency gets stored, in MHz
      * 
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t getFrequency(float *carrierFreq) {
-      *carrierFreq = T::_freq;
+    virtual int16_t getFrequency(float *freq) {
+      RFQUACK_LOG_ERROR(F("getFrequency was not implemented."));
 
-      return RADIOLIB_ERR_NONE;
+      return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
@@ -428,7 +431,7 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setFrequencyDeviation(float freqDev) override {
-      Log.error(F("setFrequencyDeviation was not implemented."));
+      RFQUACK_LOG_ERROR(F("setFrequencyDeviation was not implemented."));
 
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
@@ -440,7 +443,8 @@ public:
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getFrequencyDeviation(float *freqDev) {
-      Log.error(F("getFrequencyDeviation was not implemented."));
+      RFQUACK_LOG_ERROR(F("getFrequencyDeviation was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -451,7 +455,8 @@ public:
      * @return result code (ERR_NONE or ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setRxBandwidth(float rxBw) {
-      Log.error(F("setRxBandwidth was not implemented."));
+      RFQUACK_LOG_ERROR(F("setRxBandwidth was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -463,7 +468,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getRxBandwidth(float *rxBw) {
-      Log.error(F("getRxBandwidth was not implemented."));
+      RFQUACK_LOG_ERROR(F("getRxBandwidth was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -476,7 +482,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setBitRate(float br) {
-      Log.error(F("setBitRate was not implemented."));
+      RFQUACK_LOG_ERROR(F("setBitRate was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -488,7 +495,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getBitRate(float *br) {
-      Log.error(F("getBitRate was not implemented."));
+      RFQUACK_LOG_ERROR(F("getBitRate was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -500,7 +508,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setOutputPower(uint32_t txPower) {
-      Log.error(F("setOutputPower was not implemented."));
+      RFQUACK_LOG_ERROR(F("setOutputPower was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -512,8 +521,9 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getOutputPower(uint32_t *txPower) {
-      *txPower = T::_power;
-      return RADIOLIB_ERR_NONE;
+      RFQUACK_LOG_ERROR(F("setOutputPower was not implemented."));
+
+      return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
     /**
@@ -525,7 +535,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setSyncWord(uint8_t *bytes, pb_size_t size) {
-      Log.error(F("setSyncWord was not implemented."));
+      RFQUACK_LOG_ERROR(F("setSyncWord was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -538,7 +549,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getSyncWord(uint8_t *bytes, pb_size_t *size) {
-      Log.error(F("getSyncWord was not implemented."));
+      RFQUACK_LOG_ERROR(F("getSyncWord was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
     
@@ -550,7 +562,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t fixedPacketLengthMode(uint8_t len) {
-      Log.error(F("fixedPacketLengthMode was not implemented."));
+      RFQUACK_LOG_ERROR(F("fixedPacketLengthMode was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -562,7 +575,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t variablePacketLengthMode(uint8_t len) {
-      Log.error(F("variablePacketLengthMode was not implemented."));
+      RFQUACK_LOG_ERROR(F("variablePacketLengthMode was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -574,7 +588,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setPromiscuousMode(bool isPromiscuous) {
-      Log.error(F("setPromiscuousMode was not implemented."));
+      RFQUACK_LOG_ERROR(F("setPromiscuousMode was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -586,7 +601,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setCrcFiltering(bool crcOn) {
-      Log.error(F("setCrcFiltering was not implemented."));
+      RFQUACK_LOG_ERROR(F("setCrcFiltering was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -598,7 +614,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t setAutoAck(bool autoAckOn) {
-      Log.error(F("setAutoAck was not implemented."));
+      RFQUACK_LOG_ERROR(F("setAutoAck was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -610,7 +627,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t isCarrierDetected(bool *isDetected) {
-      Log.error(F("isCarrierDetected was not implemented."));
+      RFQUACK_LOG_ERROR(F("isCarrierDetected was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -622,7 +640,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual float getRSSI(float *rssi) {
-      Log.error(F("getRSSI was not implemented."));
+      RFQUACK_LOG_ERROR(F("getRSSI was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -634,7 +653,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
       virtual int16_t setModulation(rfquack_Modulation modulation) {
-      Log.error(F("setModulation was not implemented."));
+      RFQUACK_LOG_ERROR(F("setModulation was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
     
@@ -646,7 +666,8 @@ public:
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
     virtual int16_t getModulation(char *modulation) {
-      Log.error(F("getModulation was not implemented."));
+      RFQUACK_LOG_ERROR(F("getModulation was not implemented."));
+
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }
 
@@ -683,12 +704,12 @@ private:
      */
     void enqueuePacket(rfquack_Packet *packet, Queue *rxQueue) {
       if (packet->data.size > sizeof(rfquack_Packet)) {
-        Log.error(F("Packet payload is grater than container."));
+        RFQUACK_LOG_ERROR(F("Packet payload is grater than container."));
         return;
       }
 
       if (rxQueue->isFull()) {
-        Log.error(F("rxQueue is full"));
+        RFQUACK_LOG_ERROR(F("rxQueue is full"));
         return;
       }
 

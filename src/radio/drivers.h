@@ -1,8 +1,8 @@
 #ifndef RFQUACK_PROJECT_DRIVERS_H
 #define RFQUACK_PROJECT_DRIVERS_H
 
-#include "RFQRFM69.h"
 #include "RFQCC1101.h"
+#include "RFQRFM69.h"
 #include "RFQnRF24.h"
 #include "RFQMock.h"
 

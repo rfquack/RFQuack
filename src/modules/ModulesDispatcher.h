@@ -105,8 +105,10 @@ public:
     }
 
     void registerModule(RFQModule *module) {
+      RFQUACK_LOG_TRACE(F("Registering modules..."));
+
       if (loadedModules >= RFQUACK_MAX_MODULES) {
-        Log.fatal(F("Too many modules, increase RFQUACK_MAX_MODULES."));
+        RFQUACK_LOG_FATAL(F("Too many modules, increase RFQUACK_MAX_MODULES."));
         return;
       }
 

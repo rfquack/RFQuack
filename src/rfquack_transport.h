@@ -56,7 +56,7 @@ void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_leng
         if (strncmp(topic, RFQUACK_TOPIC_PREFIX, strlen(RFQUACK_TOPIC_PREFIX)) != 0 &&
             strncmp(topic, RFQUACK_TOPIC_BROADCAST_PREFIX, strlen(RFQUACK_TOPIC_BROADCAST_PREFIX)) != 0) {
 #ifdef RFQUACK_DEV
-          Log.warning(F("Ignoring message with invalid prefix: %s"), token);
+          RFQUACK_LOG_WARN(F("Ignoring message with invalid prefix: %s"), token);
 #endif
           return;
         }
@@ -65,7 +65,7 @@ void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_leng
         // Short circuit if direction is not correct (must be IN)
         if (strncmp(token, RFQUACK_TOPIC_IN, strlen(RFQUACK_TOPIC_IN)) != 0) {
 #ifdef RFQUACK_DEV
-          Log.warning(F("Message has wrong direction: %s"), token);
+          RFQUACK_LOG_WARN(F("Message has wrong direction: %s"), token);
 #endif
           return;
         }
@@ -91,7 +91,7 @@ void rfquack_transport_recv(char *topic, uint8_t *payload, uint32_t payload_leng
   // Exit if the topic is not valid
   if (tokenOrdinal < 3) {
 #ifdef RFQUACK_DEV
-    Log.warning(F("Topic must have at least 3 tokens"));
+    RFQUACK_LOG_WARN(F("Topic must have at least 3 tokens"));
 #endif
     return;
   }
@@ -121,7 +121,7 @@ static void rfquack_mqtt_connect() {
   String clientId = RFQUACK_UNIQ_ID;
 
 #ifdef RFQUACK_DEV
-  Log.trace("Connecting %s to MQTT broker %s:%d", clientId.c_str(),
+  RFQUACK_LOG_TRACE("Connecting %s to MQTT broker %s:%d", clientId.c_str(),
             RFQUACK_MQTT_BROKER_HOST, RFQUACK_MQTT_BROKER_PORT);
 #endif
 
@@ -138,28 +138,28 @@ static void rfquack_mqtt_connect() {
                               RFQUACK_MQTT_BROKER_PASS
 #endif
                               )) {
-      Log.warning("MQTT error = %d, return = %d", rfquack_mqtt.lastError(),
+      RFQUACK_LOG_WARN("MQTT error = %d, return = %d", rfquack_mqtt.lastError(),
                   rfquack_mqtt.returnCode());
     }
   }
 
-  Log.trace("MQTT connected");
+  RFQUACK_LOG_TRACE("MQTT connected");
 
   while (!rfquack_mqtt.subscribe(RFQUACK_IN_TOPIC_WILDCARD)) {
-    Log.error("Failure subscribing to topic: %s", RFQUACK_IN_TOPIC_WILDCARD);
+    RFQUACK_LOG_ERROR("Failure subscribing to topic: %s", RFQUACK_IN_TOPIC_WILDCARD);
 
     delay(RFQUACK_MQTT_RETRY_DELAY);
   }
 
-  Log.trace("Subscribed to topic: %s", RFQUACK_IN_TOPIC_WILDCARD);
+  RFQUACK_LOG_TRACE("Subscribed to topic: %s", RFQUACK_IN_TOPIC_WILDCARD);
 
   while (!rfquack_mqtt.subscribe(RFQUACK_IN_BROADCAST_TOPIC_WILDCARD)) {
-    Log.error("Failure subscribing to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
+    RFQUACK_LOG_ERROR("Failure subscribing to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
 
     delay(RFQUACK_MQTT_RETRY_DELAY);
   }
 
-  Log.trace("Subscribed to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
+  RFQUACK_LOG_TRACE("Subscribed to topic: %s", RFQUACK_IN_BROADCAST_TOPIC_WILDCARD);
 }
 
 /**
@@ -167,7 +167,7 @@ static void rfquack_mqtt_connect() {
  */
 void rfquack_transport_loop() {
   if (!rfquack_mqtt.connected()) {
-    Log.warning("MQTT transport not connected");
+    RFQUACK_LOG_WARN("MQTT transport not connected");
 
     rfquack_mqtt_connect();
   }
@@ -192,7 +192,7 @@ void rfquack_transport_setup() {
 
 uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
                             uint32_t len) {
-  Log.trace("Transport is sending %d bytes on topic %s", len, topic);
+  RFQUACK_LOG_TRACE("Transport is sending %d bytes on topic %s", len, topic);
 
   if (rfquack_mqtt.publish(topic, (char *) data, len))
     return len;
@@ -221,11 +221,11 @@ void rfquack_transport_connect() {
 
   while (!Serial);
 
-  Log.trace("Serial transport connected");
+  RFQUACK_LOG_TRACE("Serial transport connected");
 }
 
 void rfquack_transport_setup() {
-  Log.trace("Setting up serial transport");
+  RFQUACK_LOG_TRACE("Setting up serial transport");
   rfquack_transport_connect();
 }
 
@@ -246,7 +246,7 @@ uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
 
   uint32_t written = 0;
 
-  Log.trace("Transport is sending %d bytes on topic %s", len, topic);
+  RFQUACK_LOG_TRACE("Transport is sending %d bytes on topic %s", len, topic);
 
   written += Serial.write((uint8_t) RFQUACK_SERIAL_PREFIX_OUT_CHAR);
   written += Serial.write((uint8_t *) topic, strlen(topic));

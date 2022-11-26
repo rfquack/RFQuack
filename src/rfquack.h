@@ -103,10 +103,6 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
 
   delay(100);
 
-  rfquack_transport_connect();
-
-  delay(100);
-
   // Initialize all radios, will do nothing on radios which are not enabled with
   // "#define USE_RADIOX"
   rfqRadio = new RFQRadio(_radioA, _radioB, _radioC, _radioD, _radioE);
@@ -122,14 +118,30 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   //
   // Modules will be called in the order they are registered; As consequence
   // it's important that you load them in a mindful order.
+#ifdef RFQUACK_GUESSING_MODULE
   modulesDispatcher.registerModule(&guessingModule);
+#endif
+#ifdef RFQUACK_FREQ_SCANNER_MODULE
   modulesDispatcher.registerModule(&frequencyScannerModule);
+#endif
+#ifdef RFQUACK_MOUSE_JACK_MODULE
   modulesDispatcher.registerModule(&mouseJackModule);
+#endif
+#ifdef RFQUACK_PACKET_FILTER_MODULE
   modulesDispatcher.registerModule(&packetFilterModule);
+#endif
+#ifdef RFQUACK_PACKET_MOD_MODULE
   modulesDispatcher.registerModule(&packetModificationModule);
+#endif
+#ifdef RFQUACK_PACKET_REPEAT_MODULE
   modulesDispatcher.registerModule(&packetRepeaterModule);
+#endif
+#ifdef RFQUACK_PACKET_ROLL_JAM_MODULE
   modulesDispatcher.registerModule(&rollJamModule);
+#endif
   modulesDispatcher.registerModule(&pingModule);
+
+/* Register new modules here */
 //  modulesDispatcher.registerModule(&helloWorldModule);
 
 

@@ -14,20 +14,24 @@ public:
     using RF69::setCrcFiltering;
     using RF69::setRxBandwidth;
     using RF69::fixedPacketLengthMode;
-    using RF69::setFrequency;
     using RF69::setFrequencyDeviation;
     using RF69::getFrequencyDeviation;
-    using RF69::setBitRate;
 
     RFQRF69(Module *module) : RadioLibWrapper(module, "RF69") {}
 
-    int16_t begin() override {
+    int16_t begin() {
+      RFQUACK_LOG_TRACE(F("Initializing RF69 module"));
+
       int16_t state = RadioLibWrapper::begin();
+
+      RFQUACK_LOG_TRACE(F("RadioLibWrapper initialization completed (state: %d)"), state);
 
       if (state != RADIOLIB_ERR_NONE) return state;
 
       // Remove whitening
       state |= _mod->SPIsetRegValue(RADIOLIB_RF69_REG_PACKET_CONFIG_1, RADIOLIB_RF69_DC_FREE_NONE, 6, 5);
+
+      RFQUACK_LOG_TRACE(F("RF69 module initialization completed (state: %d)"), state);
 
       return state;
     }

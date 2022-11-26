@@ -6,6 +6,7 @@
 
 class RFQCC1101 : public RadioLibWrapper<CC1101> {
 public:
+    // introduce CC1101 overloads
     using CC1101::setPreambleLength;
     using CC1101::fixedPacketLengthMode;
     using CC1101::setOutputPower;
@@ -13,10 +14,10 @@ public:
     using CC1101::variablePacketLengthMode;
     using CC1101::setCrcFiltering;
     using CC1101::setRxBandwidth;
+    using CC1101::setFrequency;
     using CC1101::setBitRate;
     using CC1101::setFrequencyDeviation;
     using CC1101::getFrequencyDeviation;
-    using CC1101::setFrequency;
 
     RFQCC1101(Module *module) : RadioLibWrapper(module, "CC1101") {}
 
@@ -42,6 +43,38 @@ public:
       state |= SPIsetRegValue(RADIOLIB_CC1101_REG_PKTCTRL1, RADIOLIB_CC1101_APPEND_STATUS_OFF, 2, 2);
 
       return state;
+    }
+
+    int16_t setFrequency(float freq) override {
+      return CC1101::setFrequency(freq);
+    }
+
+    int16_t setBitRate(float br) override {
+      return CC1101::setBitRate(br);
+    }
+    
+    int16_t setRxBandwidth(float rxBw) override {
+      return CC1101::setRxBandwidth(rxBw);
+    }
+
+    int16_t setFrequencyDeviation(float freqDev) override {
+      return CC1101::setFrequencyDeviation(freqDev);
+    }
+
+    int16_t setOutputPower(uint32_t txPower) override {
+      return CC1101::setOutputPower((uint8_t)txPower);
+    }
+
+    int16_t variablePacketLengthMode(uint8_t maxLen) override {
+      return CC1101::variablePacketLengthMode(maxLen);
+    }
+
+    int16_t setPreambleLength(uint32_t preambleLength) override {
+      return CC1101::setPreambleLength((uint8_t)preambleLength);
+    }
+
+    int16_t setEncoding(uint8_t encoding) override {
+      return CC1101::setEncoding(encoding);
     }
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
