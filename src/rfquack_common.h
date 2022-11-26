@@ -49,10 +49,10 @@ extern uint32_t rfquack_transport_send(const char *topic, const uint8_t *data, u
   uint8_t buf[RFQUACK_MAX_PB_MSG_SIZE]; \
   pb_ostream_t ostream = pb_ostream_from_buffer(buf, RFQUACK_MAX_PB_MSG_SIZE); \
   if (!pb_encode(&ostream, pbStruct ##  _fields, &(data))) { \
-    Log.error("Encoding " #pbStruct " failed: %s", PB_GET_ERROR(&ostream)); \
+    RFQUACK_LOG_ERROR("Encoding " #pbStruct " failed: %s", PB_GET_ERROR(&ostream)); \
   } else { \
     if (!rfquack_transport_send(topic, buf, ostream.bytes_written)) \
-      Log.error(F("Failed sending to transport ")); \
+      RFQUACK_LOG_ERROR(F("Failed sending to transport ")); \
   } \
 }
 

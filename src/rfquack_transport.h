@@ -246,7 +246,7 @@ uint32_t rfquack_transport_send(const char *topic, const uint8_t *data,
 
   uint32_t written = 0;
 
-  RFQUACK_LOG_TRACE("Transport is sending %d bytes on topic %s", len, topic);
+  RFQUACK_LOG_TRACE(F("Transport is sending %d bytes on topic %s"), len, topic);
 
   written += Serial.write((uint8_t) RFQUACK_SERIAL_PREFIX_OUT_CHAR);
   written += Serial.write((uint8_t *) topic, strlen(topic));
