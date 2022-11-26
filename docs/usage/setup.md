@@ -22,8 +22,8 @@ The build process is baed on PlatformIO and will read variables from two files:
 
 ### General Configuration
 
-| Variable         | Description                                                                 | Required           |
-| ---------------- | --------------------------------------------------------------------------- | ------------------ |
+| Variable           | Description                                                                 | Required           |
+| ------------------ | --------------------------------------------------------------------------- | ------------------ |
 | `RFQUACK_UNIQ_ID`  | Unique identifier for this node (defaults to `RFQUACK`)                     | No                 |
 | `SERIAL_BAUD_RATE` | Defaults to `115200`                                                        | No                 |
 | `USE_MQTT`         | Disables Serial transport and enables the MQTT one                          | No                 |
@@ -39,18 +39,32 @@ The build process is baed on PlatformIO and will read variables from two files:
 
 RFQuack supports up to 5 radios, up to what your board supports (i.e., enough interrupt and chip select pins). You must configure, at least, `RadioA`:
 
-| Variable     | Description                                                                                 | Required         |
-| ------------ | ------------------------------------------------------------------------------------------- | ---------------- |
-| `RADIOA`     | Chosen modem for `RadioA`: (options: `rF69`, `CC1101`, `nRF24` *case sensitive*)              | Yes              |
-| `RADIOA_CS`  | SPI `Chip Select` pin for `RadioA`                                                            | No               |
-| `RADIOA_IRQ` | Interrupt pin for `RadioA`. It's labeled `IRQ` on `nRF24` modules, or `GDO0` on `CC1101` ones | No               |
-| `RADIOA_CE`  | `Chip Enable` pin for `RadioA` (needed only for `nRF24` radios)                               | No               |
-| `RADIO<X>`     | Chosen modem for `RadioA`: (options: `rF69`, `CC1101`, `nRF24` *case sensitive*)              | No              |
-| `RADIO<X>_CS`  | SPI `Chip Select` pin for RadioX                                                            | No               |
-| `RADIO<X>_IRQ` | Interrupt pin for RadioX. It's labeled `IRQ` on `nRF24` modules, or `GDO0` on `CC1101` ones | No               |
-| `RADIO<X>_CE`  | `Chip Enable` pin for RadioX (needed only for `nRF24` radios)                               | No               |
+| Variable       | Description                                                                                   | Required                           |
+| -------------- | --------------------------------------------------------------------------------------------- | ---------------------------------- |
+| `RADIOA`       | Chosen modem for `RadioA`: (options: `rF69`, `CC1101`, `nRF24` *case sensitive*)              | Yes                                |
+| `RADIOA_CS`    | Chip select pin for `RadioA`                                                                  | Yes                                |
+| `RADIOA_IRQ`   | Interrupt pin for `RadioA`. It's labeled `IRQ` on `nRF24` modules, or `GDO0` on `CC1101` ones | No                                 |
+| `RADIOA_RST`   | Reset pin for `RadioA` (called chip enable pin in `nRF24` )                                   | `nRF24` only (optional for others) |
+| `RADIO<X>`     | Chosen module for `RadioA`: (options: `RF69`, `CC1101`, `nRF24`)                              | No                                 |
+| `RADIO<X>_CS`  | Chip Select pin for RadioX                                                                    | No                                 |
+| `RADIO<X>_IRQ` | Interrupt pin for `RadioX` (e.g., labeled `IRQ` on `nRF24` modules, `GDO0` on `CC1101`)       | No                                 |
+| `RADIO<X>_RST` | Reset pin for `RadioX` (needed only for `nRF24` radios)                                       | No                                 |
 
 Valid values of `<X>` are `B`, `C`, `D`, `E`.
+
+## Modules Configuration
+
+RFQuack comes with some built-in modules, which are **not** enabled by default to keep the firmware lightweight. If you want to enable them, define the following variables into `build.env`:
+
+- `GUESSING_MODULE`
+- `FREQ_SCANNER_MODULE`
+- `MOUSE_JACK_MODULE`
+- `PACKET_FILTER_MODULE`
+- `PACKET_MOD_MODULE`
+- `PACKET_REPEAT_MODULE`
+- `ROLL_JAM_MODULE`
+
+For more information, check out the [Modules](../modules/overview.md) section.
 
 ## Example Configurations
 
