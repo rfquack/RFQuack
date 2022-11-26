@@ -26,13 +26,39 @@
 #define RFQUACK_TRANSPORT_SERIAL
 {% endif %}
 
-/* Enable Radio debug messages */
-#define RFQUACK_LOG_ENABLED
-#define RFQUACK_DEV
-#define RADIOLIB_DEBUG
+{% if GUESSING_MODULE is defined %}
+#define RFQUACK_GUESSING_MODULE
+{% endif %}
+{% if FREQ_SCANNER_MODULE is defined %}
+#define RFQUACK_FREQ_SCANNER_MODULE
+{% endif %}
+{% if MOUSE_JACK_MODULE is defined %}
+#define RFQUACK_MOUSE_JACK_MODULE
+{% endif %}
+{% if PACKET_FILTER_MODULE is defined %}
+#define RFQUACK_PACKET_FILTER_MODULE
+{% endif %}
+{% if PACKET_MOD_MODULE is defined %}
+#define RFQUACK_PACKET_MOD_MODULE
+{% endif %}
+{% if PACKET_REPEAT_MODULE is defined %}
+#define RFQUACK_PACKET_REPEAT_MODULE
+{% endif %}
+{% if ROLL_JAM_MODULE is defined %}
+#define RFQUACK_PACKET_ROLL_JAM_MODULE
+{% endif %}
 
-/* Disable Software Serial logging */
-#define RFQUACK_LOG_SS_DISABLED
+{% if LOG_ENABLED is defined %}
+#define RFQUACK_LOG_ENABLED    // Enable logging
+{% endif %}
+
+{% if DEV is defined %}
+#define RFQUACK_DEV    // Enable dev mode (verbosity)
+{% endif %}
+
+{% if RADIOLIB_DEBUG is defined %}
+#define RADIOLIB_DEBUG    // This may not be enough: try enabling also in RadioLib/src/BuildOpt.h
+{% endif %}
 
 /* Radio configuration */
 #include <radio/drivers.h>
@@ -40,31 +66,31 @@
 // At least RadioA must be defined.
 #define USE_RADIOA
 typedef RFQ{{ RADIOA }} RadioA;
-RadioA radioA = new Module({{ RADIOA_CS }}, {{ RADIOA_IRQ|default('RADIOLIB_NC') }}, {{ RADIOA_CE|default('RADIOLIB_NC') }}); // CS, IRQ, CE
+RadioA radioA = new Module({{ RADIOA_CS }}, {{ RADIOA_IRQ|default('RADIOLIB_NC') }}, {{ RADIOA_CS|default('RADIOLIB_NC') }}, {{ RADIOA_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
 
 {% if RADIOB is defined %}
 // Optionally add RadioB.
 #define USE_RADIOB
 typedef RFQ{{ RADIOB }} RadioB;
-RadioB radioB = new Module({{ RADIOB_CS|default('RADIOLIB_NC') }}, {{ RADIOB_IRQ|default('RADIOLIB_NC') }}, {{ RADIOB_CE|default('RADIOLIB_NC') }}); // CS, IRQ, CE
+RadioB radioB = new Module({{ RADIOB_CS|default('RADIOLIB_NC') }}, {{ RADIOB_IRQ|default('RADIOLIB_NC') }}, {{ RADIOB_CS|default('RADIOLIB_NC') }}, {{ RADIOB_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
 {% endif %}
 {% if RADIOC is defined %}
 // Optionally add RadioC.
 #define USE_RADIOC
 typedef RFQ{{ RADIOC }} RadioC;
-RadioC radioC = new Module({{ RADIOC_CS|default('RADIOLIB_NC') }}, {{ RADIOC_IRQ|default('RADIOLIB_NC') }}, {{ RADIOC_CE|default('RADIOLIB_NC') }}); // CS, IRQ, CE
+RadioC radioC = new Module({{ RADIOC_CS|default('RADIOLIB_NC') }}, {{ RADIOC_IRQ|default('RADIOLIB_NC') }}, {{ RADIOC_CS|default('RADIOLIB_NC') }}, {{ RADIOC_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
 {% endif %}
 {% if RADIOD is defined %}
 // Optionally add RadioD.
 #define USE_RADIOD
 typedef RFQ{{ RADIOD }} RadioD;
-RadioD radioD = new Module({{ RADIOD_CS|default('RADIOLIB_NC') }}, {{ RADIOD_IRQ|default('RADIOLIB_NC') }}, {{ RADIOD_CE|default('RADIOLIB_NC') }}); // CS, IRQ, CE
+RadioD radioD = new Module({{ RADIOD_CS|default('RADIOLIB_NC') }}, {{ RADIOD_IRQ|default('RADIOLIB_NC') }}, {{ RADIOD_CS|default('RADIOLIB_NC') }}, {{ RADIOD_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
 {% endif %}
 {% if RADIOE is defined %}
 // Optionally add RadioE.
 #define USE_RADIOE
 typedef RFQ{{ RADIOE }} RadioE;
-RadioE radioE = new Module({{ RADIOE_CS|default('RADIOLIB_NC') }}, {{ RADIOE_IRQ|default('RADIOLIB_NC') }}, {{ RADIOE_CE|default('RADIOLIB_NC') }}); // CS, IRQ, CE
+RadioE radioE = new Module({{ RADIOE_CS|default('RADIOLIB_NC') }}, {{ RADIOE_IRQ|default('RADIOLIB_NC') }}, {{ RADIOE_CS|default('RADIOLIB_NC') }}, {{ RADIOE_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
 {% endif %}
 
 /*****************************************************************************
