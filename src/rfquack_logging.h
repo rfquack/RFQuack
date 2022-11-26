@@ -34,42 +34,8 @@ void printTimestamp(Print *_logOutput) {
 
 void printNewline(Print *_logOutput) { _logOutput->print('\n'); }
 
-/*
- * If the board has extra hardware serials in addition to the default hardware
- * serial port that is connected to the USB/Serial converter, we will use that
- * on the default pins. We do this when RFQUACK_LOG_SS_DISABLE (disable the
- * software serial logging output) is defined, which means that the user would
- * like to use the hardware serial to get the logging output.
- *
- * Else, if the software serial pins are defined and RFQUACK_LOG_SS_DISABLED is
- * not defined, then the user wants to use them to receive serial logging data.
- *
- * Otherwise, if the primary hardware serial (that is usually connected to the
- * USB/Serial converter) is not taken by the transport, then we use that one
- * for logging.
- *
- * If none of these cases apply, we just redirect the logging output to a
- * software serial with default pins as defined in config/logging.h
- *
- * Overall the user can have:
- *
- *  - serial transport (via the USB/Serial converter port), plus logging via:
- *    - via software serial: they must not define RFQUACK_LOG_SS_DISABLED
- *    - via hardware serial: they must define RFQUACK_LOG_SS_DISABLED and have a board that has a Serial1 hardware serial
- *
- *  - other (non-serial) transport, they will get the logging via the USB/Serial converter port
- */
-#if !defined(RFQUACK_LOG_SS_DISABLED)
-#include <SoftwareSerial.h>
-SoftwareSerial LogPrinter(RFQUACK_LOG_SS_RX_PIN, RFQUACK_LOG_SS_TX_PIN, false,
-                          RFQUACK_LOG_SS_BLK_SIZE);
-#elif !defined(RFQUACK_TRANSPORT_SERIAL)
-#define LogPrinter Serial // Main hardware serial is free for logging
-#elif defined(RFQUACK_TRANSPORT_SERIAL)
 #define LogPrinter Serial // Secondary hardware serial is used for logging
-#endif
 
-#define RFQUACK_LOG_ENABLED
 #ifdef RFQUACK_LOG_ENABLED
 #define RFQUACK_LOG_TRACE(...) {     Log.trace(__VA_ARGS__); }
 #define RFQUACK_LOG_ERROR(...) {     Log.error(__VA_ARGS__); }
@@ -79,8 +45,8 @@ SoftwareSerial LogPrinter(RFQUACK_LOG_SS_RX_PIN, RFQUACK_LOG_SS_TX_PIN, false,
 #endif
 
 void rfquack_logging_setup() {
+#ifdef RFQUACK_LOG_ENABLED
   LogPrinter.begin(RFQUACK_LOG_PRINTER_BAUD_RATE, SERIAL_8N1); //, 32,33);
-
 
   while (!LogPrinter)
     ;
@@ -88,6 +54,7 @@ void rfquack_logging_setup() {
   Log.begin(RFQUACK_LOG_LEVEL, &LogPrinter);
   Log.setPrefix(printTimestamp);
   Log.setSuffix(printNewline);
+#endif
 }
 
 /*
