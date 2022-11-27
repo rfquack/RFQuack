@@ -79,10 +79,12 @@ public:
 
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       if (size == 0) {
-        // Warning: as side effect this also disables preamble generation / detection.
-        // CC1101 Datasheet states: "It is not possible to only insert preamble or
-        // only insert a sync word"
-        RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
+        // Warning: as side effect this also disables preamble generation /
+        // detection.  CC1101 Datasheet states: "It is not possible to only
+        // insert preamble or only insert a sync word"
+        RFQUACK_LOG_TRACE(F("Preamble and SyncWord filtering disabled."))
+        _syncWords[0] = 0;
+        _syncWords[1] = 0;
         return CC1101::disableSyncWordFiltering();
       }
 
@@ -98,8 +100,10 @@ public:
     int16_t getSyncWord(uint8_t *bytes, pb_size_t *size) override {
       if (CC1101::_promiscuous) {
         // No sync words when in promiscuous mode.
-        *size = 0;
-        return RADIOLIB_ERR_INVALID_SYNC_WORD;
+        size = 2;
+        bytes[0] = _syncWords[0];
+        bytes[1] = _syncWords[1];
+      return RADIOLIB_ERR_NONE;
       } else {
         *size = _syncWordLength;
         memcpy(bytes, _syncWords, (size_t)*size);
