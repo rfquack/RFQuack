@@ -22,20 +22,16 @@ this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import logging
 import base64
 import binascii
 
-import serial
-import serial.threaded
-import serial.serialutil
-
 import paho.mqtt.client as paho_mqtt
-
+import serial
+import serial.serialutil
+import serial.threaded
+from loguru import logger
 from rfquack import topics
 from rfquack.src import rfquack_pb2
-
-logger = logging.getLogger("rfquack.transport")
 
 
 def hexelify(blob):

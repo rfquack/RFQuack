@@ -23,18 +23,13 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import sys
-import logging
 
 import click
-import coloredlogs
 import serial.serialutil
-
-from rfquack.transport import RFQuackMQTTTransport, RFQuackSerialTransport
-from rfquack.shell import RFQuackShell
-
+from loguru import logger
 from rfquack.banner import BANNER
-
-logger = logging.getLogger("rfquack.cli")
+from rfquack.shell import RFQuackShell
+from rfquack.transport import RFQuackMQTTTransport, RFQuackSerialTransport
 
 LOG_LEVELS = ("CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG", "NOTSET")
 
@@ -44,7 +39,8 @@ CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
 @click.group(context_settings=CONTEXT_SETTINGS)
 @click.option("--loglevel", "-l", type=click.Choice(LOG_LEVELS), default="WARNING")
 def cli(loglevel):
-    coloredlogs.install(level=loglevel)
+    logger.remove()
+    logger.add(sys.stderr, level=loglevel)
 
 
 @cli.command()

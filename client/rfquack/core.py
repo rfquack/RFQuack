@@ -23,13 +23,12 @@ Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
 import sys
-import logging
 
-from rfquack.src import rfquack_pb2
-from rfquack import topics
 from google.protobuf.message import Message
-
-logger = logging.getLogger("rfquack.core")
+from loguru import logger
+from rfquack import topics
+from rfquack.src import rfquack_pb2
+from rich import print
 
 
 class ModuleInterface(object):
@@ -83,21 +82,21 @@ class ModuleInterface(object):
         return list(self._help.keys()) + ["help"]
 
     def help(self):
-        sys.stdout.write("\n")
-        sys.stdout.write("Helper for '{}':\n\n".format(self._module_name))
+        print(f"[yellow]Help for '{self._module_name}':\n")
         for cmd_name in self._help:
             cmd = self._help[cmd_name]
 
             # Print full command and its type (method/attribute)
-            sys.stdout.write("> q.{}.{}".format(self._module_name, cmd_name))
+            print(f"> q.{self._module_name}.[red]{cmd_name}[/red]", end="")
             if cmd["cmd_type"] == rfquack_pb2.CmdInfo.CmdTypeEnum.METHOD:
-                sys.stdout.write("()")
-            sys.stdout.write("\n")
+                print(f"([green]{cmd['argument_type']}[/green])")
+            else:
+                print(f" = [green]...[/green]")
 
             # Print the description
-            sys.stdout.write("Accepts: {}\n".format(cmd["argument_type"]))
-            sys.stdout.write(cmd["description"])
-            sys.stdout.write("\n\n")
+            print(f"\t[blue]{cmd['description']}[/blue]\n")
+
+        print("Check src/rfquack.proto for type definitions")
 
     def _parse_attribute(self, value, type):
         rfq = self._rfquack
@@ -187,7 +186,7 @@ class RFQuack(object):
         dongle_prefix = kwargs.get("prefix")
         id = len(self._dongles)
         self._dongles[id] = dongle_prefix
-        sys.stdout.write(" - Dongle {}: {}\n".format(id, dongle_prefix))
+        print(f" - Dongle {id}: RFQUACK_UNIQ_ID = '{dongle_prefix}'")
 
         # If select_first_dongle then automatically select the first received dongle.
         if self._select_first_dongle:

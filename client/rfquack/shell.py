@@ -22,12 +22,9 @@ this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import logging
-
-from rfquack.src import rfquack_pb2
 from rfquack.core import RFQuack
-
-logger = logging.getLogger("rfquack.shell")
+from rfquack.src import rfquack_pb2
+from rich import print
 
 
 class RFQuackShell(object):
@@ -44,8 +41,11 @@ class RFQuackShell(object):
         self._select_first_dongle = select_first_dongle
 
     def __call__(self):
-        from IPython.terminal.prompts import Prompts, Token
         from IPython.terminal.interactiveshell import TerminalInteractiveShell
+        from IPython.terminal.prompts import Prompts, Token
+        from rich import pretty
+
+        pretty.install()
 
         token = self._token
 
@@ -56,7 +56,7 @@ class RFQuackShell(object):
         TerminalInteractiveShell.prompts_class = RFQuackShellPrompts
         shell = TerminalInteractiveShell()
         shell.autocall = 0
-        shell.show_banner(self._banner)
+        print(self._banner)
 
         q = RFQuack(self._transport, "rfquack", shell, self._select_first_dongle)
         shell_objs = dict(q=q, pb=rfquack_pb2)

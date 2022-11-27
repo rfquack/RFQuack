@@ -64,6 +64,8 @@ coloredlogs = "^15.0.1"
 ipython = "^8.6.0"
 mkdocs = "^1.4.2"
 mkdocs-material = "^8.5.10"
+rich = "^12.6.0"
+loguru = "^0.6.0"
 
 
 [tool.poetry.group.dev.dependencies]

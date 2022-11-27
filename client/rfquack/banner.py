@@ -22,29 +22,28 @@ this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-BANNER = """
-
+BANNER = """[yellow]
                    ,-.
                ,--' ~.).
              ,'         `.
-            ; (((__   __)))      welcome to rfquack!
+            ; (((__   __)))      [white]Welcome to RFQuack![/white]
             ;  ( (#) ( (#)
-            |   \_/___\_/|              the versatile
-           ,"  ,-'    `__".             rf-hacking tool that quacks!
+            |   \_/___\_/|              [white]the versatile[/white]
+           ,"  ,-'    `__".             [white]RF-Hacking tool that quacks![/white]
           (   ( ._   ____`.)--._        _
            `._ `-.`-' \(`-'  _  `-. _,-' `-/`.
-            ,')   `.`._))  ,' `.   `.  ,','  ;   ~~~
+            ,')   `.`._))  ,' `.   `.  ,','  ;   [blue]~~~[/blue]
           .'  .     `--'  /     ).   `.      ;
-         ;     `-        /     '  )         ;           ~~~~
-         \                       ')       ,'    ~~  ~
-          \                     ,'       ;           ~~
-           \               `~~~'       ,'               ~~~  ~~    ~~~~~
-            `.                      _,'             ~~~
+         ;     `-        /     '  )         ;           [blue]~~~~[/blue]
+         \                       ')       ,'    [blue]~~  ~[/blue]
+          \                     ,'       ;           [blue]~~[/blue]
+           \               `~~~'       ,'               [blue]~~~  ~~    ~~~~~[/blue]
+            `.                      _,'             [blue]~~~[/blue]
         hjw   `.                ,--'
-        ~~~~~~~~`-._________,--'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                `-._________,--'[/yellow]
+        [blue]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[/blue]
 
-        ------------------------------------------------------------------------
-
+        [magenta]
         > q.radioA.set_modem_config(
                 modulation="OOK",           # Set the modulation
                 carrierFreq=434.437,        # Set the frequency in MHz
@@ -58,39 +57,28 @@ BANNER = """
                 packetLen=102)              # Len set to 102
 
         > q.radioA.tx()                     # Enters TX mode.
+
+        > q.radioA.jam()                    # Enters jamming mode.
         
         > q.radioA.send(
             data=b"\\xAA\\xBB\\xCC")           # Sends a packet
             
-            
-                                            # example: with rfm69
+                                            # example: with RF69
                                             # -------------------
         > q.radioA.set_register(            #  truly promiscuous mode:
             address=0x2e,                   #  1) set register 0x2e
             value=0b01000000                #     to 0b01000000
             )                               #
-    > q.radioA.set_register(                #
+        > q.radioA.set_register(                #
             address=0x37,                   #  2) set register 0x37
             value=0b01000000                #     to 0b11000000
             )
 
-        > q.packet_filter.add               # ignore packets
-            pattern="^ab[cd]",              # not matching this regex
-            negateRule=False                # do not invert rule.
-        )
+        > q.radioA.help()                   # show quick help
+        [/magenta]
 
-        > q.packet_modification.add(        # modify packets as follows:
-            pattern="[ke]$",                #  if they end with 'k' or 'e'
-            position=3,                     #  at position = 3 in the payload
-            content=b'\\x29',                #  and position = indexof(0x29)
-            operation=2                     #  content[position] |= 0x25
-            operand=b'\\x25'
-        )
-
-
-        help:
-        > q.packet_modification.help()      # use the helper function.
-        > q.?                               # tab is your friend
-
-        exit:   just type ctrl-d a couple of times!
+        [red]
+        Docs: https://rfquack.org
+        Code: https://git.io/rfquack
+        [/red]
 """
