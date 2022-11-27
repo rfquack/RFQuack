@@ -139,6 +139,8 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
 #ifdef RFQUACK_PACKET_ROLL_JAM_MODULE
   modulesDispatcher.registerModule(&rollJamModule);
 #endif
+
+  // Ping module is always enabled so the CLI can auto discover the dongle
   modulesDispatcher.registerModule(&pingModule);
 
 /* Register new modules here */
@@ -170,7 +172,11 @@ void rfquack_setup(RadioA *_radioA, RadioB *_radioB = nullptr, RadioC *_radioC =
   // Delete "loopTask" and recreate it with increased stackDepth.
   RFQUACK_LOG_TRACE(F("Setup is over."))
 
-  delay(10);
+  // Surprisingly, this wakes up the CLI and solves lots of corner cases
+  rfquack_CmdReply reply = rfquack_CmdReply_init_default;
+  PB_ENCODE_AND_SEND(rfquack_CmdReply, reply, RFQUACK_TOPIC_SET, "discovery", "discovery");
+
+  delay(1000);
 
   xTaskCreateUniversal(rfquackTask, "loopTaskRevamp", 10000, NULL, 1, NULL, CONFIG_ARDUINO_RUNNING_CORE);
   vTaskDelete(NULL);
