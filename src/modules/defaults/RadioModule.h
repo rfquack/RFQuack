@@ -35,6 +35,10 @@ public:
       CMD_MATCHES_METHOD_CALL(rfquack_ModemConfig, "set_modem_config", "Apply configuration to modem.",
                               set_modem_config(pkt, reply))
 
+      // Set modem configuration:
+      CMD_MATCHES_METHOD_CALL(rfquack_ModemConfig, "set_modem_config", "Apply configuration to modem.",
+                              set_modem_config(pkt, reply))
+
       // Set packet len:
       CMD_MATCHES_METHOD_CALL(rfquack_PacketLen, "set_packet_len", "Set packet length configuration (fixed/variable).",
                               set_packet_len(pkt, reply))

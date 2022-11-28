@@ -430,7 +430,7 @@ public:
      * 
      * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
      */
-    virtual int16_t setFrequencyDeviation(float freqDev) override {
+    virtual int16_t setFrequencyDeviation(float freqDev) {
       RFQUACK_LOG_ERROR(F("setFrequencyDeviation was not implemented."));
 
       return ERR_COMMAND_NOT_IMPLEMENTED;
@@ -641,6 +641,19 @@ public:
      */
     virtual float getRSSI(float *rssi) {
       RFQUACK_LOG_ERROR(F("getRSSI was not implemented."));
+
+      return ERR_COMMAND_NOT_IMPLEMENTED;
+    }
+
+    /**
+     * Sets the transmission encoding.
+     * 
+     * @param encoding Encoding to be used.
+     * 
+     * @return \ref status_codes (\ref ERR_NONE or \ref ERR_COMMAND_NOT_IMPLEMENTED)
+     */
+    virtual int16_t setEncoding(uint8_t encoding) {
+      RFQUACK_LOG_ERROR(F("setEncoding was not implemented."));
 
       return ERR_COMMAND_NOT_IMPLEMENTED;
     }

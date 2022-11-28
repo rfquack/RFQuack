@@ -21,7 +21,7 @@ Install or have access to an MQTT broker (Mosquitto is just perfect for this):
   - you need network connectivity (WiFi or cellular)
   - there's latency
 
-## Hardware Serial Transport
+## Serial Transport
 
 Connect the dongle via USB
 
@@ -34,13 +34,13 @@ Connect the dongle via USB
 
 ## Command Line Interface
 
-Now you can use RFQuack via the IPython-based shell. We highly recommend using a second console open to keep an eye on the output log.
+Now you can use RFQuack via the IPython-based shell.
 
 ### Test the Shell
 
 ```shell
 $ rfq --help
-Usage: rfquack [OPTIONS] COMMAND [ARGS]...
+Usage: rfq [OPTIONS] COMMAND [ARGS]...
 
 Options:
   -l, --loglevel [CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET]
@@ -51,13 +51,13 @@ Commands:
   tty   RFQuack client with serial transport.
 ```
 
-### MQTT Transport
+### CLI via MQTT Transport
 
 To use this, you'll have to build a firmware configured to use the MQTT transport. Please check the `USE_MQTT` configuration variable in this manual.
 
 ```rfq
 $ rfq mqtt --help
-Usage: rfquack mqtt [OPTIONS]
+Usage: rfq mqtt [OPTIONS]
 
   RFQuack client with MQTT transport. Assumes one dongle per MQTT broker.
 
@@ -70,13 +70,13 @@ Options:
   -h, --help            Show this message and exit.
 ```
 
-### Serial Transport
+### CLI via Serial Transport
 
 This is the default transport, unless `USE_MQTT` is set in the `build.env` file.
 
 ```shell
 $ rfq tty --help
-Usage: rfquack tty [OPTIONS]
+Usage: rfq tty [OPTIONS]
 
   RFQuack client with serial transport.
 
@@ -114,3 +114,42 @@ message =
 ```
 
 At this point you're good to go from here!
+
+### Inline Help
+
+```shell
+RFQuack(/dev/cu.usbserial-0001)> q.radioA.help()
+Help for 'radioA':
+
+> q.radioA.set_modem_config(rfquack_ModemConfig)
+        Apply configuration to modem.
+
+> q.radioA.set_packet_len(rfquack_PacketLen)
+        Set packet length configuration (fixed/variable).
+
+> q.radioA.set_register(rfquack_Register)
+        Sets register on underlying modem.
+
+> q.radioA.get_register(rfquack_UintValue)
+        Retrieve register value from underlying modem.
+
+> q.radioA.send_to_transport = ...
+        Whatever to send received packets to transport
+
+> q.radioA.send(rfquack_Packet)
+        Send a packet over the air
+
+> q.radioA.rx(rfquack_VoidValue)
+        Puts modem in RX mode
+
+> q.radioA.tx(rfquack_VoidValue)
+        Puts modem in TX mode
+
+> q.radioA.jam(rfquack_VoidValue)
+        Starts jamming
+
+> q.radioA.idle(rfquack_VoidValue)
+        Puts modem in IDLE mode
+
+Check src/rfquack.proto for type definitions
+```

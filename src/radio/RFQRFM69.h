@@ -36,6 +36,50 @@ public:
       return state;
     }
 
+    int16_t setFrequency(float freq) override {
+      return RF69::setFrequency(freq);
+    }
+
+    int16_t getFrequency(float *freq) override {
+      return RF69::getFrequency(freq);
+    }
+
+    int16_t setBitRate(float br) override {
+      return RF69::setBitRate(br);
+    }
+
+    int16_t setRxBandwidth(float rxBw) override {
+      return RF69::setRxBandwidth(rxBw);
+    }
+
+    int16_t setFrequencyDeviation(float freqDev) override {
+      return RF69::setFrequencyDeviation(freqDev);
+    }
+
+    int16_t setOutputPower(uint32_t txPower) override {
+      return RF69::setOutputPower(txPower);
+    }
+
+    int16_t setPreambleLength(uint32_t size) override {
+      return RF69::setPreambleLength(size);
+    }
+
+    int16_t variablePacketLengthMode(uint8_t len) override {
+      return RF69::variablePacketLengthMode(len);
+    }
+
+    int16_t setDataShaping(uint8_t sh) override {
+      return RF69::setDataShaping(sh);
+    }
+
+    int16_t setEncoding(uint8_t encoding) override {
+      return RF69::setEncoding(encoding);
+    }
+
+    int16_t setCrcFiltering(bool crcOn) override {
+      return RF69::setCrcFiltering(crcOn);
+    }
+
     int16_t setSyncWord(uint8_t *bytes, pb_size_t size) override {
       if (size == 0) {
         RFQUACK_LOG_TRACE(F("Preamble and SyncWord disabled."))
