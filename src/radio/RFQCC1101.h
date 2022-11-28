@@ -100,9 +100,7 @@ public:
     int16_t getSyncWord(uint8_t *bytes, pb_size_t *size) override {
       if (CC1101::_promiscuous) {
         // No sync words when in promiscuous mode.
-        size = 2;
-        bytes[0] = _syncWords[0];
-        bytes[1] = _syncWords[1];
+        *size = 0;
       return RADIOLIB_ERR_NONE;
       } else {
         *size = _syncWordLength;
