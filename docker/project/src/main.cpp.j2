@@ -63,34 +63,86 @@
 /* Radio configuration */
 #include <radio/drivers.h>
 
+{% if ECRF is defined %}
+SPIClass SPIH(HSPI);
+SPISettings spiSettings(1000000, MSBFIRST, SPI_MODE0);
+{% endif %}
+
 // At least RadioA must be defined.
 #define USE_RADIOA
 typedef RFQ{{ RADIOA }} RadioA;
-RadioA radioA = new Module({{ RADIOA_CS }}, {{ RADIOA_IRQ|default('RADIOLIB_NC') }}, {{ RADIOA_CS|default('RADIOLIB_NC') }}, {{ RADIOA_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
+RadioA radioA = new Module(
+  {{ RADIOA_CS }},
+  {{ RADIOA_IRQ|default('RADIOLIB_NC') }},
+  {{ RADIOA_CS|default('RADIOLIB_NC') }},
+  {{ RADIOA_RST|default('RADIOLIB_NC') }}
+
+{% if ECRF is defined %}
+  , SPIH, spiSettings
+{% endif %}
+  ); // CS, IRQ, CE/RST
 
 {% if RADIOB is defined %}
 // Optionally add RadioB.
 #define USE_RADIOB
 typedef RFQ{{ RADIOB }} RadioB;
-RadioB radioB = new Module({{ RADIOB_CS|default('RADIOLIB_NC') }}, {{ RADIOB_IRQ|default('RADIOLIB_NC') }}, {{ RADIOB_CS|default('RADIOLIB_NC') }}, {{ RADIOB_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
+RadioB radioB = new Module(
+  {{ RADIOB_CS|default('RADIOLIB_NC') }},
+  {{ RADIOB_IRQ|default('RADIOLIB_NC') }},
+  {{ RADIOB_CS|default('RADIOLIB_NC') }},
+  {{ RADIOB_RST|default('RADIOLIB_NC') }}
+
+{% if ECRF is defined %}
+  , SPIH, spiSettings
 {% endif %}
+); // CS, IRQ, CE/RST
+{% endif %}
+
 {% if RADIOC is defined %}
 // Optionally add RadioC.
 #define USE_RADIOC
 typedef RFQ{{ RADIOC }} RadioC;
-RadioC radioC = new Module({{ RADIOC_CS|default('RADIOLIB_NC') }}, {{ RADIOC_IRQ|default('RADIOLIB_NC') }}, {{ RADIOC_CS|default('RADIOLIB_NC') }}, {{ RADIOC_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
+RadioC radioC = new Module(
+  {{ RADIOC_CS|default('RADIOLIB_NC') }},
+  {{ RADIOC_IRQ|default('RADIOLIB_NC') }},
+  {{ RADIOC_CS|default('RADIOLIB_NC') }},
+  {{ RADIOC_RST|default('RADIOLIB_NC') }}
+
+{% if ECRF is defined %}
+  , SPIH, spiSettings
 {% endif %}
+); // CS, IRQ, CE/RST
+{% endif %}
+
 {% if RADIOD is defined %}
 // Optionally add RadioD.
 #define USE_RADIOD
 typedef RFQ{{ RADIOD }} RadioD;
-RadioD radioD = new Module({{ RADIOD_CS|default('RADIOLIB_NC') }}, {{ RADIOD_IRQ|default('RADIOLIB_NC') }}, {{ RADIOD_CS|default('RADIOLIB_NC') }}, {{ RADIOD_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
+RadioD radioD = new Module(
+  {{ RADIOD_CS|default('RADIOLIB_NC') }},
+  {{ RADIOD_IRQ|default('RADIOLIB_NC') }},
+  {{ RADIOD_CS|default('RADIOLIB_NC') }},
+  {{ RADIOD_RST|default('RADIOLIB_NC') }}
+{% if ECRF is defined %}
+  , SPIH, spiSettings
 {% endif %}
+); // CS, IRQ, CE/RST
+{% endif %}
+
 {% if RADIOE is defined %}
 // Optionally add RadioE.
 #define USE_RADIOE
 typedef RFQ{{ RADIOE }} RadioE;
-RadioE radioE = new Module({{ RADIOE_CS|default('RADIOLIB_NC') }}, {{ RADIOE_IRQ|default('RADIOLIB_NC') }}, {{ RADIOE_CS|default('RADIOLIB_NC') }}, {{ RADIOE_RST|default('RADIOLIB_NC') }}); // CS, IRQ, CE/RST
+RadioE radioE = new Module(
+  {{ RADIOE_CS|default('RADIOLIB_NC') }},
+  {{ RADIOE_IRQ|default('RADIOLIB_NC') }},
+  {{ RADIOE_CS|default('RADIOLIB_NC') }},
+  {{ RADIOE_RST|default('RADIOLIB_NC') }}
+
+{% if ECRF is defined %}
+  , SPIH, spiSettings
+{% endif %}
+); // CS, IRQ, CE/RST
 {% endif %}
 
 /*****************************************************************************
@@ -99,6 +151,14 @@ RadioE radioE = new Module({{ RADIOE_CS|default('RADIOLIB_NC') }}, {{ RADIOE_IRQ
 #include <rfquack.h>
 
 void setup() {
+  {% if ECRF is defined %}
+  SPIH.begin();
+  pinMode({{ RADIOB_CS }}, OUTPUT);
+  digitalWrite({{ RADIOB_CS }}, 1);
+  pinMode({{ RADIOA_CS }}, OUTPUT);
+  digitalWrite({{ RADIOA_CS }}, 1);
+  {% endif %}
+
   rfquack_setup(
    &radioA
    {{ ', &radioB' if RADIOB is defined }}
