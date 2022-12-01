@@ -32,6 +32,7 @@ import serial.threaded
 from loguru import logger
 from rfquack import topics
 from rfquack.src import rfquack_pb2
+from rich import print
 
 
 def hexelify(blob):
@@ -84,6 +85,9 @@ class RFQuackTransport(object):
     def ready(self):
         return self._ready
 
+    def _log_parser(self, topic, payload):
+        pass
+
     def _message_parser(self, topic, payload):
         try:
             prefix, way, verb, module_name, message_type, *cmds = topic.split(
@@ -99,9 +103,8 @@ class RFQuackTransport(object):
         logger.debug('Message from module "{}"'.format(module_name))
 
         if prefix != self._prefix and self._prefix != topics.TOPIC_PREFIX_ANY:
-            logger.warning(
-                "Invalid prefix: {} should be {}".format(prefix, self._prefix)
-            )
+            # if topic.startswith(topics.TOPIC_PREFIX_LOG):
+            #     return self._log_parser(topic, payload)
             return
 
         if way != topics.TOPIC_OUT:
@@ -223,6 +226,7 @@ class RFQuackSerialProtocol(serial.threaded.FramedPacket):
     def init_parser(self):
         # buffer for the data enclosed between prefix and suffix
         self.packet = bytearray()
+        self.debug_lines = ""
 
         # buffers for the token we're currently looking for
         self.prefix_token = bytearray()
@@ -230,10 +234,18 @@ class RFQuackSerialProtocol(serial.threaded.FramedPacket):
         # indicates whether we've found the prefix
         self.prefix_found = False
 
+    def _print_debug(self):
+        for line in self.debug_lines.split("\n"):
+            print(f"[blue]{line}[/blue]")
+
     def data_received(self, data):
         """Find data enclosed in tokens, call handle_packet"""
+
         if self._debug:
-            print("DATA CHUNK RECEIVED = '{}'".format(data))
+            self.debug_lines += data.decode("utf-8")
+            if len(self.debug_lines) > 88:
+                self._print_debug()
+                self.debug_lines = ""
 
         # for each byte in the recv buffer
         for byte in serial.iterbytes(data):
@@ -252,7 +264,7 @@ class RFQuackSerialProtocol(serial.threaded.FramedPacket):
             return
 
         if self._debug:
-            logger.debug('Packet = "{}"'.format(packet))
+            logger.debug('Packet = "%s"', packet)
 
         if self.SERIAL_SEPARATOR not in packet:
             return

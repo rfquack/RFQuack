@@ -2,6 +2,34 @@
 
 This folder contains notes and the code used to demonstrate RFQuack at Black Hat Europe 2022 (Arsenal).
 
+## RFQuack Dongle
+
+- Feather ESP32
+- Radio A: RFM69HW @ 433MHz
+  - CS: 13
+  - IRQ: 27
+  - RST: 15
+- Radio B: RFM69HW @ 433MHz
+  - CS: 33
+  - IRQ: 23
+  - RST: 27
+
+If you use these wirings, you can copy [this `build.env`](build.env) file in the root of the RFQuack repository and you'll be ready to go.
+
+```shell
+git clone https://github.com/rfquack/rfquack
+poetry install
+cp examples/demos/bheu2022-arsenal/build.env .
+make clear flash
+make lsd  # take note of the serial port
+```
+
+```shell
+poetry run rfq tty -P /dev/<your serial port>
+```
+
+You should see two radios, `q.radioA` and `q.radioB` in the RFQuack shell.
+
 ## DEMO 1: Finding and Decoding a Signal
 
 **Goal:** show what RFQuack can achieve, without going into the details of what's under the hood, yet.

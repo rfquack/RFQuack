@@ -85,7 +85,9 @@ void rfquack_log_buffer(const char * prompt, const uint8_t *buf, const uint32_t 
 }
 
 void rfquack_log_packet(rfquack_Packet *pkt) {
+#ifdef RFQUACK_LOG_ENABLED
   rfquack_log_buffer("Packet = ", pkt->data.bytes, pkt->data.size);
+#endif
 }
 
 #endif

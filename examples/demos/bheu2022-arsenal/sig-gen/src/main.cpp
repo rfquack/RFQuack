@@ -20,10 +20,8 @@
 #include <RadioLib.h>
 
 // RF69 has the following connections:
-// CS pin:    10
-// DIO0 pin:  11
-// RESET pin: 3
 
+// Radio A on feather32u4 - tested working with this wiring
 #define CS_PIN 13
 #define IRQ_PIN 11
 #define RST_PIN 9
@@ -58,7 +56,7 @@ void setup()
     //       you must call setOutputPower() with
     //       second argument set to true.
     Serial.print(F("[RF69] Setting high power module ... "));
-    state = radio.setOutputPower(20, true);
+    state = radio.setOutputPower(18, true);
     if (state == RADIOLIB_ERR_NONE)
     {
         Serial.println(F("success!"));
@@ -106,43 +104,43 @@ void loop()
     // after 2s
     delay(2000);
 
-    // start receiving
-    state = radio.receive(str);
+    // // start receiving
+    // state = radio.receive(str);
 
-    if (state == RADIOLIB_ERR_NONE)
-    {
-        // packet was successfully received
-        Serial.println(F("success!"));
+    // if (state == RADIOLIB_ERR_NONE)
+    // {
+    //     // packet was successfully received
+    //     Serial.println(F("success!"));
 
-        // print the data of the packet
-        Serial.print(F("[RF69] Data:\t\t"));
-        Serial.println(str);
+    //     // print the data of the packet
+    //     Serial.print(F("[RF69] Data:\t\t"));
+    //     Serial.println(str);
 
-        // TODO compare with secret here
+    //     // TODO compare with secret here
 
-        // print RSSI (Received Signal Strength Indicator)
-        // of the last received packet
-        Serial.print(F("[RF69] RSSI:\t\t"));
-        Serial.print(radio.getRSSI());
-        Serial.println(F(" dBm"));
-    }
-    else if (state == RADIOLIB_ERR_RX_TIMEOUT)
-    {
-        // timeout occurred while waiting for a packet
-        Serial.println(F("timeout!"));
-    }
-    else if (state == RADIOLIB_ERR_CRC_MISMATCH)
-    {
-        // packet was received, but is malformed
-        Serial.println(F("CRC error!"));
-    }
-    else
-    {
-        // some other error occurred
-        Serial.print(F("failed, code "));
-        Serial.println(state);
-    }
+    //     // print RSSI (Received Signal Strength Indicator)
+    //     // of the last received packet
+    //     Serial.print(F("[RF69] RSSI:\t\t"));
+    //     Serial.print(radio.getRSSI());
+    //     Serial.println(F(" dBm"));
+    // }
+    // else if (state == RADIOLIB_ERR_RX_TIMEOUT)
+    // {
+    //     // timeout occurred while waiting for a packet
+    //     Serial.println(F("timeout!"));
+    // }
+    // else if (state == RADIOLIB_ERR_CRC_MISMATCH)
+    // {
+    //     // packet was received, but is malformed
+    //     Serial.println(F("CRC error!"));
+    // }
+    // else
+    // {
+    //     // some other error occurred
+    //     Serial.print(F("failed, code "));
+    //     Serial.println(state);
+    // }
 
-    // wait for a second before transmitting again
-    delay(1000);
+    // // wait for a second before transmitting again
+    // delay(1000);
 }

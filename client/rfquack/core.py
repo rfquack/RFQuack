@@ -22,8 +22,6 @@ this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
-import sys
-
 from google.protobuf.message import Message
 from loguru import logger
 from rfquack import topics
@@ -55,7 +53,8 @@ class ModuleInterface(object):
                     rfquack_pb2, argument_type[8:]
                 )  # Strip initial rfquack_
 
-                # If specified type has a single field named "value", directly assign the passed argument to it.
+                # If specified type has a single field named "value", directly
+                # assign the passed argument to it.
                 if (
                     len(protobuf_type.DESCRIPTOR.fields_by_name) == 1
                     and "value" in protobuf_type.DESCRIPTOR.fields_by_name
@@ -73,15 +72,24 @@ class ModuleInterface(object):
                         self._parse_attribute(x, protobuf_type),
                     )
 
+                self._help[cmd_name][
+                    "argument_description"
+                ] = protobuf_type.DESCRIPTOR.fields_by_name
+
             # Create a method accepting an argument:
 
             logger.debug("q.{}.{}() created.".format(self._module_name, cmd_name))
-            return
 
     def __dir__(self):
         return list(self._help.keys()) + ["help"]
 
+    def _describe_argument(self, descriptor):
+        for name, desc in descriptor.items():
+            print(f"\t\t{name}")
+
     def help(self):
+        """Print the help"""
+
         print(f"[yellow]Help for '{self._module_name}':\n")
         for cmd_name in self._help:
             cmd = self._help[cmd_name]
@@ -90,6 +98,8 @@ class ModuleInterface(object):
             print(f"> q.{self._module_name}.[red]{cmd_name}[/red]", end="")
             if cmd["cmd_type"] == rfquack_pb2.CmdInfo.CmdTypeEnum.METHOD:
                 print(f"([green]{cmd['argument_type']}[/green])")
+                if cmd.get("argument_description") is not None:
+                    self._describe_argument(cmd.get("argument_description"))
             else:
                 print(f" = [green]...[/green]")
 
@@ -120,10 +130,8 @@ class ModuleInterface(object):
         raise Exception("Don't know how to parse the input")
 
     def __setattr__(self, attr_name, value):
-
         if attr_name not in self._help.keys():
-            self.help()
-            return "'{}' not found".format(attr_name)
+            return f"'{attr_name}' not found: check the .help()"
 
         rfq = self._rfquack
         module_name = self._module_name
@@ -147,8 +155,7 @@ class ModuleInterface(object):
             return None
 
         if attr_name not in self._help.keys():
-            self.help()
-            return "'{}' not found".format(attr_name)
+            return f"'{attr_name}' not found: check the .help()"
 
         rfq = self._rfquack
         return rfq._get_module_value(self._module_name, attr_name)
@@ -179,7 +186,7 @@ class RFQuack(object):
         self._transport.init(
             on_message_callback=self._discovery_recv, prefix=topics.TOPIC_PREFIX_ANY
         )
-        sys.stdout.write("\n\n" "  Select a dongle typing: q.dongle(id)")
+        print("\n\n" "  Select a dongle typing: q.dongle(id)")
         self._set_module_value("ping", "ping", rfquack_pb2.VoidValue())
 
     def _discovery_recv(self, **kwargs):
@@ -196,12 +203,10 @@ class RFQuack(object):
         dongle_prefix = self._dongles.get(id)
 
         if dongle_prefix is None:
-            sys.stdout.write("Wrong dongle id")
+            print("[red]Wrong dongle id[/red]")
             return
 
-        sys.stdout.write(
-            "\n > You have selected dongle {}: {}\n\n".format(id, dongle_prefix)
-        )
+        print("\n > You have selected dongle {}: {}\n\n".format(id, dongle_prefix))
 
         # Delete any previously autoloaded module.
         for module_name in self._module_names:
@@ -259,9 +264,7 @@ class RFQuack(object):
             self.data.append(msg)
 
         if out:
-            sys.stdout.write("\n")
-            sys.stdout.write(out)
-            sys.stdout.write("\n")
+            print(f"[purple]{out}[/purple]")
 
     def exit(self):
         self._transport.end()

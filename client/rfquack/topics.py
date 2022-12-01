@@ -31,6 +31,7 @@ TOPIC_MODULE_PACKET_FILTER = b"packet_filter"
 
 
 TOPIC_PREFIX_ANY = b"any"
+TOPIC_PREFIX_LOG = "RFQK]"
 TOPIC_SEP = b"/"
 TOPIC_IN = b"in"
 TOPIC_OUT = b"out"
