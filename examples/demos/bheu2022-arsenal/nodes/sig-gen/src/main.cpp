@@ -68,7 +68,7 @@ void setup()
     //       second argument set to true.
 #ifdef RF69H
     Serial.print(F("[RF69] Setting high power module ... "));
-    state = radio.setOutputPower(17, true);
+    state = radio.setOutputPower(20, true);
     if (state == RADIOLIB_ERR_NONE)
     {
         Serial.println(F("success!"));

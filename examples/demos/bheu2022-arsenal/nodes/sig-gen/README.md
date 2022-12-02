@@ -1,11 +1,11 @@
 # A Mock IoT Node
 
-This example mocks a RF IoT node that transmits FSK-encoded data over a 433MHz carrier.
+This example mocks a RF IoT node that transmits FSK-encoded data over a 434MHz carrier using RadioLib's [default radio settings](https://github.com/jgromes/RadioLib/wiki/Default-configuration#overview).
 
 ## Hardware
 
 - Board: Wemos D1 Mini Lite
-- Radio: RF69HC 433MHz
+- Radio: RF69HC ~433MHz
 
 ## Connections
 

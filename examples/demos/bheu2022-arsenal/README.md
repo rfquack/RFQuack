@@ -2,33 +2,37 @@
 
 This folder contains notes and the code used to demonstrate RFQuack at Black Hat Europe 2022 (Arsenal).
 
-## RFQuack Dongle
+## RFQuack Dongles
+
+We'll use the following RFQuack dongles. Check the `build.env` file in each [dongles/](dongles/) subfolder, change the pin numbers according to your wiring, and copy it in the root of the RFQuack repository and you'll be ready to go.
+
+### Dongle 1: ESP32, dual RF69
 
 - Feather ESP32
-- Radio A: RFM69HW @ 433MHz
-  - CS: 13
-  - IRQ: 27
-  - RST: 15
-- Radio B: RFM69HW @ 433MHz
-  - CS: 33
-  - IRQ: 23
-  - RST: 27
+- Radio A: RFM69HW @ ~433MHz
+- Radio B: RFM69HW @ ~433MHz
 
-If you use these wirings, you can copy [this `build.env`](build.env) file in the root of the RFQuack repository and you'll be ready to go.
+### Dongle 2: ESP32, CC11-1
+
+- ESP32 Dev Kit V1
+- Radio A: CC1101 @ ~433MHz
+
+### Building the RFQuack Firmware
 
 ```shell
 git clone https://github.com/rfquack/rfquack
 poetry install
 cp examples/demos/bheu2022-arsenal/build.env .
-make clear flash
-make lsd  # take note of the serial port
+make clean flash
+make lsd      # take note of the serial port
+make console  # check for any errors, just in case
 ```
 
 ```shell
 poetry run rfq tty -P /dev/<your serial port>
 ```
 
-You should see two radios, `q.radioA` and `q.radioB` in the RFQuack shell.
+You should see the radios, `q.radioA` and/or `q.radioB` in the RFQuack shell.
 
 ## DEMO 1: Finding and Decoding a Signal
 
@@ -36,10 +40,8 @@ You should see two radios, `q.radioA` and `q.radioB` in the RFQuack shell.
 
 - signal generator node
   - this can be anyting (e.g., real device, SDR)
-  - for this demo we'll use a [separate dongle](sig-gen/) based on RadioLib, running a TX-wait-RX loop that transmits a simple 2-FSK beacon
+  - for this demo we'll use a [separate dongle](sig-gen/) based on RadioLib, running a TX loop that transmits a simple 2-FSK beacon
 - on the RFQuack dongle
-  - run frequency scanner module
-  - run guessing module
   - put RFQuack dongle in RX mode and sniff
 
 ## DEMO 2: Firmware Customization

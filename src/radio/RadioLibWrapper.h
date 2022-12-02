@@ -28,36 +28,40 @@ typedef uint8_t rfquack_register_value_t;
 
 extern QueueHandle_t queue; // Queue of incoming packets
 
-volatile bool _enableInterrupt = false;
-volatile bool _receivedFlag = false;
-volatile bool _transmittedFlag = false;
-volatile bool _canTransmit = false;
-
-#if defined(ESP8266) || defined(ESP32)
-  ICACHE_RAM_ATTR
-#endif
-void setReceivedFlag(void) {
-  if (!_enableInterrupt) {
-    return;
+class IRQ {
+public:
+  /* RX flag */
+  void disableReceivedFlag(void) { _receivedFlag = false; }
+  void setReceivedFlag(void) {
+    if (!_enableInterrupt) { return; }
+    _receivedFlag = true;
   }
 
-  _receivedFlag = true;
-}
-
-#if defined(ESP8266) || defined(ESP32)
-  ICACHE_RAM_ATTR
-#endif
-void setTransmittedFlag(void) {
-  if (!_enableInterrupt) {
-    return;
+  /* TX flag */
+  void disableTransmittedFlag(void) { _transmittedFlag = false; }
+  void setTransmittedFlag(void) {
+    if (!_enableInterrupt) { return; }
+    _transmittedFlag = true;
   }
 
-  _transmittedFlag = true;
+  /* IRQ flag */
+  void enableInterrupt(void) { _enableInterrupt = true; }
+  void disableInterrupt(void) { _enableInterrupt = false; }
+
+protected:
+    volatile bool _enableInterrupt = false;
+    volatile bool _receivedFlag = false;
+    volatile bool _transmittedFlag = false;
+    volatile bool _canTransmit = false;
+};
+
+void IRAM_ATTR radioInterrupt(void *flag) {
+  *((bool *) (flag)) = true;
 }
 
 template<typename T>
 
-class RadioLibWrapper : protected T {
+class RadioLibWrapper : protected T, protected IRQ {
 public:
     using T::getPacketLength;
 
@@ -98,25 +102,20 @@ public:
      * @return \ref status_codes
      */
     virtual int16_t receiveMode() {
-      if (_mode != rfquack_Mode_RX) {
-        // Set mode to RX.
-        _mode = rfquack_Mode_RX;
+      _mode = rfquack_Mode_RX;
 
-        RFQUACK_LOG_TRACE(F("Entering RX mode."))
+      RFQUACK_LOG_TRACE(F("Entering RX mode."))
 
-        // Register an interrupt routine to set flag when radio receives something.
-        setInterruptAction(setReceivedFlag);
-        _receivedFlag = false;
-        _enableInterrupt = true;
+      // Register an interrupt routine to set flag when radio receives something.
+      setRxInterruptAction(radioInterrupt);
+      disableReceivedFlag();
+      enableInterrupt();
 
-        // Start async RX
-        int16_t state = T::startReceive();
+      // Start async RX
+      int16_t state = T::startReceive();
 
-        if (state != RADIOLIB_ERR_NONE)
-          return state;
-      }
-
-      return RADIOLIB_ERR_NONE;
+      if (state != RADIOLIB_ERR_NONE)
+        return state;
     }
 
     /**
@@ -217,11 +216,11 @@ public:
       _canTransmit = false;
 
       // set ISR
-      setInterruptAction(setTransmittedFlag);
+      setTxInterruptAction(radioInterrupt);
 
       // set that we expect to finish TX
-      _transmittedFlag = false;
-      _enableInterrupt = true;
+      disableTransmittedFlag();
+      enableInterrupt();
 
       // Start async TX.
       int16_t state = T::startTransmit(data, len, 0); // 3rd param is not used.
@@ -310,10 +309,10 @@ public:
        if (_transmittedFlag) {
           // disable the interrupt service routine while
           // processing the data
-          _enableInterrupt = false;
+          disableInterrupt();
 
           // reset TX flag
-          _transmittedFlag = false;
+          disableTransmittedFlag();
 
           // clean up after transmission is finished
           // this will ensure transmitter is disabled,
@@ -333,10 +332,10 @@ public:
       if (isIncomingDataAvailable()) {
         // disable the interrupt service routine while
         // processing the data
-        _enableInterrupt = false;
+        disableInterrupt();
 
         // reset RX flag
-        _receivedFlag = false;
+        disableReceivedFlag();
 
         rfquack_Packet pkt = rfquack_Packet_init_zero;
 
@@ -348,6 +347,8 @@ public:
         if (result != RADIOLIB_ERR_NONE) {
           RFQUACK_LOG_ERROR(F("Error while reading data from driver, code=%d"), result);
         }
+
+        RFQUACK_LOG_TRACE(F("Putting radio back in RX"));
 
         // Put radio back in receiveMode.
         receiveMode();
@@ -710,11 +711,14 @@ public:
     }
 
     /**
-     * Sets callback on interrupt.
-     * 
-     * @param func
+     * Sets callback on RX interrupt.
      */
-    virtual void setInterruptAction(void (*func)(void)) = 0;
+    virtual void setRxInterruptAction(void (*func)(void *)) = 0;
+
+    /**
+     * Sets callback on end-of-TX interrupt.
+     */
+    virtual void setTxInterruptAction(void (*func)(void *)) = 0;
 
     virtual void removeInterrupts() = 0;
 

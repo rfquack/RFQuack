@@ -47,7 +47,7 @@ help: ## This help.
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 clean: ## Clean build environment
-	rm -f src/rfquack.pb.{h,c}
+	rm -f src/rfquack.pb.{h,c} src/main.cpp
 	rm -rf .pio
 
 docker-build-image: ## Build the container
