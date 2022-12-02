@@ -191,6 +191,7 @@ void rfquack_loop() {
   rfquack_network_loop();
 
   rfqRadio->rxLoop();
+  rfqRadio->txLoop();
 
   rfquack_transport_loop();
 

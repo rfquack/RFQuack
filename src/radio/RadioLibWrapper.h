@@ -28,33 +28,36 @@ typedef uint8_t rfquack_register_value_t;
 
 extern QueueHandle_t queue; // Queue of incoming packets
 
-class IRQ {
-public:
-    /**
-     * Used from IRQ to set flag and from wrapper to clean it.
-     * 
-     * @param flagValue
-     */
-    void setFlag(bool flagValue) {
-      _flag = flagValue;
-    }
+volatile bool _enableInterrupt = false;
+volatile bool _receivedFlag = false;
+volatile bool _transmittedFlag = false;
+volatile bool _canTransmit = false;
 
-protected:
-    volatile bool _flag;
-};
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
+void setReceivedFlag(void) {
+  if (!_enableInterrupt) {
+    return;
+  }
 
-/**
- * Interrupt routine used to set flag.
- * 
- * @param flag
- */
-void IRAM_ATTR radioInterrupt(void *flag) {
-  *((bool *) (flag)) = true;
+  _receivedFlag = true;
+}
+
+#if defined(ESP8266) || defined(ESP32)
+  ICACHE_RAM_ATTR
+#endif
+void setTransmittedFlag(void) {
+  if (!_enableInterrupt) {
+    return;
+  }
+
+  _transmittedFlag = true;
 }
 
 template<typename T>
 
-class RadioLibWrapper : protected IRQ, protected T {
+class RadioLibWrapper : protected T {
 public:
     using T::getPacketLength;
 
@@ -83,7 +86,6 @@ public:
      */
     virtual int16_t standbyMode() {
       _mode = rfquack_Mode_IDLE;
-      removeInterrupts();
 
       RFQUACK_LOG_TRACE(F("Entering STANDBY mode."))
 
@@ -102,14 +104,16 @@ public:
 
         RFQUACK_LOG_TRACE(F("Entering RX mode."))
 
+        // Register an interrupt routine to set flag when radio receives something.
+        setInterruptAction(setReceivedFlag);
+        _receivedFlag = false;
+        _enableInterrupt = true;
+
         // Start async RX
         int16_t state = T::startReceive();
+
         if (state != RADIOLIB_ERR_NONE)
           return state;
-
-        // Register an interrupt routine to set flag when radio receives something.
-        setFlag(false);
-        setInterruptAction(radioInterrupt);
       }
 
       return RADIOLIB_ERR_NONE;
@@ -124,13 +128,11 @@ public:
       // If we are not in TX mode, change mode and set flag (means channel is free)
       if (_mode != rfquack_Mode_TX) {
         _mode = rfquack_Mode_TX;
-        removeInterrupts();
-
-        // NOTE: In TX mode the flag is present (true) if TX channel is free to use.
-        setFlag(true);
 
         RFQUACK_LOG_TRACE(F("Entering TX mode."))
       }
+
+      _canTransmit = true;
 
       return RADIOLIB_ERR_NONE;
     }
@@ -152,6 +154,8 @@ public:
      * @return \ref status_codes
      */
     int16_t setMode(rfquack_Mode mode) {
+      RFQUACK_LOG_TRACE(F("setMode <- %d"), mode);
+
       switch (mode) {
         case rfquack_Mode_IDLE:
           return standbyMode();
@@ -199,7 +203,6 @@ public:
         // Check if timeout has reached.
         if (micros() - start >= 60000) {
           T::standby();
-          removeInterrupts();
 
           RFQUACK_LOG_TRACE(F("We have been waiting too long for channel to get free."))
           break;
@@ -209,25 +212,27 @@ public:
       }
 
       RFQUACK_LOG_TRACE(F("Channel is free, go ahead transmitting"))
+      
+      // mark TX as busy
+      _canTransmit = false;
 
-      // Remove flag (false), in TX mode this means "TX channel is busy"
-      RFQUACK_LOG_TRACE(F("Removing flag"))
-      setFlag(false);
+      // set ISR
+      setInterruptAction(setTransmittedFlag);
+
+      // set that we expect to finish TX
+      _transmittedFlag = false;
+      _enableInterrupt = true;
 
       // Start async TX.
       int16_t state = T::startTransmit(data, len, 0); // 3rd param is not used.
       if (state != RADIOLIB_ERR_NONE)
         return state;
 
-      // Register an interrupt, we'll use it to know when TX is over and channel gets free.
-      setInterruptAction(radioInterrupt);
-
       return RADIOLIB_ERR_NONE;
     }
 
     virtual bool isTxChannelFree() {
-      // TX Channel is free when "flag" is put back, this means that TX is over.
-      return _flag;
+      return _canTransmit;
     }
 
     /**
@@ -275,7 +280,7 @@ public:
         return false;
       }
 
-      return _flag;
+      return _receivedFlag;
     }
 
     /**
@@ -294,16 +299,29 @@ public:
         return ERR_WRONG_MODE;
       }
 
-      // Let's assume readData() call rate is so high that there's
-      // always at most a packet to read from radio.
-      setFlag(false);
-
-      // Shame on RadioLib, after readData driver resets interrupts and goes in STANDBY.
-      _mode = rfquack_Mode_IDLE;
-
       // Read data from fifo.
       return T::readData(data, len);
     }
+
+   /**
+    * Main transmit loop; check whether there's data being transmitted and clears IRQs.
+    */
+   void txLoop() {
+       if (_transmittedFlag) {
+          // disable the interrupt service routine while
+          // processing the data
+          _enableInterrupt = false;
+
+          // reset TX flag
+          _transmittedFlag = false;
+
+          // clean up after transmission is finished
+          // this will ensure transmitter is disabled,
+          // RF switch is powered down etc.
+          T::finishTransmit();
+          _canTransmit = true;
+       }
+   }
 
    /**
     * Main receive loop; reads any data from the RX FIFO and push it to the RX queue.
@@ -313,6 +331,13 @@ public:
    void rxLoop(Queue *rxQueue) {
       // Check if there's pending data on radio's RX FIFO.
       if (isIncomingDataAvailable()) {
+        // disable the interrupt service routine while
+        // processing the data
+        _enableInterrupt = false;
+
+        // reset RX flag
+        _receivedFlag = false;
+
         rfquack_Packet pkt = rfquack_Packet_init_zero;
 
         // Pop packet from RX FIFO.
@@ -689,7 +714,7 @@ public:
      * 
      * @param func
      */
-    virtual void setInterruptAction(void (*func)(void *)) = 0;
+    virtual void setInterruptAction(void (*func)(void)) = 0;
 
     virtual void removeInterrupts() = 0;
 

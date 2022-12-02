@@ -14,8 +14,12 @@ public:
   using RF69::setOutputPower;
   using RF69::setPreambleLength;
   using RF69::setPromiscuousMode;
+  using RF69::setFrequency;
+  using RF69::getFrequency;
   using RF69::setRxBandwidth;
   using RF69::variablePacketLengthMode;
+
+  using RadioLibWrapper::receiveMode;
 
   RFQRF69(Module *module) : RadioLibWrapper(module, "RF69") {}
 
@@ -46,6 +50,11 @@ public:
   int16_t getFrequency(float *freq) override
   {
     return RF69::getFrequency(freq);
+  }
+
+  int16_t getFrequencyDeviation(float *freq) override
+  {
+    return RF69::getFrequencyDeviation(freq);
   }
 
   int16_t setBitRate(float br) override
@@ -136,13 +145,13 @@ public:
     return RADIOLIB_ERR_NONE;
   }
 
-  int16_t receiveMode() override
-  {
-    if (_mode == rfquack_Mode_RX)
-      return RADIOLIB_ERR_NONE;
+  // int16_t receiveMode() override
+  // {
+  //   if (_mode == rfquack_Mode_RX)
+  //     return RADIOLIB_ERR_NONE;
 
-    return RF69::startReceive();
-  }
+  //   return RF69::startReceive();
+  // }
 
   bool isIncomingDataAvailable() override
   {
@@ -234,9 +243,10 @@ public:
     detachInterrupt(digitalPinToInterrupt(_mod->getIrq()));
   }
 
-  void setInterruptAction(void (*func)(void *)) override
+  void setInterruptAction(void (*func)(void)) override
   {
-    attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *)(&_flag), FALLING);
+    // attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *)(&_flag), FALLING);
+    attachInterrupt(digitalPinToInterrupt(_mod->getIrq()), func, RISING);
   }
 
 private:

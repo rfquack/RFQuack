@@ -4,14 +4,14 @@ This example mocks a RF IoT node that transmits FSK-encoded data over a 433MHz c
 
 ## Hardware
 
-- Board: Feather 32u4
-- Radio: RF69HW 433MHz
+- Board: Wemos D1 Mini Lite
+- Radio: RF69HC 433MHz
 
 ## Connections
 
-- CS pin: 10
-- DIO0 pin: 2
-- RESET pin: 3
+- CS pin: GPIO 15 (D8)
+- DIO0 pin: GPIO 5 (D1)
+- RESET pin: GPIO 4 (D2)
 
 ## Requirements
 

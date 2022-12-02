@@ -131,6 +131,20 @@ public:
 
 
     /**
+     * @brief Transmits any data.
+     *
+     */
+    void txLoop() {
+      // Fetch packets from radios RX FIFOs.
+      FOREACH_RADIO({ radio->txLoop(); })
+
+      // Check if any radio still has incoming data available.
+      bool aRadioNeedsCpuTime = false;
+      FOREACH_RADIO({
+                      if (!radio->isTxChannelFree()) aRadioNeedsCpuTime = true;
+                    })
+    }
+    /**
      * @brief Reads any data from radios to RX queue.
      *
      * We handle them one at a time, even if there are more than one in the queue.

@@ -61,7 +61,6 @@ public:
       data[length] = 0;
 
       // clear status bits
-      setFlag(false);
       _mod->SPIsetRegValue(
         RADIOLIB_NRF24_REG_STATUS, (
           RADIOLIB_NRF24_RX_DR | 
@@ -201,8 +200,8 @@ public:
       detachInterrupt(digitalPinToInterrupt(_mod->getIrq()));
     }
 
-    void setInterruptAction(void (*func)(void *)) override {
-      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_flag), FALLING);
+    void setInterruptAction(void (*func)(void)) override {
+      attachInterrupt(digitalPinToInterrupt(_mod->getIrq()), func, RISING);
     }
 private:
     // Config variables not provided by RadioLib, initialised with default values

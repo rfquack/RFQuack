@@ -22,9 +22,20 @@
 // RF69 has the following connections:
 
 // Radio A on feather32u4 - tested working with this wiring
-#define CS_PIN 13
-#define IRQ_PIN 11
-#define RST_PIN 9
+// #define CS_PIN 13
+// #define IRQ_PIN 11
+// #define RST_PIN 9
+
+// Radio A on featheresp32 - tested working with this wiring
+// #define CS_PIN 33
+// #define IRQ_PIN 23
+// #define RST_PIN 27
+
+// Radio on wemosd1minilite - tested working with this wiring
+#define CS_PIN 15
+#define IRQ_PIN 5
+#define RST_PIN 4
+#define RF69H
 
 RF69 radio = new Module(CS_PIN, IRQ_PIN, RST_PIN);
 
@@ -55,8 +66,9 @@ void setup()
     //       To configure RadioLib for these modules,
     //       you must call setOutputPower() with
     //       second argument set to true.
+#ifdef RF69H
     Serial.print(F("[RF69] Setting high power module ... "));
-    state = radio.setOutputPower(18, true);
+    state = radio.setOutputPower(17, true);
     if (state == RADIOLIB_ERR_NONE)
     {
         Serial.println(F("success!"));
@@ -68,7 +80,9 @@ void setup()
         while (true)
             ;
     }
+#endif
 }
+
 
 void loop()
 {
@@ -76,7 +90,10 @@ void loop()
 
     // you can transmit C-string or Arduino string up to 64 characters long
     String str;
-    int state = radio.transmit("Hello World!");
+    int state = 0;
+
+    // transmit
+    state = radio.transmit("Hello World!");
 
     // you can also transmit byte array up to 64 bytes long
     /*
@@ -104,43 +121,43 @@ void loop()
     // after 2s
     delay(2000);
 
-    // // start receiving
-    // state = radio.receive(str);
+    // start receiving
+    state = radio.receive(str);
 
-    // if (state == RADIOLIB_ERR_NONE)
-    // {
-    //     // packet was successfully received
-    //     Serial.println(F("success!"));
+    if (state == RADIOLIB_ERR_NONE)
+    {
+        // packet was successfully received
+        Serial.println(F("success!"));
 
-    //     // print the data of the packet
-    //     Serial.print(F("[RF69] Data:\t\t"));
-    //     Serial.println(str);
+        // print the data of the packet
+        Serial.print(F("[RF69] Data:\t\t"));
+        Serial.println(str);
 
-    //     // TODO compare with secret here
+        // TODO compare with secret here
 
-    //     // print RSSI (Received Signal Strength Indicator)
-    //     // of the last received packet
-    //     Serial.print(F("[RF69] RSSI:\t\t"));
-    //     Serial.print(radio.getRSSI());
-    //     Serial.println(F(" dBm"));
-    // }
-    // else if (state == RADIOLIB_ERR_RX_TIMEOUT)
-    // {
-    //     // timeout occurred while waiting for a packet
-    //     Serial.println(F("timeout!"));
-    // }
-    // else if (state == RADIOLIB_ERR_CRC_MISMATCH)
-    // {
-    //     // packet was received, but is malformed
-    //     Serial.println(F("CRC error!"));
-    // }
-    // else
-    // {
-    //     // some other error occurred
-    //     Serial.print(F("failed, code "));
-    //     Serial.println(state);
-    // }
+        // print RSSI (Received Signal Strength Indicator)
+        // of the last received packet
+        Serial.print(F("[RF69] RSSI:\t\t"));
+        Serial.print(radio.getRSSI());
+        Serial.println(F(" dBm"));
+    }
+    else if (state == RADIOLIB_ERR_RX_TIMEOUT)
+    {
+        // timeout occurred while waiting for a packet
+        Serial.println(F("timeout!"));
+    }
+    else if (state == RADIOLIB_ERR_CRC_MISMATCH)
+    {
+        // packet was received, but is malformed
+        Serial.println(F("CRC error!"));
+    }
+    else
+    {
+        // some other error occurred
+        Serial.print(F("failed, code "));
+        Serial.println(state);
+    }
 
-    // // wait for a second before transmitting again
-    // delay(1000);
+    // wait for a second before transmitting again
+    delay(1000);
 }
