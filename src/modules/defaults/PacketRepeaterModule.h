@@ -17,6 +17,7 @@ public:
 
     bool afterPacketReceived(rfquack_Packet &pkt, rfquack_WhichRadio whichRadio) override {
       pkt.repeat = repeat;
+      pkt.has_repeat = true;
 
       // Set radio in TX mode
       if (rfqRadio->getMode(repeatRadio) != rfquack_Mode_TX) {

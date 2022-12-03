@@ -201,11 +201,11 @@ public:
     }
 
     void setRxInterruptAction(void (*func)(void *)) {
-      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_receivedFlag), RISING);
+      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_receivedFlag), FALLING);
     }
 
     void setTxInterruptAction(void (*func)(void *)) {
-      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_transmittedFlag), RISING);
+      attachInterruptArg(digitalPinToInterrupt(_mod->getIrq()), func, (void *) (&_transmittedFlag), FALLING);
     }
 private:
     // Config variables not provided by RadioLib, initialised with default values
