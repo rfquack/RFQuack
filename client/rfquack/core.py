@@ -22,11 +22,26 @@ this program; if not, write to the Free Software Foundation, Inc., 51 Franklin
 Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
 
+import ctypes
+import inspect
+
 from google.protobuf.message import Message
 from loguru import logger
 from rfquack import topics
 from rfquack.src import rfquack_pb2
 from rich import print
+
+PBUF_TYPES = {
+    1: ctypes.c_int32,
+    2: ctypes.c_int64,
+    3: ctypes.c_uint32,
+    4: ctypes.c_uint64,
+    5: ctypes.c_double,
+    6: ctypes.c_float,
+    7: ctypes.c_bool,
+    8: ctypes.c_int,  # enum
+    9: str,
+}
 
 
 class ModuleInterface(object):
@@ -34,6 +49,20 @@ class ModuleInterface(object):
         self.__dict__["_rfquack"] = rfq
         self.__dict__["_module_name"] = module_name
         self.__dict__["_help"] = dict()
+
+    def _make_sig(self, protobuf_type):
+        sig = inspect.Signature(
+            parameters=[
+                inspect.Parameter(
+                    name=name,
+                    kind=inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    annotation=PBUF_TYPES.get(desc.type, inspect.Parameter.empty),
+                )
+                for name, desc in protobuf_type.DESCRIPTOR.fields_by_name.items()
+            ]
+        )
+
+        return sig
 
     def _set_autocompletion(self, cmd_name, cmd_type, argument_type, description):
         self._help[cmd_name] = dict(
@@ -58,26 +87,29 @@ class ModuleInterface(object):
                 if (
                     len(protobuf_type.DESCRIPTOR.fields_by_name) == 1
                     and "value" in protobuf_type.DESCRIPTOR.fields_by_name
-                ):
+                ):  # q.<module_name>.<method_name> = arg
+                    self.__dict__[cmd_name] = lambda arg: rfq._set_module_value(
+                        self._module_name,
+                        cmd_name,
+                        self._parse_attribute(arg, protobuf_type),
+                    )
+                else:  # q.<module_name>.<method_name>(**args)
+                    self.__dict__[cmd_name] = lambda **args: rfq._set_module_value(
+                        self._module_name,
+                        cmd_name,
+                        self._parse_attribute(args, protobuf_type),
+                    )
+                    self.__dict__[cmd_name].__signature__ = self._make_sig(
+                        protobuf_type
+                    )
 
-                    self.__dict__[cmd_name] = lambda x: rfq._set_module_value(
-                        self._module_name,
-                        cmd_name,
-                        self._parse_attribute(x, protobuf_type),
-                    )
-                else:
-                    self.__dict__[cmd_name] = lambda **x: rfq._set_module_value(
-                        self._module_name,
-                        cmd_name,
-                        self._parse_attribute(x, protobuf_type),
-                    )
+                self.__dict__[cmd_name].__doc__ = description
 
                 self._help[cmd_name][
                     "argument_description"
                 ] = protobuf_type.DESCRIPTOR.fields_by_name
 
             # Create a method accepting an argument:
-
             logger.debug("q.{}.{}() created.".format(self._module_name, cmd_name))
 
     def __dir__(self):
