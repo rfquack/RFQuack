@@ -19,6 +19,6 @@ try:
 except Exception as e:
     print(f"Could not delete {main_cpp}: {e}")
 
-cmd = f"j2 {main_cpp_j2} {build_env} > {main_cpp}"
+cmd = f"j2 -f env {main_cpp_j2} {build_env} > {main_cpp}"
 
 env.Execute(cmd)
