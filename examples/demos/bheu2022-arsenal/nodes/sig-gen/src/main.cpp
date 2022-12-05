@@ -203,7 +203,7 @@ void loop()
 
         if (check_secret_content(str.c_str(), rand_tx.c_str()) == 0)
         {
-            blinkLed();
+            blinkLed();  // simulating an actuator
         }
 
         // print RSSI (Received Signal Strength Indicator)
