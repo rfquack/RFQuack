@@ -92,10 +92,10 @@ SPISettings spiSettings(1000000, MSBFIRST, SPI_MODE0);
 #define USE_RADIOA
 typedef RFQ{{ RADIOA }} RadioA;
 RadioA radioA = new Module(
-  {{ RADIOA_CS }},
-  {{ RADIOA_IRQ }},
-  {{ RADIOA_RST|default('RADIOLIB_NC') }},
-  {{ RADIOA_GPIO|default('RADIOLIB_NC') }}
+  {{ RADIOA_CS }},  // CS
+  {{ RADIOA_IRQ }}, // IRQ
+  {{ RADIOA_RST|default('RADIOLIB_NC') }},  // RST or CE
+  {{ RADIOA_GPIO|default('RADIOLIB_NC') }}  // extra GPIO
 
 {% if ECRF is defined %}
   , SPIH, spiSettings
@@ -107,10 +107,10 @@ RadioA radioA = new Module(
 #define USE_RADIOB
 typedef RFQ{{ RADIOB }} RadioB;
 RadioB radioB = new Module(
-  {{ RADIOB_CS|default('RADIOLIB_NC') }},
-  {{ RADIOB_IRQ|default('RADIOLIB_NC') }},
-  {{ RADIOB_RST|default('RADIOLIB_NC') }},
-  {{ RADIOA_GPIO|default('RADIOLIB_NC') }}
+  {{ RADIOB_CS|default('RADIOLIB_NC') }},  // CS
+  {{ RADIOB_IRQ|default('RADIOLIB_NC') }},  // IRQ
+  {{ RADIOB_RST|default('RADIOLIB_NC') }},  // RST or CE
+  {{ RADIOB_GPIO|default('RADIOLIB_NC') }}  // extra GPIO
 
 {% if ECRF is defined %}
   , SPIH, spiSettings
@@ -123,10 +123,10 @@ RadioB radioB = new Module(
 #define USE_RADIOC
 typedef RFQ{{ RADIOC }} RadioC;
 RadioC radioC = new Module(
-  {{ RADIOC_CS|default('RADIOLIB_NC') }},
-  {{ RADIOC_IRQ|default('RADIOLIB_NC') }},
-  {{ RADIOC_RST|default('RADIOLIB_NC') }},
-  {{ RADIOA_GPIO|default('RADIOLIB_NC') }}
+  {{ RADIOC_CS|default('RADIOLIB_NC') }},  // CS
+  {{ RADIOC_IRQ|default('RADIOLIB_NC') }}, // IRQ
+  {{ RADIOC_RST|default('RADIOLIB_NC') }},  // RST or CE
+  {{ RADIOC_GPIO|default('RADIOLIB_NC') }}  // extra GPIO
 
 {% if ECRF is defined %}
   , SPIH, spiSettings
@@ -139,10 +139,10 @@ RadioC radioC = new Module(
 #define USE_RADIOD
 typedef RFQ{{ RADIOD }} RadioD;
 RadioD radioD = new Module(
-  {{ RADIOD_CS|default('RADIOLIB_NC') }},
-  {{ RADIOD_IRQ|default('RADIOLIB_NC') }},
-  {{ RADIOD_RST|default('RADIOLIB_NC') }},
-  {{ RADIOA_GPIO|default('RADIOLIB_NC') }}
+  {{ RADIOD_CS|default('RADIOLIB_NC') }}, // CS
+  {{ RADIOD_IRQ|default('RADIOLIB_NC') }},  // IRQ
+  {{ RADIOD_RST|default('RADIOLIB_NC') }},  // RST or CE
+  {{ RADIOD_GPIO|default('RADIOLIB_NC') }}  // extra GPIO
 
 {% if ECRF is defined %}
   , SPIH, spiSettings
@@ -155,10 +155,10 @@ RadioD radioD = new Module(
 #define USE_RADIOE
 typedef RFQ{{ RADIOE }} RadioE;
 RadioE radioE = new Module(
-  {{ RADIOE_CS|default('RADIOLIB_NC') }},
-  {{ RADIOE_IRQ|default('RADIOLIB_NC') }},
-  {{ RADIOE_RST|default('RADIOLIB_NC') }},
-  {{ RADIOA_GPIO|default('RADIOLIB_NC') }}
+  {{ RADIOE_CS|default('RADIOLIB_NC') }},  // CS
+  {{ RADIOE_IRQ|default('RADIOLIB_NC') }},  // IRQ
+  {{ RADIOE_RST|default('RADIOLIB_NC') }},  // RST or CE
+  {{ RADIOE_GPIO|default('RADIOLIB_NC') }}  // extra GPIO
 
 {% if ECRF is defined %}
   , SPIH, spiSettings
@@ -174,10 +174,16 @@ RadioE radioE = new Module(
 void setup() {
   {% if ECRF is defined %}
   SPIH.begin();
+
+  // reset Radio A 
   pinMode({{ RADIOA_CS }}, OUTPUT);
   digitalWrite({{ RADIOA_CS }}, 1);
+
+  // reset Radio B
   pinMode({{ RADIOB_CS }}, OUTPUT);
   digitalWrite({{ RADIOB_CS }}, 1);
+  
+  // TODO: reset Radio C
   {% endif %}
 
   rfquack_setup(
