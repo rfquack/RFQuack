@@ -70,7 +70,7 @@ loguru = "^0.6.0"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.4"
-black = "^22.10.0"
+black = "^24.3.0"
 isort = "^5.10.1"
 mypy = "^0.991"
 pylint = "^2.15.5"
