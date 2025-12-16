@@ -1,0 +1,7 @@
+{
+  "name": "RFQuack",
+  "build": {
+    "dockerfile": "Containerfile",
+    "context": ".."
+  }
+}

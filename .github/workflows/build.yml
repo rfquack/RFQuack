@@ -25,6 +25,8 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Install deps
         run: |
-          /bin/sh docker/deps/python/packages.sh
+          pip install --no-cache-dir poetry
+          poetry config virtualenvs.create false
+          poetry install --no-root
       - name: Run PlatformIO
-        run: make clean build
+        run: pio run

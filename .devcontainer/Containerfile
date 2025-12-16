@@ -1,0 +1,15 @@
+FROM docker.io/python:3.10-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  git \
+  wget \
+  unzip \
+  make
+
+WORKDIR /app
+
+COPY poetry.lock poetry.toml pyproject.toml .
+RUN pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false && \
+    poetry install --no-root && \
+    rm -rf ~/.cache

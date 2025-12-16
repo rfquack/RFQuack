@@ -1,0 +1,7 @@
+# Ignore everything
+*
+
+# Expect
+!poetry.lock
+!poetry.toml
+!pyproject.toml

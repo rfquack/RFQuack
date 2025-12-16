@@ -10,7 +10,7 @@ Import("env")
 project_dir = env.subst("$PROJECT_DIR")
 src_dir = os.path.join(project_dir, "src")
 build_env = os.path.join(project_dir, "build.env")
-main_cpp_j2 = os.path.join(project_dir, "docker", "project", "src", "main.cpp.j2")
+main_cpp_j2 = os.path.join(project_dir, "src", "main.cpp.j2")
 main_cpp = os.path.join(src_dir, "main.cpp")
 
 try:
